@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "My Frontier",
+    "slug": "myfrontier",
+    "version": "1.0.0",
+    "description": "Personalized ETF portfolio builder powered by Nobel Prize-winning optimization theory. Not financial advice.",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1f3a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.myfrontier.app"
+    },
+    "android": {
+      "package": "com.myfrontier.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1f3a"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "privacy": "https://myfrontierapp.com/privacy",
+    "extra": {
+      "keywords": ["ETF", "investing", "portfolio", "stocks", "finance", "retirement"]
+    },
+    "plugins": [
+      "expo-dev-client",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-8834917370871405~7924668226",
+          "iosAppId": "ca-app-pub-8834917370871405~7924668226"
+        }
+      ]
+    ]
+  }
+}

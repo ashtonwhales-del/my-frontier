@@ -1,0 +1,10 @@
+yfinance
+pandas
+numpy
+riskfolio-lib
+cvxpy
+fastapi
+uvicorn
+curl_cffi>=0.6.0
+python-dotenv
+requests

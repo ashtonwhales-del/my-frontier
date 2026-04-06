@@ -1,0 +1,8 @@
+.env
+__pycache__/
+price_cache.pkl
+*.pyc
+node_modules/
+.expo/
+dist/
+logs/

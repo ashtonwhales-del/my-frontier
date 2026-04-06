@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx expo:*)",
+      "Bash(npx create-expo-app:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e \"const pkg = require\\(''''./node_modules/@react-navigation/native/lib/commonjs/index.js''''\\); console.log\\(Object.keys\\(pkg\\).filter\\(k => k.toLowerCase\\(\\).includes\\(''''safe''''\\) || k.toLowerCase\\(\\).includes\\(''''screen''''\\)\\)\\)\")",
+      "Bash(find W:/MyFrontier/mobile -name *.tsx -not -path */node_modules/*)",
+      "Bash(python -c \"from optimizer import SECTOR_TO_ETFS; [print\\(repr\\(k\\)\\) for k in sorted\\(SECTOR_TO_ETFS.keys\\(\\)\\)]\")",
+      "Bash(pip install:*)",
+      "Bash(python -c \"from optimizer import download_10y_prices, build_universe; prices = download_10y_prices\\([''VTI'',''QQQ'',''SPY'']\\); print\\(''SUCCESS:'', prices.shape\\)\")",
+      "Bash(ipconfig)",
+      "Bash(python -c \"import py_compile; py_compile.compile\\(''optimizer.py'', doraise=True\\); print\\(''optimizer.py: OK''\\)\")",
+      "Bash(python -c \"import py_compile; py_compile.compile\\(''api.py'', doraise=True\\); print\\(''api.py: OK''\\)\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\(''etf_universe_extra.json''\\)\\); cats=[k for k in d if not k.startswith\\(''_''\\)]; print\\(f''etf_universe_extra.json: OK — {len\\(cats\\)} categories''\\); bad=[k for k in cats if len\\(d[k]\\)<3]; print\\(f''Thin sectors \\(< 3 ETFs\\): {bad if bad else \"\"none\"\"}''\\)\")",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''Expo SDK:'''', d.get\\(''''dependencies'''',{}\\).get\\(''''expo'''',''''''''\\)\\); print\\(''''RN:'''', d.get\\(''''dependencies'''',{}\\).get\\(''''react-native'''',''''''''\\)\\); print\\(''''Nav:'''', d.get\\(''''dependencies'''',{}\\).get\\(''''@react-navigation/stack'''',''''''''\\)\\)\")",
+      "Bash(python -c \"import sys; print\\(''''Python:'''', sys.version.split\\(\\)[0]\\)\")",
+      "Bash(grep -n \"WealthTracker\\\\|MyPortfolio\\\\|SavedPortfolio\\\\|Welcome\\\\|Home\\\\|Landing\\\\|money.*become\\\\|projection\\\\|WealthTracker\" W:/MyFrontier/mobile/src/screens/*.tsx)",
+      "Bash(python -c \":*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(python -c \"import riskfolio as rp; print\\(rp.__version__\\)\")",
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(python -W ignore -c \":*)",
+      "Read(//mnt/w/**)"
+    ]
+  }
+}

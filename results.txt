@@ -1,0 +1,115 @@
+═══════════════════════════════════════
+👋 HI INVESTOR! HERE IS YOUR FRONTIERFI REPORT
+═══════════════════════════════════════
+
+⚖️  FRIENDLY LEGAL DISCLAIMER (PLEASE READ)
+FrontierFi is for educational and informational purposes only.
+- This is NOT financial advice
+- FrontierFi is NOT a registered investment advisor
+- Past performance does NOT guarantee future results
+- All investing involves risk including possible loss of principal
+- This tool does not know your full situation (taxes, debt, goals, income, etc.)
+- Always consider talking to a licensed financial advisor
+- Do not invest money you cannot afford to lose
+
+🎯 YOUR INVESTMENT PROFILE
+- You care about: AI & Technology, Healthcare & Biotech
+- Your risk comfort: 🟡 Moderate
+- You are investing: $1,000.00 One-Time Investment + $0.00/week
+- Your goal: retirement planning
+- Your current age: 30
+
+📊 YOUR PORTFOLIO HEALTH SCORE
+- Smart Score: 5.7/10 ✅ — This measures how much return you get for the risk you take. Higher is better. Anything above 7 is excellent.
+- Risk Score: 18% — In any given year your portfolio has historically swung up OR down by this percentage. On your $1,000.00 One-Time Investment that means you could gain $184.15 or lose $184.15 in a single year. The higher this number, the wilder the ride.
+- Expected Growth: 14.9% per year on average
+- Letter Grade: C
+- Diversification Score: 10.0/10
+
+💼 YOUR RECOMMENDED ETFs
+✅ Vanguard Total Stock Market Index Fund ETF Shares (VTI) — The fund employs an indexing investment approach designed to track the performance of the index, which represents approximately 100% of the investable U.S. stock market and includes large-, mid-, small-, and micro-cap stocks regularly traded on the New York Stock Exchange and Nasdaq.
+   🏢 You are investing in companies like: NVIDIA Corp, Apple Inc, Microsoft Corp
+   📈 Recommended Split: 10.0% = $99.85 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 16.4% per year over the available history
+
+✅ Invesco QQQ Trust (QQQ) — To maintain the correspondence between the composition and weights of the securities in the trust (the "securities") and the stocks in the NASDAQ-100 Index®, the adviser adjusts the securities from time to time to conform to periodic changes in the identity and/or relative weights of index securities. The composition a...
+   🏢 You are investing in companies like: NVIDIA Corp, Apple Inc, Microsoft Corp
+   📈 Recommended Split: 10.0% = $100.10 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 22.9% per year over the available history
+
+✅ State Street SPDR S&P 500 ETF Trust (SPY) — The trust seeks to achieve its investment objective by holding a portfolio of the common stocks that are included in the index (the “Portfolio”), with the weight of each stock in the Portfolio substantially corresponding to the weight of such stock in the index.
+   🏢 You are investing in companies like: NVIDIA Corp, Apple Inc, Microsoft Corp
+   📈 Recommended Split: 10.0% = $100.10 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 16.8% per year over the available history
+
+✅ Vanguard Small-Cap Index Fund ETF Shares (VB) — The fund advisor employs an indexing investment approach designed to track the performance of the CRSP US Small Cap Index, a broadly diversified index of stocks of small U.S. companies.
+   🏢 You are investing in companies like: SanDisk Corp Ordinary Shares, Comfort Systems USA Inc, Lumentum Holdings Inc
+   📈 Recommended Split: 9.9% = $99.35 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 13.3% per year over the available history
+
+✅ SPDR Gold Shares (GLD) — The Trust holds gold bars and from time to time, issues Baskets in exchange for deposits of gold and distributes gold in connection with redemptions of Baskets. The investment objective of the Trust is for the Shares to reflect the performance of the price of gold bullion, less the Trust’s expenses.
+   📈 Recommended Split: 9.9% = $98.88 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 20.7% per year over the available history
+
+✅ Vanguard FTSE Developed Markets Index Fund ETF Shares (VEA) — The fund employs an indexing investment approach designed to track the performance of the FTSE Developed All Cap ex U.S. Index, a market-capitalization-weighted index that is made up of approximately 3,957 common stocks of large-, mid-, and small-cap companies located in Canada and the major markets of Europe and the P...
+   🏢 You are investing in companies like: Samsung Electronics Co Ltd, ASML Holding NV, SK Hynix Inc
+   📈 Recommended Split: 9.8% = $97.88 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 12.1% per year over the available history
+
+✅ Vanguard Health Care Index Fund ETF Shares (VHT) — The fund employs an indexing investment approach designed to track the performance of the index, an index made up of stocks of large, mid-size, and small U.S. companies within the health care sector, as classified under the GICS.
+   🏢 You are investing in companies like: Eli Lilly and Co, Johnson & Johnson, AbbVie Inc
+   📈 Recommended Split: 9.7% = $97.38 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 10.3% per year over the available history
+
+✅ State Street SPDR S&P MIDCAP 400 ETF Trust (MDY) — The Trust seeks to achieve its investment objective by holding a portfolio of the common stocks that are included in the index (the “Portfolio”), with the weight of each stock in the Portfolio substantially corresponding to the weight of such stock in the index.
+   🏢 You are investing in companies like: Lumentum Holdings Inc, Coherent Corp, TechnipFMC PLC
+   📈 Recommended Split: 9.8% = $98.38 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 13.7% per year over the available history
+
+✅ iShares Core S&P Small-Cap ETF (IJR) — The index measures the performance of the small-capitalization sector of the U.S. equity market, as determined by SPDJI.
+   🏢 You are investing in companies like: BlackRock Cash Funds Treasury SL Agency, Solstice Advanced Materials Inc, Moog Inc Class A
+   📈 Recommended Split: 9.1% = $91.09 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 13.1% per year over the available history
+
+✅ Vanguard Emerging Markets Stock Index Fund (VWO) — The index measures the investment return of stocks issued by companies located in emerging market countries. The fund employs an indexing investment approach designed to track the performance of the FTSE Emerging Markets All Cap China A Inclusion Index.
+   🏢 You are investing in companies like: Taiwan Semiconductor Manufacturing Co Ltd, Tencent Holdings Ltd, Alibaba Group Holding Ltd Ordinary Shares
+   📈 Recommended Split: 6.2% = $61.90 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 9.2% per year over the available history
+
+✅ iShares Biotechnology ETF (IBB) — The fund generally will invest at least 80% of its assets in the component securities of its underlying index and may invest up to 20% of its assets in certain futures, options and swap contracts, cash and cash equivalents. It is more concentrated than most funds.
+   🏢 You are investing in companies like: Gilead Sciences Inc, Vertex Pharmaceuticals Inc, Amgen Inc
+   📈 Recommended Split: 4.5% = $45.08 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 10.4% per year over the available history
+
+✅ Schwab U.S. Small-Cap ETF (SCHA) — To pursue its goal, the fund generally invests in stocks that are included in the index. The index includes the small-cap portion of the Dow Jones U.S.
+   🏢 You are investing in companies like: SanDisk Corp Ordinary Shares, Lumentum Holdings Inc, ATI Inc
+   📈 Recommended Split: 1.0% = $10.01 one-time / $0.00 weekly
+   📊 Historical Performance: Averaged 13.3% per year over the available history
+
+💰 WHAT YOUR MONEY COULD BECOME
+- At age 40 (10 years): $3,079 (conservative) → $4,046 (optimistic)
+- At age 50 (20 years): $9,480 (conservative) → $16,367 (optimistic)
+- At age 59.5 (29.5 years - TAX FREE WITHDRAWAL AGE): $27,593 (conservative) → $61,743 (optimistic)
+
+Note: Age 59.5 is when you can withdraw from retirement accounts like a Roth IRA or 401k without paying a 10% early withdrawal penalty. If you invest through a regular brokerage account this restriction does not apply.
+
+🎉 RETIREMENT GOAL: If you stay consistent, by the time you're 59 you could have $0.03 million. That means you could withdraw about $92 per month forever without touching your principal (using the 4% rule).
+
+🌟 WHY WE PICKED THESE FOR YOU
+We focused on the categories you chose (AI & Technology, Healthcare & Biotech), then looked for funds that historically offered strong growth for the amount of risk you're comfortable taking.
+We also capped your Risk Score at 20% so the ride stays more reasonable for everyday investors.
+
+📋 IMPORTANT REMINDERS
+- Diversification does not guarantee profit or protect against loss
+- ETF data is sourced from Yahoo Finance — verify all information independently
+- Rebalance at least once per year (a simple calendar reminder works)
+- Consider your full financial picture before investing
+
+🔄 SUGGESTED NEXT STEPS:
+1. Open a brokerage account (Fidelity, Schwab, or Robinhood are beginner friendly)
+2. Search for each ETF ticker symbol listed above
+3. Invest your recommended amounts
+4. Set a calendar reminder to review this portfolio in 12 months
+5. Consider speaking with a licensed financial advisor
+
+Saved your report to: W:\MyFrontier\results.txt
