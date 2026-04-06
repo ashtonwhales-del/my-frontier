@@ -7,9 +7,10 @@ import { APP_SECRET } from './constants';
 // Install via: npx expo install @react-native-community/netinfo
 import NetInfo from '@react-native-community/netinfo';
 
-// IP is set in mobile/.env as EXPO_PUBLIC_API_URL — edit that file when your IP changes.
-// Never change this line directly. Fallback keeps dev working if .env is missing.
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.1.60:8000';
+// Production: Railway backend — update .env when URL changes.
+// EXPO_PUBLIC_API_URL is set in mobile/.env — edit that file, never this line directly.
+// Fallback matches the current production URL so the app works even if .env is missing.
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://web-production-3f67e.up.railway.app';
 const TIMEOUT_MS = 30_000;
 const OPTIMIZE_TIMEOUT_MS = 120_000; // portfolio calc can take up to 2 minutes
 
