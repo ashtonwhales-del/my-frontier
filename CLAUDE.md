@@ -663,3 +663,19 @@ both operations.
 | `CLAUDE.md` | Added **300-line hard limit** rule for all `mobile/src` files. Added `results/` sub-directory to repository layout. |
 
 *Last updated: 2026-04-06 — Phase 8 ResultsScreen split complete.*
+
+---
+
+## Phase 9 Changes — Polish Sprint (2026-04-06)
+
+| File | What changed |
+|------|-------------|
+| `mobile/src/components/results/ETFDescriptions.ts` | Rewrote **all** `ETF_DESCRIPTIONS` entries with a strict 3-part format: (1) what it owns, (2) top 5 holdings by company name (never ticker), (3) why a beginner would want it. Added `ARKQ`, `ROBT`, `QTEC`, `IGV` descriptions + `ETF_ROLE` entries. |
+| `mobile/src/components/results/ProjectionsSection.tsx` | Changed projection intro from `/month` (derived from weekly×52/12) to `/week` (direct from `profile.weekly_contribution`). Label now reads "per week". |
+| `mobile/src/screens/ResultsScreen.tsx` | "Set Up Auto-Invest →" button now navigates to `PremiumScreen` instead of showing an Alert. Comment added: `// Auto-Invest locked behind premium`. |
+| `mobile/src/screens/ResultsScreen.tsx` | Loading state replaced with new `LoadingCalculation` full-screen dark overlay component. `SkeletonResults` removed from loading path. |
+| `mobile/src/components/LoadingCalculation.tsx` | **Created.** Full-screen dark loading overlay with spinning animation, rotating tip messages (6 tips, 4-second intervals with fade), animated dot progress indicator, and `AdBanner` at bottom for ad impressions during wait. |
+| `optimizer.py` | Added `"Quantum Computing"` to `SECTOR_TO_ETFS` with 6 ETFs: QTUM, QTEC, ARKQ, BOTZ, ROBT, IGV. |
+| `etf_universe_extra.json` | Added `"Quantum Computing": ["QTUM", "QTEC", "ARKQ", "BOTZ", "ROBT", "IGV"]`. |
+| `mobile/src/screens/CategoriesScreen.tsx` | Added `'Quantum Computing': '🔬'` to `CATEGORY_ICONS` and `'Quantum Computing': '#7C3AED'` to `CATEGORY_ACCENTS`. |
+| `mobile/src/screens/OnboardingScreen.tsx` | Rewrote all 3 slides: Slide 1 — "Investing, finally made simple." + Efficient Frontier copy; Slide 2 — "How we build your portfolio" with emoji steps (🎯🧮📊); Slide 3 — "Built for real people, not Wall Street." with 4 promise bullets. CTA changed to "Build My Portfolio →". |

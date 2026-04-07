@@ -184,5 +184,6 @@
   "Pet Care": ["PAWZ", "VDC", "XLP"],
   "Veterinary": ["PAWZ", "IHI", "XLV"],
   "Millennials": ["MILN", "ARKW", "XLC"],
-  "Gen Z": ["QQQ", "VTI", "ARKK"]
+  "Gen Z": ["QQQ", "VTI", "ARKK"],
+  "Quantum Computing": ["QTUM", "QTEC", "ARKQ", "BOTZ", "ROBT", "IGV"]
 }

@@ -137,29 +137,28 @@ export default function OnboardingScreen({ navigation }: Props) {
         scrollEventThrottle={16}
         style={styles.scrollView}
       >
-        {/* Slide 1 — Welcome */}
+        {/* Slide 1 — The Vision */}
         <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
           <LogoMark />
-          <Text style={styles.slideTitle}>Welcome to{'\n'}My Frontier</Text>
+          <Text style={styles.slideTitle}>Investing, finally{'\n'}made simple.</Text>
           <Text style={styles.slideSubtitle}>
-            Build a personalized investment portfolio in minutes, using the same Nobel
-            Prize-winning optimization theory as professional fund managers.
+            My Frontier uses the same math that Wall Street hedge funds use — called the
+            Efficient Frontier — and puts it in your hands for free.
           </Text>
         </View>
 
-        {/* Slide 2 — How it works */}
+        {/* Slide 2 — How we build your portfolio */}
         <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
-          <Text style={styles.slideTitleNoTop}>How It Works</Text>
-          <Text style={styles.slideSubtitle}>Three simple steps to your portfolio:</Text>
+          <Text style={styles.slideTitleNoTop}>How we build{'\n'}your portfolio</Text>
           <View style={styles.stepsContainer}>
             {[
-              { num: '1', title: 'Choose your interests', desc: 'Pick the ETF categories that match your goals — tech, clean energy, real estate, and more.' },
-              { num: '2', title: 'Set your comfort level', desc: 'Tell us how much risk you\'re comfortable with, from very conservative to very aggressive.' },
-              { num: '3', title: 'Get your portfolio', desc: 'We fetch 10 years of real market data and run mean-variance optimization to build your personal allocation.' },
+              { emoji: '🎯', title: 'Pick your interests', desc: 'Choose the sectors you believe in — tech, clean energy, real estate, and more.' },
+              { emoji: '🧮', title: 'We run the math', desc: 'Our optimizer finds the best risk-adjusted allocation using 10 years of real market data.' },
+              { emoji: '📊', title: 'Get your portfolio', desc: 'A personalized ETF portfolio built just for you. No guessing. No bias. Just math.' },
             ].map(step => (
-              <View key={step.num} style={styles.stepRow}>
+              <View key={step.emoji} style={styles.stepRow}>
                 <View style={styles.stepNumBadge}>
-                  <Text style={styles.stepNum}>{step.num}</Text>
+                  <Text style={styles.stepEmoji}>{step.emoji}</Text>
                 </View>
                 <View style={styles.stepBody}>
                   <Text style={styles.stepTitle}>{step.title}</Text>
@@ -170,16 +169,16 @@ export default function OnboardingScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Slide 3 — Privacy */}
+        {/* Slide 3 — The Promise */}
         <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
-          <Text style={styles.privacyEmoji}>🔒</Text>
-          <Text style={styles.slideTitle}>Your Data Stays{'\n'}Private</Text>
+          <Text style={styles.privacyEmoji}>🏔️</Text>
+          <Text style={styles.slideTitle}>Built for real people,{'\n'}not Wall Street.</Text>
           <View style={styles.privacyCard}>
             {[
-              { icon: '👤', text: 'No account required. We don\'t know who you are.' },
-              { icon: '🚫', text: 'We never sell your data. No tracking, no ads profiling.' },
-              { icon: '⚡', text: 'Portfolio calculations happen on our server in real-time and are never stored after your session.' },
-              { icon: '📊', text: 'Market data is sourced from Yahoo Finance. Results are for education only.' },
+              { icon: '📖', text: 'Every recommendation comes with plain-English explanations. No jargon. No complexity.' },
+              { icon: '🔒', text: 'No account required. We never store your portfolio data or sell your information.' },
+              { icon: '⚡', text: 'Your portfolio is calculated fresh each time using live market data — never stale, never generic.' },
+              { icon: '🆓', text: 'The same institutional-grade math, completely free. Just a smarter way to invest.' },
             ].map((item, i) => (
               <View key={i} style={styles.privacyRow}>
                 <Text style={styles.privacyIcon}>{item.icon}</Text>
@@ -207,7 +206,7 @@ export default function OnboardingScreen({ navigation }: Props) {
             onPress={() => completeOnboarding(navigation)}
             activeOpacity={0.8}
           >
-            <Text style={styles.getStartedText}>Get Started →</Text>
+            <Text style={styles.getStartedText}>Build My Portfolio →</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -285,6 +284,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   stepNum: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  stepEmoji: { fontSize: 18 },
   stepBody: { flex: 1 },
   stepTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 3 },
   stepDesc: { fontSize: 13, color: colors.textSecondary, lineHeight: 18 },

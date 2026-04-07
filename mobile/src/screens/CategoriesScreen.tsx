@@ -125,6 +125,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Vietnam':                                  '🇻🇳',
   'Water':                                    '💧',
   'Women & Diversity':                        '👩',
+  'Quantum Computing':                        '🔬',
 };
 
 // Accent colors — same key set as CATEGORY_ICONS
@@ -145,6 +146,7 @@ const CATEGORY_ACCENTS: Record<string, string> = {
   'Sector Specific':                  '#EF4444',
   'Crypto & Blockchain':              '#FBBF24',
   'Leveraged & Alternative':          '#84CC16',
+  'Quantum Computing':                '#7C3AED',
 };
 
 const FALLBACK_ACCENTS = [

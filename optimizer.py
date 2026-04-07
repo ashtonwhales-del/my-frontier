@@ -180,6 +180,14 @@ SECTOR_TO_ETFS: Dict[str, List[str]] = {
         "OMFL",  # Invesco Russell 1000 Dynamic Multifactor, ER 0.29%
         "PFF",   # iShares Preferred & Income Securities, ER 0.46%
     ],
+    "Quantum Computing": [
+        "QTUM",  # Defiance Quantum ETF, ER 0.40%
+        "QTEC",  # First Trust NASDAQ-100 Technology ETF, ER 0.57%
+        "ARKQ",  # ARK Autonomous Technology & Robotics ETF, ER 0.75%
+        "BOTZ",  # Global X Robotics & AI ETF, ER 0.68%
+        "ROBT",  # First Trust Nasdaq AI and Robotics ETF, ER 0.65%
+        "IGV",   # iShares Expanded Tech-Software Sector ETF, ER 0.41%
+    ],
 }
 
 # ── Tier-1 ETFs: the 15 most liquid/established ETFs per built-in category ────

@@ -16,6 +16,7 @@ import { RouteProp } from '@react-navigation/native';
 
 import AdBanner from '../components/AdBanner';
 import LoadingAd from '../components/LoadingAd';
+import LoadingCalculation from '../components/LoadingCalculation';
 import { SkeletonResults } from '../components/SkeletonLoader';
 import NativeAdCard from '../components/ads/NativeAdCard';
 import RewardedFeature from '../components/ads/RewardedFeature';
@@ -126,14 +127,10 @@ export default function ResultsScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.loadingTitle}>Optimizing your portfolio…</Text>
-        <Text style={styles.loadingSubtitle}>
-          Downloading 10 years of market data and running optimization. This takes 30–90 seconds.
-        </Text>
-        <SkeletonResults />
+      <>
+        <LoadingCalculation />
         <LoadingAd visible={loadingAdVisible} onClose={() => setLoadingAdVisible(false)} />
-      </View>
+      </>
     );
   }
 
@@ -207,15 +204,11 @@ export default function ResultsScreen({ navigation, route }: Props) {
           <Text style={styles.restartText}>Start a New Analysis</Text>
         </TouchableOpacity>
 
+        {/* Auto-Invest locked behind premium — re-enable when payment processor is integrated */}
         <TouchableOpacity
           style={styles.autoInvestBtn}
           activeOpacity={0.8}
-          onPress={() =>
-            Alert.alert(
-              'Coming Soon',
-              "Brokerage integration coming soon! We're working on direct connections to Fidelity, Schwab, and other brokerages to make investing your portfolio one tap away.",
-            )
-          }
+          onPress={() => navigation.navigate('Premium')}
         >
           <Text style={styles.autoInvestText}>Set Up Auto-Invest →</Text>
         </TouchableOpacity>

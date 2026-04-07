@@ -15,14 +15,14 @@ type Props = {
 
 export default function ProjectionsSection({ projections, profile, performance }: Props) {
   if (!projections.length) return null;
-  const monthly = Math.round((profile.weekly_contribution * 52) / 12);
+  const weekly = profile.weekly_contribution;
   const retPct = (performance.expected_annual_return * 100).toFixed(1);
   return (
     <View style={projStyles.container}>
       <Text style={projStyles.title}>💰 What your money could become</Text>
-      {monthly > 0 && (
+      {weekly > 0 && (
         <Text style={projStyles.intro}>
-          If you invest ${fmt(monthly)}/month at {retPct}% expected annual return:
+          If you invest ${fmt(weekly)}/week at {retPct}% expected annual return:
         </Text>
       )}
       {projections.map((p, i) => {
