@@ -32,15 +32,15 @@ SECTOR_TO_ETFS: Dict[str, List[str]] = {
         "BOTZ",  # Global X Robotics & AI, ER 0.68%
         "FTEC",  # Fidelity MSCI IT, ER 0.08%
     ],
-    "Healthcare & Biotech": [
-        "XLV",   # SPDR Health Care Sector, ER 0.10%
-        "VHT",   # Vanguard Health Care, ER 0.10%
-        "IBB",   # iShares Biotechnology, ER 0.44%
-        "XBI",   # SPDR Biotech, ER 0.35%
-        "IHI",   # iShares Medical Devices, ER 0.40%
-        "FHLC",  # Fidelity MSCI Health Care, ER 0.08%
-        "ARKG",  # ARK Genomic Revolution, ER 0.75%
-        "HTEC",  # Robo Global Healthcare, ER 0.68%
+    "Bonds & Fixed Income": [
+        "AGG",   # iShares Core US Aggregate Bond, ER 0.03%
+        "BND",   # Vanguard Total Bond Market, ER 0.03%
+        "TLT",   # iShares 20+ Year Treasury Bond, ER 0.15%
+        "IEF",   # iShares 7-10 Year Treasury Bond, ER 0.15%
+        "LQD",   # iShares Investment Grade Corporate Bond, ER 0.14%
+        "HYG",   # iShares High Yield Corporate Bond, ER 0.48%
+        "EMB",   # iShares JP Morgan USD Emerging Markets Bond, ER 0.39%
+        "MUB",   # iShares National Muni Bond, ER 0.07%
     ],
     "Clean Energy & Environment": [
         "ICLN",  # iShares Global Clean Energy, ER 0.40%
@@ -52,26 +52,6 @@ SECTOR_TO_ETFS: Dict[str, List[str]] = {
         "SMOG",  # VanEck Low Carbon Energy, ER 0.50%
         "ERTH",  # Invesco MSCI Sustainable Future, ER 0.55%
     ],
-    "Robotics & Innovation": [
-        "ARKK",  # ARK Innovation, ER 0.75%
-        "ROBO",  # Robo Global Robotics, ER 0.95%
-        "BOTZ",  # Global X Robotics & AI, ER 0.68%
-        "IRBO",  # iShares Robotics & AI, ER 0.47%
-        "KOMP",  # SPDR S&P Kensho New Economies, ER 0.20%
-        "ARKX",  # ARK Space Exploration, ER 0.75%
-        "METV",  # Roundhill Ball Metaverse, ER 0.59%
-        "PRNT",  # 3D Printing ETF, ER 0.66%
-    ],
-    "Real Estate": [
-        "VNQ",   # Vanguard Real Estate, ER 0.12%
-        "SCHH",  # Schwab US REIT, ER 0.07%
-        "IYR",   # iShares US Real Estate, ER 0.39%
-        "XLRE",  # Real Estate Select Sector SPDR, ER 0.10%
-        "ICF",   # iShares Cohen & Steers REIT, ER 0.33%
-        "REZ",   # iShares Residential Real Estate, ER 0.48%
-        "INDS",  # Pacer Industrial Real Estate, ER 0.55%
-        "REM",   # iShares Mortgage Real Estate, ER 0.48%
-    ],
     "Commodities & Resources": [
         "GLD",   # SPDR Gold Shares, ER 0.40%
         "IAU",   # iShares Gold Trust, ER 0.25%
@@ -81,16 +61,6 @@ SECTOR_TO_ETFS: Dict[str, List[str]] = {
         "PALL",  # Aberdeen Physical Palladium, ER 0.60%
         "CPER",  # US Copper Index Fund, ER 0.65%
         "WEAT",  # Teucrium Wheat Fund, ER 1.00%
-    ],
-    "Financials": [
-        "XLF",   # Financial Select Sector SPDR, ER 0.10%
-        "VFH",   # Vanguard Financials, ER 0.10%
-        "KBE",   # SPDR S&P Bank, ER 0.35%
-        "KRE",   # SPDR S&P Regional Banking, ER 0.35%
-        "IAI",   # iShares Broker-Dealers & Exchanges, ER 0.40%
-        "KBWB",  # Invesco KBW Bank, ER 0.35%
-        "FTXO",  # First Trust Nasdaq Bank, ER 0.60%
-        "BIZD",  # VanEck BDC Income, ER 0.41%
     ],
     "Consumer & Retail": [
         "XLY",   # Consumer Discretionary Select Sector SPDR, ER 0.10%
@@ -102,35 +72,13 @@ SECTOR_TO_ETFS: Dict[str, List[str]] = {
         "IYC",   # iShares US Consumer Discretionary, ER 0.39%
         "ONLN",  # ProShares Online Retail, ER 0.58%
     ],
-    "Industrials & Defense": [
-        "XLI",   # Industrial Select Sector SPDR, ER 0.10%
-        "VIS",   # Vanguard Industrials, ER 0.10%
-        "ITA",   # iShares US Aerospace & Defense, ER 0.40%
-        "PPA",   # Invesco Aerospace & Defense, ER 0.57%
-        "XAR",   # SPDR Aerospace & Defense, ER 0.35%
-        "IYT",   # iShares Transportation Average, ER 0.39%
-        "WOOD",  # iShares Global Timber & Forestry, ER 0.41%
-        "ITB",   # iShares US Home Construction, ER 0.39%
-    ],
-    "Emerging & International Markets": [
-        "EEM",   # iShares MSCI Emerging Markets, ER 0.68%
-        "VWO",   # Vanguard FTSE Emerging Markets, ER 0.08%
-        "IEMG",  # iShares Core MSCI Emerging Markets, ER 0.09%
-        "SCHE",  # Schwab Emerging Markets, ER 0.11%
-        "FNDE",  # Schwab Fundamental EM Large Company, ER 0.39%
-        "EWJ",   # iShares MSCI Japan, ER 0.50%
-        "EWZ",   # iShares MSCI Brazil, ER 0.57%
-        "INDA",  # iShares MSCI India, ER 0.65%
-    ],
-    "Bonds & Fixed Income": [
-        "AGG",   # iShares Core US Aggregate Bond, ER 0.03%
-        "BND",   # Vanguard Total Bond Market, ER 0.03%
-        "TLT",   # iShares 20+ Year Treasury Bond, ER 0.15%
-        "IEF",   # iShares 7-10 Year Treasury Bond, ER 0.15%
-        "LQD",   # iShares Investment Grade Corporate Bond, ER 0.14%
-        "HYG",   # iShares High Yield Corporate Bond, ER 0.48%
-        "EMB",   # iShares JP Morgan USD Emerging Markets Bond, ER 0.39%
-        "MUB",   # iShares National Muni Bond, ER 0.07%
+    "Crypto & Blockchain": [
+        "BITO",  # ProShares Bitcoin Strategy, ER 0.95%
+        "BLOK",  # Amplify Transformational Data Sharing, ER 0.71%
+        "BITQ",  # Bitwise Crypto Industry Innovators, ER 0.85%
+        "GBTC",  # Grayscale Bitcoin Trust, ER 1.50%
+        "DAPP",  # VanEck Digital Transformation, ER 0.51%
+        "BKCH",  # Global X Blockchain, ER 0.50%
     ],
     "Dividends & Income": [
         "VYM",   # Vanguard High Dividend Yield, ER 0.06%
@@ -142,33 +90,45 @@ SECTOR_TO_ETFS: Dict[str, List[str]] = {
         "SDY",   # SPDR S&P Dividend, ER 0.35%
         "SPYD",  # SPDR Portfolio S&P 500 High Dividend, ER 0.07%
     ],
-    "Small & Mid Cap": [
-        "IWM",   # iShares Russell 2000, ER 0.19%
-        "IJH",   # iShares Core S&P Mid-Cap, ER 0.05%
-        "VB",    # Vanguard Small-Cap, ER 0.05%
-        "VO",    # Vanguard Mid-Cap, ER 0.04%
-        "IJR",   # iShares Core S&P Small-Cap, ER 0.06%
-        "SCHA",  # Schwab US Small-Cap, ER 0.04%
-        "IWO",   # iShares Russell 2000 Growth, ER 0.24%
-        "MDY",   # SPDR S&P MidCap 400, ER 0.23%
+    "Emerging & International Markets": [
+        "EEM",   # iShares MSCI Emerging Markets, ER 0.68%
+        "VWO",   # Vanguard FTSE Emerging Markets, ER 0.08%
+        "IEMG",  # iShares Core MSCI Emerging Markets, ER 0.09%
+        "SCHE",  # Schwab Emerging Markets, ER 0.11%
+        "FNDE",  # Schwab Fundamental EM Large Company, ER 0.39%
+        "EWJ",   # iShares MSCI Japan, ER 0.50%
+        "EWZ",   # iShares MSCI Brazil, ER 0.57%
+        "INDA",  # iShares MSCI India, ER 0.65%
     ],
-    "Sector Specific": [
-        "XLE",   # Energy Select Sector SPDR, ER 0.10%
-        "XLU",   # Utilities Select Sector SPDR, ER 0.10%
-        "XLB",   # Materials Select Sector SPDR, ER 0.10%
-        "XLK",   # Technology Select Sector SPDR, ER 0.10%
-        "XLC",   # Communication Services Select Sector, ER 0.10%
-        "GDX",   # VanEck Gold Miners, ER 0.51%
-        "LIT",   # Global X Lithium & Battery Tech, ER 0.75%
-        "REMX",  # VanEck Rare Earth/Strategic Metals, ER 0.53%
+    "Financials": [
+        "XLF",   # Financial Select Sector SPDR, ER 0.10%
+        "VFH",   # Vanguard Financials, ER 0.10%
+        "KBE",   # SPDR S&P Bank, ER 0.35%
+        "KRE",   # SPDR S&P Regional Banking, ER 0.35%
+        "IAI",   # iShares Broker-Dealers & Exchanges, ER 0.40%
+        "KBWB",  # Invesco KBW Bank, ER 0.35%
+        "FTXO",  # First Trust Nasdaq Bank, ER 0.60%
+        "BIZD",  # VanEck BDC Income, ER 0.41%
     ],
-    "Crypto & Blockchain": [
-        "BITO",  # ProShares Bitcoin Strategy, ER 0.95%
-        "BLOK",  # Amplify Transformational Data Sharing, ER 0.71%
-        "BITQ",  # Bitwise Crypto Industry Innovators, ER 0.85%
-        "GBTC",  # Grayscale Bitcoin Trust, ER 1.50%
-        "DAPP",  # VanEck Digital Transformation, ER 0.51%
-        "BKCH",  # Global X Blockchain, ER 0.50%
+    "Healthcare & Biotech": [
+        "XLV",   # SPDR Health Care Sector, ER 0.10%
+        "VHT",   # Vanguard Health Care, ER 0.10%
+        "IBB",   # iShares Biotechnology, ER 0.44%
+        "XBI",   # SPDR Biotech, ER 0.35%
+        "IHI",   # iShares Medical Devices, ER 0.40%
+        "FHLC",  # Fidelity MSCI Health Care, ER 0.08%
+        "ARKG",  # ARK Genomic Revolution, ER 0.75%
+        "HTEC",  # Robo Global Healthcare, ER 0.68%
+    ],
+    "Industrials & Defense": [
+        "XLI",   # Industrial Select Sector SPDR, ER 0.10%
+        "VIS",   # Vanguard Industrials, ER 0.10%
+        "ITA",   # iShares US Aerospace & Defense, ER 0.40%
+        "PPA",   # Invesco Aerospace & Defense, ER 0.57%
+        "XAR",   # SPDR Aerospace & Defense, ER 0.35%
+        "IYT",   # iShares Transportation Average, ER 0.39%
+        "WOOD",  # iShares Global Timber & Forestry, ER 0.41%
+        "ITB",   # iShares US Home Construction, ER 0.39%
     ],
     "Leveraged & Alternative": [
         "JEPI",  # JPMorgan Equity Premium Income, ER 0.35%
@@ -187,6 +147,46 @@ SECTOR_TO_ETFS: Dict[str, List[str]] = {
         "BOTZ",  # Global X Robotics & AI ETF, ER 0.68%
         "ROBT",  # First Trust Nasdaq AI and Robotics ETF, ER 0.65%
         "IGV",   # iShares Expanded Tech-Software Sector ETF, ER 0.41%
+    ],
+    "Real Estate": [
+        "VNQ",   # Vanguard Real Estate, ER 0.12%
+        "SCHH",  # Schwab US REIT, ER 0.07%
+        "IYR",   # iShares US Real Estate, ER 0.39%
+        "XLRE",  # Real Estate Select Sector SPDR, ER 0.10%
+        "ICF",   # iShares Cohen & Steers REIT, ER 0.33%
+        "REZ",   # iShares Residential Real Estate, ER 0.48%
+        "INDS",  # Pacer Industrial Real Estate, ER 0.55%
+        "REM",   # iShares Mortgage Real Estate, ER 0.48%
+    ],
+    "Robotics & Innovation": [
+        "ARKK",  # ARK Innovation, ER 0.75%
+        "ROBO",  # Robo Global Robotics, ER 0.95%
+        "BOTZ",  # Global X Robotics & AI, ER 0.68%
+        "IRBO",  # iShares Robotics & AI, ER 0.47%
+        "KOMP",  # SPDR S&P Kensho New Economies, ER 0.20%
+        "ARKX",  # ARK Space Exploration, ER 0.75%
+        "METV",  # Roundhill Ball Metaverse, ER 0.59%
+        "PRNT",  # 3D Printing ETF, ER 0.66%
+    ],
+    "Sector Specific": [
+        "XLE",   # Energy Select Sector SPDR, ER 0.10%
+        "XLU",   # Utilities Select Sector SPDR, ER 0.10%
+        "XLB",   # Materials Select Sector SPDR, ER 0.10%
+        "XLK",   # Technology Select Sector SPDR, ER 0.10%
+        "XLC",   # Communication Services Select Sector, ER 0.10%
+        "GDX",   # VanEck Gold Miners, ER 0.51%
+        "LIT",   # Global X Lithium & Battery Tech, ER 0.75%
+        "REMX",  # VanEck Rare Earth/Strategic Metals, ER 0.53%
+    ],
+    "Small & Mid Cap": [
+        "IWM",   # iShares Russell 2000, ER 0.19%
+        "IJH",   # iShares Core S&P Mid-Cap, ER 0.05%
+        "VB",    # Vanguard Small-Cap, ER 0.05%
+        "VO",    # Vanguard Mid-Cap, ER 0.04%
+        "IJR",   # iShares Core S&P Small-Cap, ER 0.06%
+        "SCHA",  # Schwab US Small-Cap, ER 0.04%
+        "IWO",   # iShares Russell 2000 Growth, ER 0.24%
+        "MDY",   # SPDR S&P MidCap 400, ER 0.23%
     ],
 }
 

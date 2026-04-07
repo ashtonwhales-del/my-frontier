@@ -1,20 +1,20 @@
 {
   "_audit": {
-    "_note": "JSON does not support comments — audit metadata lives here. Updated 2026-04-05 (Phase 6: SECTOR_TO_ETFS trim pass).",
-    "_methodology": "Per-sector ETF counts are AFTER deduplication within each sector. Flagged ETFs: expense ratio > 2.25% (removed/replaced) or known-delisted (removed/replaced). SECTOR_TO_ETFS in optimizer.py trimmed to 6-8 ETFs per category (was up to 31) — kept lowest-ER, most-liquid representatives.",
+    "_note": "JSON does not support comments \u00e2\u20ac\u201d audit metadata lives here. Updated 2026-04-05 (Phase 6: SECTOR_TO_ETFS trim pass).",
+    "_methodology": "Per-sector ETF counts are AFTER deduplication within each sector. Flagged ETFs: expense ratio > 2.25% (removed/replaced) or known-delisted (removed/replaced). SECTOR_TO_ETFS in optimizer.py trimmed to 6-8 ETFs per category (was up to 31) \u00e2\u20ac\u201d kept lowest-ER, most-liquid representatives.",
     "_flagged_high_er": {
-      "BDRY": "Breakwave Dry Bulk Shipping ETF — ER ~3.00% — REMOVED from Shipping, replaced with IYT/XTN/FTXR",
-      "BWET": "Breakwave Tanker Shipping ETF — ER ~2.85% — REMOVED from Shipping, replaced with IYT/XTN/FTXR"
+      "BDRY": "Breakwave Dry Bulk Shipping ETF \u00e2\u20ac\u201d ER ~3.00% \u00e2\u20ac\u201d REMOVED from Shipping, replaced with IYT/XTN/FTXR",
+      "BWET": "Breakwave Tanker Shipping ETF \u00e2\u20ac\u201d ER ~2.85% \u00e2\u20ac\u201d REMOVED from Shipping, replaced with IYT/XTN/FTXR"
     },
     "_flagged_delisted": {
-      "BOAT": "No recognized active ETF with this ticker — REMOVED from Shipping",
-      "ASEA": "Global X Southeast Asia ETF — CLOSED Nov 2022 — REMOVED from Southeast Asia, replaced with EPHE",
-      "AWAY": "ETFMG Travel Tech ETF — LIQUIDATED Mar 2022 — REMOVED from Airlines & Travel",
-      "TRVL": "No recognized active ETF with this ticker — REMOVED from Airlines & Travel"
+      "BOAT": "No recognized active ETF with this ticker \u00e2\u20ac\u201d REMOVED from Shipping",
+      "ASEA": "Global X Southeast Asia ETF \u00e2\u20ac\u201d CLOSED Nov 2022 \u00e2\u20ac\u201d REMOVED from Southeast Asia, replaced with EPHE",
+      "AWAY": "ETFMG Travel Tech ETF \u00e2\u20ac\u201d LIQUIDATED Mar 2022 \u00e2\u20ac\u201d REMOVED from Airlines & Travel",
+      "TRVL": "No recognized active ETF with this ticker \u00e2\u20ac\u201d REMOVED from Airlines & Travel"
     },
     "_thin_sectors_fixed": {
-      "Natural Gas": "Had 2 ETFs (UNG, FCG) — added FTXN (First Trust Nasdaq Oil & Gas, ER ~0.60%) as third",
-      "Shipping": "BDRY+BWET+BOAT all removed — rebuilt with IYT (ER 0.40%), XTN (ER 0.35%), FTXR (ER 0.60%)"
+      "Natural Gas": "Had 2 ETFs (UNG, FCG) \u00e2\u20ac\u201d added FTXN (First Trust Nasdaq Oil & Gas, ER ~0.60%) as third",
+      "Shipping": "BDRY+BWET+BOAT all removed \u00e2\u20ac\u201d rebuilt with IYT (ER 0.40%), XTN (ER 0.35%), FTXR (ER 0.60%)"
     },
     "_sector_to_etfs_trim": "Phase 6 (2026-04-05): All 16 SECTOR_TO_ETFS categories trimmed from 6-31 ETFs down to 6-8 ETFs each. Selection criteria: lowest expense ratio, highest AUM/liquidity, broadest category coverage. All trimmed categories still pass 3-10 ETF constraint.",
     "sector_etf_counts": {
@@ -102,88 +102,465 @@
       "Gen Z": 3
     }
   },
-
-  "Hemp & Cannabis": ["MSOS", "MJ", "CNBS", "YOLO"],
-  "Farming & Agriculture": ["MOO", "DBA", "VEGI", "CORN"],
-  "Water": ["PHO", "FIW", "CGW"],
-  "Space": ["ARKX", "XAR", "UFO", "ROKT"],
-  "3D Printing": ["PRNT", "ROBO", "ARKQ"],
-  "Genomics": ["ARKG", "IBBQ", "IDNA", "BTEC", "GNOM", "VHT"],
-  "Cybersecurity": ["CIBR", "HACK", "BUG"],
-  "Cloud Computing": ["CLOU", "SKYY", "WCLD"],
-  "Social Media": ["SOCL", "XLC", "FCOM"],
-  "E-commerce": ["EBIZ", "IBUY", "ONLN"],
-  "Electric Vehicles": ["DRIV", "IDRV", "CARZ", "KARS"],
-  "Battery Technology": ["BATT", "LIT", "DRIV"],
-  "Nuclear Energy": ["NLR", "NUKZ", "URA", "URNM"],
-  "Uranium": ["URA", "URNM", "NLR"],
-  "Lithium": ["LIT", "BATT", "REMX"],
-  "Copper": ["COPX", "CPER", "ICOP"],
-  "Rare Earth Metals": ["REMX", "CRIT", "PICK"],
-  "Timber": ["WOOD", "CUT", "GNR"],
-  "Infrastructure": ["PAVE", "IGF", "IFRA"],
-  "Transportation": ["IYT", "XLI", "XTN", "FTXR"],
-  "Shipping": ["IYT", "XTN", "FTXR"],
-  "Airlines & Travel": ["JETS", "PEJ", "IYT", "XTN"],
-  "Sports Betting": ["BETZ", "BJK", "GAMR"],
-  "Gaming": ["NERD", "ESPO", "HERO", "GAMR"],
-  "Metaverse": ["METV", "ARKW", "IGV"],
-  "Blockchain": ["BITO", "BLOK", "BITQ", "DAPP", "LEGR"],
-  "Decentralized Finance (DeFi-adjacent)": ["DAPP", "BLOK", "BITQ"],
-  "Israel": ["EIS", "ISRA", "IZRL"],
-  "India": ["INDA", "PIN", "INDY"],
-  "China": ["MCHI", "FXI", "KWEB"],
-  "Japan": ["EWJ", "DXJ", "DBJP"],
-  "Brazil": ["EWZ", "BRF", "FLBR"],
-  "Europe": ["VGK", "FEZ", "EZU", "IEV"],
-  "Africa": ["AFK", "EZA", "NGE"],
-  "Latin America": ["ILF", "FLN", "ECH"],
-  "Vietnam": ["VNM", "FM", "FRN"],
-  "Southeast Asia": ["VPL", "AAXJ", "EWS", "EPHE"],
-  "Frontier Markets": ["FRN", "FM", "FMQQ", "XSOE"],
-  "Women & Diversity": ["SHE", "WOMN", "EQUL"],
-  "ESG & Ethical": ["ESGU", "ESGV", "SUSA", "CRBN", "LOWC", "SUSL"],
-  "Catholic Values": ["CATH", "BIBL", "BLES"],
-  "Islamic Finance": ["HLAL", "SPUS", "UMMA"],
-  "Dividend Growth": ["VIG", "SCHD", "NOBL", "DGRO"],
-  "Covered Calls": ["JEPI", "JEPQ", "QYLD", "RYLD", "XYLD", "DIVO", "NUSI"],
-  "Buffered ETFs": ["BUFF", "BUFR", "NAPR", "BJUL", "BAPR", "BJAN"],
-  "Preferred Stock": ["PFF", "PFFD", "PGX", "FPE"],
-  "Convertible Bonds": ["ICVT", "CWB", "FCVT"],
-  "Municipal Bonds": ["MUB", "SUB", "VTEB", "TFI"],
-  "Treasury Inflation Protected": ["TIP", "SCHP", "STIP", "VTIP"],
-  "Floating Rate": ["FLOT", "USFR", "FLRN"],
-  "Senior Loans": ["BKLN", "SRLN", "FTSL"],
-  "Mortgage Backed": ["MBB", "REM", "MORT", "VMBS", "SPMB"],
-  "High Yield": ["HYG", "JNK", "USHY"],
-  "Investment Grade Corporate": ["LQD", "VCIT", "IGIB"],
-  "Ultra Short Term": ["JPST", "SCHO", "SHY", "SGOV", "SHV", "BIL"],
-  "Money Market / Cash-like": ["BIL", "SGOV", "SHV"],
-  "Gold Miners": ["GDX", "GDXJ", "RING"],
-  "Silver Miners": ["SIL", "SILJ", "SLVP"],
-  "Oil & Gas Exploration": ["XOP", "DRLL", "IEO"],
-  "Oil Services": ["XES", "OIH", "IEZ"],
-  "Natural Gas": ["UNG", "FCG", "FTXN"],
-  "Coal": ["KOL", "XME", "PICK"],
-  "Steel": ["SLX", "XME", "PICK"],
-  "Aluminum": ["XME", "PICK", "SLX"],
-  "Chemicals": ["XLB", "IYM", "VAW"],
-  "Fertilizers": ["MOO", "DBA", "XLB"],
-  "Homebuilders": ["XHB", "ITB", "PKB"],
-  "REITs by type": ["VNQ", "SCHH", "SRVR", "INDS", "REZ", "ROOF", "KBWY", "PFFR", "XLRE", "ICF"],
-  "Insurance": ["IAK", "KIE", "KBWP"],
-  "Banks": ["KBE", "KRE", "IAT", "KBWB"],
-  "Asset Managers": ["IAI", "KCE", "FNCL"],
-  "Brokers & Exchanges": ["IAI", "KBWB", "KCE"],
-  "Payments & Fintech": ["FINX", "IPAY", "ARKF"],
-  "Medical Devices": ["XHE", "IHI", "HTEC"],
-  "Pharmaceuticals": ["XPH", "PPH", "IHE"],
-  "Hospitals": ["IHF", "VHT", "XLV"],
-  "Obesity & Weight Loss": ["XLV", "XPH", "IHF"],
-  "Longevity / Aging": ["AGNG", "FLIA", "VIG"],
-  "Pet Care": ["PAWZ", "VDC", "XLP"],
-  "Veterinary": ["PAWZ", "IHI", "XLV"],
-  "Millennials": ["MILN", "ARKW", "XLC"],
-  "Gen Z": ["QQQ", "VTI", "ARKK"],
-  "Quantum Computing": ["QTUM", "QTEC", "ARKQ", "BOTZ", "ROBT", "IGV"]
+  "3D Printing": [
+    "PRNT",
+    "ROBO",
+    "ARKQ"
+  ],
+  "Africa": [
+    "AFK",
+    "EZA",
+    "NGE"
+  ],
+  "Airlines & Travel": [
+    "JETS",
+    "PEJ",
+    "IYT",
+    "XTN"
+  ],
+  "Aluminum": [
+    "XME",
+    "PICK",
+    "SLX"
+  ],
+  "Asset Managers": [
+    "IAI",
+    "KCE",
+    "FNCL"
+  ],
+  "Banks": [
+    "KBE",
+    "KRE",
+    "IAT",
+    "KBWB"
+  ],
+  "Battery Technology": [
+    "BATT",
+    "LIT",
+    "DRIV"
+  ],
+  "Blockchain": [
+    "BITO",
+    "BLOK",
+    "BITQ",
+    "DAPP",
+    "LEGR"
+  ],
+  "Brazil": [
+    "EWZ",
+    "BRF",
+    "FLBR"
+  ],
+  "Brokers & Exchanges": [
+    "IAI",
+    "KBWB",
+    "KCE"
+  ],
+  "Buffered ETFs": [
+    "BUFF",
+    "BUFR",
+    "NAPR",
+    "BJUL",
+    "BAPR",
+    "BJAN"
+  ],
+  "Catholic Values": [
+    "CATH",
+    "BIBL",
+    "BLES"
+  ],
+  "Chemicals": [
+    "XLB",
+    "IYM",
+    "VAW"
+  ],
+  "China": [
+    "MCHI",
+    "FXI",
+    "KWEB"
+  ],
+  "Cloud Computing": [
+    "CLOU",
+    "SKYY",
+    "WCLD"
+  ],
+  "Coal": [
+    "KOL",
+    "XME",
+    "PICK"
+  ],
+  "Convertible Bonds": [
+    "ICVT",
+    "CWB",
+    "FCVT"
+  ],
+  "Copper": [
+    "COPX",
+    "CPER",
+    "ICOP"
+  ],
+  "Covered Calls": [
+    "JEPI",
+    "JEPQ",
+    "QYLD",
+    "RYLD",
+    "XYLD",
+    "DIVO",
+    "NUSI"
+  ],
+  "Cybersecurity": [
+    "CIBR",
+    "HACK",
+    "BUG"
+  ],
+  "Decentralized Finance (DeFi-adjacent)": [
+    "DAPP",
+    "BLOK",
+    "BITQ"
+  ],
+  "Dividend Growth": [
+    "VIG",
+    "SCHD",
+    "NOBL",
+    "DGRO"
+  ],
+  "E-commerce": [
+    "EBIZ",
+    "IBUY",
+    "ONLN"
+  ],
+  "ESG & Ethical": [
+    "ESGU",
+    "ESGV",
+    "SUSA",
+    "CRBN",
+    "LOWC",
+    "SUSL"
+  ],
+  "Electric Vehicles": [
+    "DRIV",
+    "IDRV",
+    "CARZ",
+    "KARS"
+  ],
+  "Europe": [
+    "VGK",
+    "FEZ",
+    "EZU",
+    "IEV"
+  ],
+  "Farming & Agriculture": [
+    "MOO",
+    "DBA",
+    "VEGI",
+    "CORN"
+  ],
+  "Fertilizers": [
+    "MOO",
+    "DBA",
+    "XLB"
+  ],
+  "Floating Rate": [
+    "FLOT",
+    "USFR",
+    "FLRN"
+  ],
+  "Frontier Markets": [
+    "FRN",
+    "FM",
+    "FMQQ",
+    "XSOE"
+  ],
+  "Gaming": [
+    "NERD",
+    "ESPO",
+    "HERO",
+    "GAMR"
+  ],
+  "Gen Z": [
+    "QQQ",
+    "VTI",
+    "ARKK"
+  ],
+  "Genomics": [
+    "ARKG",
+    "IBBQ",
+    "IDNA",
+    "BTEC",
+    "GNOM",
+    "VHT"
+  ],
+  "Gold Miners": [
+    "GDX",
+    "GDXJ",
+    "RING"
+  ],
+  "Hemp & Cannabis": [
+    "MSOS",
+    "MJ",
+    "CNBS",
+    "YOLO"
+  ],
+  "High Yield": [
+    "HYG",
+    "JNK",
+    "USHY"
+  ],
+  "Homebuilders": [
+    "XHB",
+    "ITB",
+    "PKB"
+  ],
+  "Hospitals": [
+    "IHF",
+    "VHT",
+    "XLV"
+  ],
+  "India": [
+    "INDA",
+    "PIN",
+    "INDY"
+  ],
+  "Infrastructure": [
+    "PAVE",
+    "IGF",
+    "IFRA"
+  ],
+  "Insurance": [
+    "IAK",
+    "KIE",
+    "KBWP"
+  ],
+  "Investment Grade Corporate": [
+    "LQD",
+    "VCIT",
+    "IGIB"
+  ],
+  "Islamic Finance": [
+    "HLAL",
+    "SPUS",
+    "UMMA"
+  ],
+  "Israel": [
+    "EIS",
+    "ISRA",
+    "IZRL"
+  ],
+  "Japan": [
+    "EWJ",
+    "DXJ",
+    "DBJP"
+  ],
+  "Latin America": [
+    "ILF",
+    "FLN",
+    "ECH"
+  ],
+  "Lithium": [
+    "LIT",
+    "BATT",
+    "REMX"
+  ],
+  "Longevity / Aging": [
+    "AGNG",
+    "FLIA",
+    "VIG"
+  ],
+  "Medical Devices": [
+    "XHE",
+    "IHI",
+    "HTEC"
+  ],
+  "Metaverse": [
+    "METV",
+    "ARKW",
+    "IGV"
+  ],
+  "Millennials": [
+    "MILN",
+    "ARKW",
+    "XLC"
+  ],
+  "Money Market / Cash-like": [
+    "BIL",
+    "SGOV",
+    "SHV"
+  ],
+  "Mortgage Backed": [
+    "MBB",
+    "REM",
+    "MORT",
+    "VMBS",
+    "SPMB"
+  ],
+  "Municipal Bonds": [
+    "MUB",
+    "SUB",
+    "VTEB",
+    "TFI"
+  ],
+  "Natural Gas": [
+    "UNG",
+    "FCG",
+    "FTXN"
+  ],
+  "Nuclear Energy": [
+    "NLR",
+    "NUKZ",
+    "URA",
+    "URNM"
+  ],
+  "Obesity & Weight Loss": [
+    "XLV",
+    "XPH",
+    "IHF"
+  ],
+  "Oil & Gas Exploration": [
+    "XOP",
+    "DRLL",
+    "IEO"
+  ],
+  "Oil Services": [
+    "XES",
+    "OIH",
+    "IEZ"
+  ],
+  "Payments & Fintech": [
+    "FINX",
+    "IPAY",
+    "ARKF"
+  ],
+  "Pet Care": [
+    "PAWZ",
+    "VDC",
+    "XLP"
+  ],
+  "Pharmaceuticals": [
+    "XPH",
+    "PPH",
+    "IHE"
+  ],
+  "Preferred Stock": [
+    "PFF",
+    "PFFD",
+    "PGX",
+    "FPE"
+  ],
+  "Quantum Computing": [
+    "QTUM",
+    "QTEC",
+    "ARKQ",
+    "BOTZ",
+    "ROBT",
+    "IGV"
+  ],
+  "REITs by type": [
+    "VNQ",
+    "SCHH",
+    "SRVR",
+    "INDS",
+    "REZ",
+    "ROOF",
+    "KBWY",
+    "PFFR",
+    "XLRE",
+    "ICF"
+  ],
+  "Rare Earth Metals": [
+    "REMX",
+    "CRIT",
+    "PICK"
+  ],
+  "Senior Loans": [
+    "BKLN",
+    "SRLN",
+    "FTSL"
+  ],
+  "Shipping": [
+    "IYT",
+    "XTN",
+    "FTXR"
+  ],
+  "Silver Miners": [
+    "SIL",
+    "SILJ",
+    "SLVP"
+  ],
+  "Social Media": [
+    "SOCL",
+    "XLC",
+    "FCOM"
+  ],
+  "Southeast Asia": [
+    "VPL",
+    "AAXJ",
+    "EWS",
+    "EPHE"
+  ],
+  "Space": [
+    "ARKX",
+    "XAR",
+    "UFO",
+    "ROKT"
+  ],
+  "Sports Betting": [
+    "BETZ",
+    "BJK",
+    "GAMR"
+  ],
+  "Steel": [
+    "SLX",
+    "XME",
+    "PICK"
+  ],
+  "Timber": [
+    "WOOD",
+    "CUT",
+    "GNR"
+  ],
+  "Transportation": [
+    "IYT",
+    "XLI",
+    "XTN",
+    "FTXR"
+  ],
+  "Treasury Inflation Protected": [
+    "TIP",
+    "SCHP",
+    "STIP",
+    "VTIP"
+  ],
+  "Ultra Short Term": [
+    "JPST",
+    "SCHO",
+    "SHY",
+    "SGOV",
+    "SHV",
+    "BIL"
+  ],
+  "Uranium": [
+    "URA",
+    "URNM",
+    "NLR"
+  ],
+  "Veterinary": [
+    "PAWZ",
+    "IHI",
+    "XLV"
+  ],
+  "Vietnam": [
+    "VNM",
+    "FM",
+    "FRN"
+  ],
+  "Water": [
+    "PHO",
+    "FIW",
+    "CGW"
+  ],
+  "Women & Diversity": [
+    "SHE",
+    "WOMN",
+    "EQUL"
+  ]
 }

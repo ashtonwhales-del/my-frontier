@@ -178,7 +178,7 @@ export default function CategoriesScreen({ navigation, route }: Props) {
   useEffect(() => {
     fetchCategories()
       .then(cats => {
-        setCategories(cats);
+        setCategories([...cats].sort((a, b) => a.localeCompare(b)));
         if (__DEV__) {
           const iconKeys = new Set(Object.keys(CATEGORY_ICONS));
           cats.forEach(cat => {
@@ -195,7 +195,7 @@ export default function CategoriesScreen({ navigation, route }: Props) {
       .catch(() =>
         Alert.alert(
           'Connection Error',
-          'Could not reach the API at http://192.168.1.60:8000. Make sure the server is running.',
+          'Could not load investment categories. Please check your connection and try again.',
         )
       )
       .finally(() => setLoading(false));

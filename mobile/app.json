@@ -3,7 +3,7 @@
     "name": "My Frontier",
     "slug": "myfrontier",
     "version": "1.0.0",
-    "description": "Personalized ETF portfolio builder powered by Nobel Prize-winning optimization theory. Not financial advice.",
+    "description": "Smart ETF portfolio optimizer built on Efficient Frontier mathematics. Built for first-time investors.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -15,7 +15,11 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.myfrontier.app"
+      "bundleIdentifier": "com.myfrontier.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.myfrontier.app",
@@ -31,7 +35,12 @@
     },
     "privacy": "https://myfrontierapp.com/privacy",
     "extra": {
-      "keywords": ["ETF", "investing", "portfolio", "stocks", "finance", "retirement"]
+      "keywords": ["ETF", "investing", "portfolio", "stocks", "finance", "retirement"],
+      "privacyPolicyUrl": "https://ashtonwhales-del.github.io/my-frontier/privacy-policy.html",
+      "supportUrl": "https://ashtonwhales-del.github.io/my-frontier/support.html",
+      "eas": {
+        "projectId": "755ee3d0-24e3-4364-99e9-2916c76e8ae3"
+      }
     },
     "plugins": [
       "expo-dev-client",

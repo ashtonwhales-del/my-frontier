@@ -7,11 +7,13 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
+import { purchasePremium, restorePurchases } from '../services/purchaseService';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Premium'> };
 
@@ -26,6 +28,8 @@ const FEATURES = [
 export default function PremiumScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
+  const [restoring, setRestoring] = useState(false);
 
   async function handleWaitlist() {
     const trimmed = email.trim();
@@ -42,12 +46,38 @@ export default function PremiumScreen({ navigation }: Props) {
     setSubmitted(true);
   }
 
-  function handleTrial() {
-    Alert.alert(
-      'Premium Coming Soon!',
-      'Join the waitlist to be first in line when My Frontier Pro launches.',
-      [{ text: 'OK' }],
-    );
+  async function handleTrial() {
+    setPurchasing(true);
+    try {
+      const success = await purchasePremium();
+      if (success) {
+        Alert.alert('Welcome to Premium! 🎉', 'Your 7-day free trial has started.', [
+          { text: 'Get Started', onPress: () => navigation.goBack() },
+        ]);
+      }
+    } catch (err: any) {
+      Alert.alert('Purchase Failed', err?.message ?? 'Please try again.');
+    } finally {
+      setPurchasing(false);
+    }
+  }
+
+  async function handleRestore() {
+    setRestoring(true);
+    try {
+      const hasPremium = await restorePurchases();
+      if (hasPremium) {
+        Alert.alert('Restored! ✅', 'Your Premium access has been restored.', [
+          { text: 'Continue', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        Alert.alert('No Purchases Found', 'We could not find a previous Premium subscription for this Apple ID.');
+      }
+    } catch (err: any) {
+      Alert.alert('Restore Failed', err?.message ?? 'Please try again.');
+    } finally {
+      setRestoring(false);
+    }
   }
 
   return (
@@ -96,8 +126,30 @@ export default function PremiumScreen({ navigation }: Props) {
         </View>
 
         {/* CTA Buttons */}
-        <TouchableOpacity style={styles.trialBtn} onPress={handleTrial} activeOpacity={0.85}>
-          <Text style={styles.trialBtnText}>Start 7-Day Free Trial</Text>
+        <TouchableOpacity
+          style={[styles.trialBtn, purchasing && styles.trialBtnDisabled]}
+          onPress={handleTrial}
+          activeOpacity={0.85}
+          disabled={purchasing || restoring}
+        >
+          {purchasing ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.trialBtnText}>Start 7-Day Free Trial</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.restoreBtn}
+          onPress={handleRestore}
+          activeOpacity={0.7}
+          disabled={purchasing || restoring}
+        >
+          {restoring ? (
+            <ActivityIndicator color={colors.textSecondary} size="small" />
+          ) : (
+            <Text style={styles.restoreText}>Restore Purchases</Text>
+          )}
         </TouchableOpacity>
 
         {/* Waitlist */}
@@ -222,10 +274,13 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     paddingVertical: 18,
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
     ...shadow.md,
   },
+  trialBtnDisabled: { opacity: 0.6 },
   trialBtnText: { color: '#fff', fontSize: 17, fontWeight: '800' },
+  restoreBtn: { paddingVertical: spacing.sm, marginBottom: spacing.md },
+  restoreText: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
 
   waitlistSection: { width: '100%', marginBottom: spacing.lg },
   waitlistTitle: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 4, textAlign: 'center' },

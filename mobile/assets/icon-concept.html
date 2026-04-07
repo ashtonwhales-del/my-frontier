@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Frontier — App Icon Concept</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1A1A2E;
+      color: #E2E8F0;
+      padding: 40px 24px 80px;
+    }
+    h1 { font-size: 24px; font-weight: 800; color: #FFFFFF; margin-bottom: 6px; }
+    .sub { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 48px; }
+    .sizes { display: flex; gap: 48px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 56px; }
+    .size-block { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .size-label { font-size: 12px; color: rgba(255,255,255,0.40); letter-spacing: 0.5px; }
+    .notes { max-width: 640px; }
+    .notes h2 { font-size: 16px; font-weight: 700; color: #FFFFFF; margin-bottom: 12px; margin-top: 32px; }
+    .notes ul { padding-left: 20px; }
+    .notes li {
+      font-size: 14px; color: rgba(255,255,255,0.65);
+      margin-bottom: 7px; line-height: 1.5;
+    }
+    .notes code {
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px; border-radius: 4px;
+      font-size: 12px; color: #F59E0B;
+    }
+    .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 40px 0; }
+  </style>
+</head>
+<body>
+
+  <h1>My Frontier — App Icon Concept</h1>
+  <p class="sub">SVG mountain icon · Export sizes: 1024 × 1024 px (App Store), 180 × 180 px (iPhone), 60 × 60 px (small)</p>
+
+  <div class="sizes">
+
+    <!-- 1024 × 1024 -->
+    <div class="size-block">
+      <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"
+           style="border-radius: 224px; display: block;">
+        <!-- Sky gradient background -->
+        <defs>
+          <linearGradient id="sky1024" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0F1729"/>
+            <stop offset="100%" stop-color="#16213A"/>
+          </linearGradient>
+        </defs>
+        <rect width="1024" height="1024" fill="url(#sky1024)"/>
+        <!-- Stars -->
+        <circle cx="220" cy="160" r="6" fill="rgba(255,255,255,0.50)"/>
+        <circle cx="610" cy="110" r="4" fill="rgba(255,255,255,0.40)"/>
+        <circle cx="820" cy="190" r="5" fill="rgba(255,255,255,0.35)"/>
+        <circle cx="140" cy="280" r="3" fill="rgba(255,255,255,0.30)"/>
+        <circle cx="760" cy="300" r="3" fill="rgba(255,255,255,0.25)"/>
+        <!-- Left mountain (dark purple) -->
+        <polygon points="128,720 384,320 640,720" fill="#312E81"/>
+        <!-- Right mountain (medium purple) -->
+        <polygon points="480,720 736,360 992,720" fill="#3730A3"/>
+        <!-- Center mountain (brand blue) — tallest, front -->
+        <polygon points="256,720 512,180 768,720" fill="#4361EE"/>
+        <!-- Horizon line (gold) -->
+        <rect x="80" y="700" width="864" height="10" rx="5" fill="#F59E0B"/>
+        <!-- Ground below horizon -->
+        <rect x="0" y="705" width="1024" height="319" fill="#16213A"/>
+        <!-- Peak diamond (gold) -->
+        <rect x="488" y="136" width="48" height="48" rx="4" fill="#F59E0B"
+              transform="rotate(45 512 160)"/>
+      </svg>
+      <div class="size-label">1024 × 1024 — App Store</div>
+    </div>
+
+    <!-- 180 × 180 -->
+    <div class="size-block">
+      <svg width="180" height="180" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"
+           style="border-radius: 40px; display: block;">
+        <defs>
+          <linearGradient id="sky180" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0F1729"/>
+            <stop offset="100%" stop-color="#16213A"/>
+          </linearGradient>
+        </defs>
+        <rect width="1024" height="1024" fill="url(#sky180)"/>
+        <circle cx="220" cy="160" r="6" fill="rgba(255,255,255,0.50)"/>
+        <circle cx="610" cy="110" r="4" fill="rgba(255,255,255,0.40)"/>
+        <circle cx="820" cy="190" r="5" fill="rgba(255,255,255,0.35)"/>
+        <polygon points="128,720 384,320 640,720" fill="#312E81"/>
+        <polygon points="480,720 736,360 992,720" fill="#3730A3"/>
+        <polygon points="256,720 512,180 768,720" fill="#4361EE"/>
+        <rect x="80" y="700" width="864" height="10" rx="5" fill="#F59E0B"/>
+        <rect x="0" y="705" width="1024" height="319" fill="#16213A"/>
+        <rect x="488" y="136" width="48" height="48" rx="4" fill="#F59E0B"
+              transform="rotate(45 512 160)"/>
+      </svg>
+      <div class="size-label">180 × 180 — iPhone home screen</div>
+    </div>
+
+    <!-- 60 × 60 -->
+    <div class="size-block">
+      <svg width="60" height="60" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"
+           style="border-radius: 13px; display: block;">
+        <defs>
+          <linearGradient id="sky60" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0F1729"/>
+            <stop offset="100%" stop-color="#16213A"/>
+          </linearGradient>
+        </defs>
+        <rect width="1024" height="1024" fill="url(#sky60)"/>
+        <polygon points="128,720 384,320 640,720" fill="#312E81"/>
+        <polygon points="480,720 736,360 992,720" fill="#3730A3"/>
+        <polygon points="256,720 512,180 768,720" fill="#4361EE"/>
+        <rect x="80" y="700" width="864" height="10" rx="5" fill="#F59E0B"/>
+        <rect x="0" y="705" width="1024" height="319" fill="#16213A"/>
+        <rect x="488" y="136" width="48" height="48" rx="4" fill="#F59E0B"
+              transform="rotate(45 512 160)"/>
+      </svg>
+      <div class="size-label">60 × 60 — small / notification</div>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="notes">
+    <h2>Color Palette</h2>
+    <ul>
+      <li>Background (sky top): <code>#0F1729</code> — navy black</li>
+      <li>Background (sky bottom / ground): <code>#16213A</code> — deep navy</li>
+      <li>Center mountain: <code>#4361EE</code> — brand blue</li>
+      <li>Left mountain: <code>#312E81</code> — indigo dark</li>
+      <li>Right mountain: <code>#3730A3</code> — indigo medium</li>
+      <li>Horizon line + peak diamond: <code>#F59E0B</code> — gold / amber</li>
+    </ul>
+
+    <h2>Export Instructions</h2>
+    <ul>
+      <li>Open this file in any browser (Chrome, Safari, Firefox).</li>
+      <li>Right-click the 1024 × 1024 icon → "Save image as…" to get an SVG, or use a
+          browser extension like "SVG Screenshot" to export as PNG.</li>
+      <li>Recommended: paste the SVG code into
+          <a href="https://www.figma.com" target="_blank" style="color:#4361EE">Figma</a> or
+          <a href="https://sketch.com" target="_blank" style="color:#4361EE">Sketch</a>,
+          export as PNG at 1× (1024 × 1024 px).</li>
+      <li>The App Store requires a 1024 × 1024 px PNG with <strong>no alpha channel</strong>
+          (no transparency) and <strong>no rounded corners</strong> — Apple applies them automatically.</li>
+      <li>To convert SVG → PNG at exactly 1024 px, you can also use:
+          <code>npx sharp-cli --input icon.svg --output icon.png --width 1024 --height 1024</code>
+      </li>
+    </ul>
+
+    <h2>App Store Requirements Checklist</h2>
+    <ul>
+      <li>✅ 1024 × 1024 px PNG</li>
+      <li>✅ No alpha channel (no transparency)</li>
+      <li>✅ No rounded corners (Apple clips them to superellipse)</li>
+      <li>✅ No text or UI chrome (App Store guidelines)</li>
+      <li>✅ Unique, recognizable at small sizes</li>
+      <li>✅ High contrast — gold peak visible at 60 × 60 px</li>
+    </ul>
+
+    <h2>Design Notes</h2>
+    <ul>
+      <li>The three-mountain motif references the "frontier" metaphor directly — reaching a peak.</li>
+      <li>The gold horizon line ties to the Efficient Frontier curve visualization (the
+          "efficient" boundary between risk and return).</li>
+      <li>The gold diamond at the peak is the "optimal point" on the Efficient Frontier —
+          the portfolio with the best Sharpe ratio.</li>
+      <li>Deep navy background is consistent with the app's dark theme (<code>#0F1729</code>).</li>
+    </ul>
+  </div>
+
+</body>
+</html>

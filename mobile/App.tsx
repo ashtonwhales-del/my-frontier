@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { RootStackParamList } from './src/types';
 import { STORAGE } from './src/constants';
+import { initializePurchases } from './src/services/purchaseService';
 import ErrorBoundary        from './src/components/ErrorBoundary';
 import DisclaimerScreen     from './src/screens/DisclaimerScreen';
 import OnboardingScreen     from './src/screens/OnboardingScreen';
@@ -29,6 +30,9 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList | null>(null);
 
   useEffect(() => {
+    // Initialize RevenueCat as early as possible (safe no-op until SDK is installed)
+    initializePurchases();
+
     (async () => {
       const [disclaimerAccepted, onboardingComplete] = await Promise.all([
         AsyncStorage.getItem(STORAGE.DISCLAIMER_ACCEPTED),
