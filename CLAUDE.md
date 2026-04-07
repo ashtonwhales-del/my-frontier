@@ -726,3 +726,47 @@ Loading finishes   → ResultsScreen replaces LoadingCalculation
 ```
 
 *Last updated: 2026-04-06 — Phase 10 complete. App is launch-ready.*
+
+---
+
+## Phase 11 Changes — Pre-Launch (2026-04-06)
+
+| File | What changed |
+|------|-------------|
+| `optimizer.py` | `SECTOR_TO_ETFS` 17 categories sorted alphabetically (AI & Technology → Small & Mid Cap). ETF lists inside each category unchanged. |
+| `etf_universe_extra.json` | All 83 category keys (including Quantum Computing) sorted alphabetically. `_audit` key preserved at top. |
+| `mobile/src/screens/CategoriesScreen.tsx` | API response sorted client-side: `setCategories([...cats].sort((a, b) => a.localeCompare(b)))` — categories always display A→Z regardless of server order. |
+| `mobile/src/screens/CategoriesScreen.tsx` | Removed hardcoded IP from error alert — replaced with generic connection error message. |
+| `docs/privacy-policy.html` | **Created.** Full privacy policy: effective April 2026, sections for AdMob advertising, Alex/Anthropic API, no personal data collected, children's privacy, contact email `support.myfrontier@gmail.com`. Dark navy design matching app theme. |
+| `docs/support.html` | **Created.** Support page: FAQ (6 questions covering free tier, financial advice, portfolio building, re-runs, cancellation, restore), contact email. |
+| `docs/index.html` | **Created.** Redirect page → `privacy-policy.html`. Used as GitHub Pages root. |
+| `mobile/assets/icon-concept.html` | **Created.** SVG mountain icon at 3 sizes (1024, 180, 60 px): navy sky, 3-layer mountains in brand blue/indigo, gold horizon line, gold peak diamond. Includes App Store export requirements and color palette. |
+| `REVENUECAT_SETUP.md` | **Created.** 9-step RevenueCat setup: account creation, App Store Connect IAP, entitlements, offerings, SDK install, API key, sandbox verification, production checklist. Product ID: `monthly_499`, entitlement: `premium`. |
+| `mobile/src/services/purchaseService.ts` | **Created.** `initializePurchases`, `purchasePremium`, `restorePurchases`, `checkPremiumStatus` — all use try/require pattern for SDK absence. Graceful Expo Go fallback. |
+| `mobile/App.tsx` | Added `initializePurchases()` call at startup useEffect — safe no-op until SDK is installed. |
+| `mobile/src/screens/PremiumScreen.tsx` | Replaced placeholder `handleTrial` Alert with real `purchasePremium()` call + `ActivityIndicator` loading state. Added "Restore Purchases" button wired to `restorePurchases()` with loading state. Both buttons disabled while either is loading. |
+| `mobile/app.json` | Updated description to "Smart ETF portfolio optimizer built on Efficient Frontier mathematics. Built for first-time investors." Added `ios.buildNumber: "1"`. Added `privacyPolicyUrl` and `supportUrl` to `expo.extra`. Deduplicated keywords array. |
+| `GITHUB_PAGES_SETUP.md` | **Created.** 5-step guide: push docs/, enable GitHub Pages (main branch, /docs folder), verify URLs live, add to App Store Connect, update workflow. |
+
+### Pre-Launch Audit Results (Phase 11)
+- All 17 SECTOR_TO_ETFS categories sorted alphabetically ✓
+- All 83 etf_universe_extra.json categories sorted alphabetically ✓
+- Hardcoded IP removed from CategoriesScreen error alert ✓
+- "Not financial advice" present on all result-bearing screens ✓
+- `__DEV__` gates confirmed in `ads.ts` — production never uses test IDs ✓
+- `REPLACE` tokens in purchaseService.ts and ads.ts are intentional documented steps ✓
+- `npx tsc --noEmit` — **zero errors** ✓
+
+### Remaining Manual Steps Before App Store Submission
+
+| Step | File / Location | Notes |
+|------|----------------|-------|
+| GitHub Pages | `github.com/ashtonwhales-del/my-frontier` → Settings → Pages → main/docs | Follow GITHUB_PAGES_SETUP.md |
+| RevenueCat key | `purchaseService.ts` line 17 | Follow REVENUECAT_SETUP.md |
+| Install RevenueCat SDK | `npm install react-native-purchases` then `eas build` | After RevenueCat account created |
+| AdMob Interstitial unit | `ads.ts` → `PROD_IDS.interstitial` | Create unit in AdMob console |
+| AdMob Native unit | `ads.ts` → `PROD_IDS.native` | Create unit in AdMob console |
+| App icon PNG | `mobile/assets/icon.png` | Follow icon-concept.html export instructions — 1024×1024 PNG, no alpha |
+| EAS production build | `eas build --profile production --platform ios` | After all above steps complete |
+
+*Last updated: 2026-04-06 — Phase 11 complete. Ready for GitHub Pages + RevenueCat setup.*
