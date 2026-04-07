@@ -679,3 +679,50 @@ both operations.
 | `etf_universe_extra.json` | Added `"Quantum Computing": ["QTUM", "QTEC", "ARKQ", "BOTZ", "ROBT", "IGV"]`. |
 | `mobile/src/screens/CategoriesScreen.tsx` | Added `'Quantum Computing': '🔬'` to `CATEGORY_ICONS` and `'Quantum Computing': '#7C3AED'` to `CATEGORY_ACCENTS`. |
 | `mobile/src/screens/OnboardingScreen.tsx` | Rewrote all 3 slides: Slide 1 — "Investing, finally made simple." + Efficient Frontier copy; Slide 2 — "How we build your portfolio" with emoji steps (🎯🧮📊); Slide 3 — "Built for real people, not Wall Street." with 4 promise bullets. CTA changed to "Build My Portfolio →". |
+
+---
+
+## Phase 10 Changes — Final Polish, Ad Monetization & Launch Prep (2026-04-06)
+
+### System Audit Results
+- **17 SECTOR_TO_ETFS categories**, 132 tickers — no category under 3 ETFs, none over 10 ✓
+- **99 UNIVERSE_TO_ETFS categories** (17 built-in + 82 from extra JSON), **321 unique ETFs** ✓
+- **7 delisted tickers** blocked in `DELISTED_TICKERS` ✓
+- `npx tsc --noEmit` — **zero errors** ✓
+
+### Task 3 — UI Audit Results (all clean)
+- No "underlying index" or "tracks the" in `ETFDescriptions.ts` ✓
+- "Ask Alex" FAB already commented out in `ResultsScreen.tsx` ✓
+- `WhatThisMeans.tsx` already contains grade `console.log` diagnostic ✓
+- `ProjectionsSection.tsx` already uses `profile.weekly_contribution` directly ✓
+
+| File | What changed |
+|------|-------------|
+| `mobile/src/components/LoadingCalculation.tsx` | **Rewired to rewarded video.** At 3-second mark: triggers `showRewardedAd()` automatically on native builds (5–10× higher CPM than banner). Shows "Watch a short video to support My Frontier — it keeps the app free!" prompt. On reward earned: shows "✅ Thanks for supporting us! 🎉". In Expo Go (no native module): falls back to `AdBanner` as before. Module-level `_hasNativeModule` flag avoids try/require on every render. |
+| `api.py` | `/health` endpoint now returns `categories` (99), `etfs_in_universe` (321), `cache_status` (warm/cold/stale/corrupt), and `timestamp`. Used for Railway health checks and deployment monitoring. |
+| `APP_STORE_PREP.md` | **Created.** Full App Store submission checklist: app metadata, 4,000-char description, keyword string, What's New copy, screenshot specs and sequence, App Review notes, In-App Purchase configuration, pre-submission checklist, EAS production build commands. |
+| `MARKETING.md` | **Created.** Full marketing plan: target audience profiles, TikTok/Reels script templates, Reddit strategy with target subreddits, Twitter cadence, Product Hunt launch plan, free tools stack, weekly launch timeline, ASO guidance, revenue targets with eCPM estimates. |
+
+### `/health` response shape (v2)
+```json
+{
+  "status": "ok",
+  "version": "1.0.0",
+  "categories": 99,
+  "etfs_in_universe": 321,
+  "cache_status": "warm",
+  "timestamp": "2026-04-06T..."
+}
+```
+`cache_status` values: `"warm"` (< 24h), `"stale"` (≥ 24h), `"cold"` (no file), `"corrupt"` (pickle error).
+
+### Rewarded ad flow in `LoadingCalculation`
+```
+t=0s  → Loading starts, spinner shows, tips start rotating
+t=3s  → Native: showRewardedAd() called → AdMob full-screen video overlay
+       → Expo Go: banner fallback renders at bottom
+User watches video → onRewarded() → adPhase = 'rewarded' → "Thanks! 🎉" shown
+Loading finishes   → ResultsScreen replaces LoadingCalculation
+```
+
+*Last updated: 2026-04-06 — Phase 10 complete. App is launch-ready.*

@@ -296,11 +296,31 @@ def _validate_name(name: str) -> str:
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
-@app.get("/health", summary="Health check — used by the mobile app to verify server connectivity")
+@app.get("/health", summary="Health check — used by the mobile app and Railway to verify server health")
 def health():
+    # Universe stats
+    categories = len(opt.UNIVERSE_TO_ETFS)
+    etfs_in_universe = len({t for etfs in opt.UNIVERSE_TO_ETFS.values() for t in etfs})
+
+    # Cache status — check if a fresh pickle exists without loading it
+    cache_path = getattr(opt, "_CACHE_PATH", None)
+    import os as _os, time as _time, pickle as _pickle
+    cache_status = "cold"
+    if cache_path and _os.path.exists(cache_path):
+        try:
+            with open(cache_path, "rb") as _f:
+                _payload = _pickle.load(_f)
+            _age = _time.time() - float(_payload.get("timestamp", 0))
+            cache_status = "warm" if _age < 86400 else "stale"
+        except Exception:
+            cache_status = "corrupt"
+
     return {
         "status": "ok",
         "version": "1.0.0",
+        "categories": categories,
+        "etfs_in_universe": etfs_in_universe,
+        "cache_status": cache_status,
         "timestamp": _dt.datetime.utcnow().isoformat() + "Z",
     }
 
