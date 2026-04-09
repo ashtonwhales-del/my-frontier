@@ -11,7 +11,7 @@ import NetInfo from '@react-native-community/netinfo';
 // EXPO_PUBLIC_API_URL is set in mobile/.env — edit that file, never this line directly.
 // Fallback is the Render URL so the app works even if .env is missing.
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://my-frontier-api.onrender.com';
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 35_000; // 35s — gives Render free tier cold starts (~30s) time to wake
 const OPTIMIZE_TIMEOUT_MS = 120_000; // portfolio calc can take up to 2 minutes
 
 // ---------------------------------------------------------------------------
@@ -84,14 +84,16 @@ async function fetchWithTimeout(
 }
 
 // ---------------------------------------------------------------------------
-// Retry wrapper — retries once after 2 seconds on any failure
+// Retry wrapper — retries up to 2 times (handles Render free-tier cold starts)
+// Waits 5s between attempts so a waking server has time to come up.
 // ---------------------------------------------------------------------------
-async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
   try {
     return await fn();
-  } catch {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    return await fn();
+  } catch (err) {
+    if (retries <= 0) throw err;
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    return withRetry(fn, retries - 1);
   }
 }
 

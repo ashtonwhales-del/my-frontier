@@ -26,8 +26,10 @@ type AdPhase = 'idle' | 'prompt' | 'rewarded';
 export default function LoadingCalculation() {
   const [tipIndex, setTipIndex] = useState(0);
   const [adPhase, setAdPhase] = useState<AdPhase>('idle');
+  const [showWarmup, setShowWarmup] = useState(false);
   const spinAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const warmupAnim = useRef(new Animated.Value(0)).current;
 
   // Spinner animation
   useEffect(() => {
@@ -54,6 +56,15 @@ export default function LoadingCalculation() {
       });
     }, 4000);
     return () => clearInterval(interval);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Warm-up message: show after 8s in case server is cold-starting
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowWarmup(true);
+      Animated.timing(warmupAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+    }, 8000);
+    return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Rewarded ad: trigger at 3-second mark
@@ -86,6 +97,13 @@ export default function LoadingCalculation() {
 
         <Text style={styles.title}>Building your portfolio…</Text>
         <Text style={styles.subtitle}>Analyzing 10 years of market data</Text>
+
+        {/* Cold-start warm-up notice — appears after 8s */}
+        {showWarmup && (
+          <Animated.Text style={[styles.warmupText, { opacity: warmupAnim }]}>
+            ☕ Waking up the server… first load may take 30s
+          </Animated.Text>
+        )}
 
         {/* Rotating tip card */}
         <Animated.View style={[styles.tipCard, { opacity: fadeAnim }]}>
@@ -196,7 +214,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255,255,255,0.55)',
     textAlign: 'center',
-    marginBottom: 36,
+    marginBottom: 8,
+  },
+  warmupText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.38)',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontStyle: 'italic',
   },
   tipCard: {
     backgroundColor: 'rgba(67,97,238,0.18)',
