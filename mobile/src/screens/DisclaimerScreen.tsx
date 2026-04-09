@@ -167,7 +167,7 @@ export default function DisclaimerScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FFFFFF' },
+  screen: { flex: 1, backgroundColor: '#0A0F1E' },
   logoWrap: { alignItems: 'center', paddingTop: 64, paddingBottom: spacing.lg },
   logoMark: {
     width: 80,
@@ -222,23 +222,23 @@ const styles = StyleSheet.create({
   logoText: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
   content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   heading: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: colors.textPrimary,
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#F8FAFC',
     marginBottom: spacing.lg,
     textAlign: 'center',
   },
   bodyCard: {
-    backgroundColor: '#F8F9FF',
+    backgroundColor: '#0F1629',
     borderRadius: radius.xl,
     padding: spacing.lg,
     borderLeftWidth: 4,
     borderLeftColor: colors.primary,
   },
   bodyText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 22,
+    fontSize: 16,
+    color: '#94A3B8',
+    lineHeight: 24,
   },
   bold: { fontWeight: '700', color: colors.textPrimary },
   footer: {
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0A0F1E',
   },
   acceptBtn: {
     backgroundColor: colors.primary,

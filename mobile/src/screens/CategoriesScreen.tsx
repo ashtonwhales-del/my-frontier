@@ -29,7 +29,17 @@ export default function CategoriesScreen({ navigation, route }: Props) {
   }
 
   function handleBuild(weekly: number, lumpSum: number = 0) {
-    navigation.navigate('RiskTolerance', { name, categories });
+    // Go straight to Results — skip RiskTolerance and InvestmentScreen
+    navigation.navigate('Results', {
+      data: {
+        name,
+        categories,
+        riskTolerance: 3,       // default moderate
+        lumpSum,
+        weeklyContribution: weekly,
+        age: 30,                // default, can be refined later
+      },
+    });
   }
 
   return (

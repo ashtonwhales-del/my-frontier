@@ -1270,3 +1270,56 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/src/screens/PremiumScreen.tsx` | Coffee URL updated to /MyFrontier |
 
 *Last updated: 2026-04-09 — Phase 20 complete.*
+
+---
+
+## Phase 21 Changes — Fix Everything (2026-04-09)
+
+### Alex Quota Fallback (TASK 0)
+- `/alex` endpoint: When Gemini returns 429/ResourceExhausted, returns a random helpful fallback response instead of 503
+- 5 hardcoded fallback responses covering Efficient Frontier, Frontier Score, diversification, correlation, expected return
+- Falls through: Gemini → Anthropic → quota fallback. Never returns an error to the user.
+- Created `NEW_GEMINI_KEY.md` with step-by-step instructions for getting a fresh key
+
+### Step 3 Removed (TASK 1)
+- **Root cause**: CategoriesScreen navigated to RiskToleranceScreen which navigated to InvestmentScreen ("How do you want to invest?")
+- **Fix**: CategoriesScreen now navigates directly to Results with `riskTolerance: 3` (moderate default) and `age: 30`
+- InvestmentScreen still exists (legacy) but is no longer in the active flow
+- `totalSteps=2` confirmed in CategoriesScreen
+
+### DisclaimerScreen Dark Theme (TASK 2)
+- Background: `#FFFFFF` changed to `#0A0F1E` (app dark theme)
+- Body card: `#F8F9FF` changed to `#0F1629`
+- Footer: `#FFFFFF` changed to `#0A0F1E`
+- Body text: fontSize 14 increased to 16, lineHeight 24, color `#94A3B8`
+- Heading: `#F8FAFC` with fontWeight 700
+
+### Historical Chart (TASK 3)
+- `/historical`: Now limits to top 3 tickers (was 5) for memory safety
+- Uses local `weights` dict after normalization instead of mutating `req.weights`
+
+### Multi-Horizon Projections (TASK 4)
+- ContributionStep: Replaced single 30-year projection with table showing 10/20/30/40/50 years
+- 30-year row highlighted in brandGold (#F59E0B)
+- Uses proper monthly compounding formula for accuracy
+
+### Premium Cleanup Continued
+- LearningScreen: Removed all lock icons, "Premium" tier labels, unused imports
+- All lessons and games directly accessible with no gates
+
+### New Files
+| File | Purpose |
+|------|---------|
+| `NEW_GEMINI_KEY.md` | Step-by-step guide to get fresh Gemini API key |
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `api.py` | Alex quota fallback, /historical top-3 limit, local weights variable |
+| `mobile/src/screens/CategoriesScreen.tsx` | Navigate directly to Results (skip RiskTolerance/Investment) |
+| `mobile/src/screens/DisclaimerScreen.tsx` | Dark theme: dark backgrounds, visible text |
+| `mobile/src/components/categories/ContributionStep.tsx` | Multi-horizon projection table (10-50yr) |
+| `mobile/src/screens/LearningScreen.tsx` | All locks removed, all lessons/games free |
+| `mobile/src/screens/PremiumScreen.tsx` | Buy Me a Coffee URL: buymeacoffee.com/MyFrontier |
+
+*Last updated: 2026-04-09 — Phase 21 complete.*

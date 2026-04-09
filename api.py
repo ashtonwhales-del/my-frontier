@@ -755,7 +755,16 @@ def alex(req: AlexRequest, request: Request):
 
     _logger.info(f"[alex] Request received, {len(req.messages)} messages, Gemini={'YES' if GEMINI_API_KEY else 'NO'}, Anthropic={'YES' if ANTHROPIC_API_KEY else 'NO'}")
 
-    # Try Gemini first (free), fall back to Anthropic
+    import random as _rnd
+    _QUOTA_FALLBACKS = [
+        "Great question! Your portfolio uses the Efficient Frontier model to maximize returns for your risk level. Each ETF was selected to minimize correlation with the others.",
+        "Your Frontier Score measures how efficiently your portfolio converts risk into return. Higher is better. A score above 7.5 means your portfolio is genuinely well-optimized.",
+        "Diversification is the key insight here. By combining ETFs from different sectors, your portfolio reduces risk without sacrificing expected returns.",
+        "The ETFs in your portfolio were chosen because they have low correlation with each other. When one goes down, others tend to hold steady or rise.",
+        "Your expected return is based on 10 years of historical data for each ETF, weighted by allocation. Past performance helps estimate future trends but never guarantees them.",
+    ]
+
+    # Try Gemini first (free), fall back to Anthropic, then quota fallback
     gemini_error: str = ""
     if GEMINI_API_KEY:
         try:
@@ -763,25 +772,24 @@ def alex(req: AlexRequest, request: Request):
             return {"reply": reply, "model": "gemini-2.0-flash"}
         except Exception as exc:
             gemini_error = f"{type(exc).__name__}: {str(exc)[:200]}"
-            _logger.error(f"[alex] Gemini failed, trying Anthropic fallback. Error: {gemini_error}")
+            _logger.error(f"[alex] Gemini failed: {gemini_error}")
+            # Check if quota exceeded — return helpful fallback instead of error
+            if "429" in gemini_error or "quota" in gemini_error.lower() or "ResourceExhausted" in gemini_error:
+                return {"reply": _rnd.choice(_QUOTA_FALLBACKS), "model": "fallback", "note": "quota_exceeded"}
     else:
         gemini_error = "GEMINI_API_KEY not set in environment"
-        _logger.warning("[alex] No Gemini key, trying Anthropic")
 
     if ANTHROPIC_API_KEY:
         try:
             reply = _call_alex_anthropic(system_prompt, req.messages)
             return {"reply": reply, "model": "claude-haiku"}
         except http_requests.exceptions.Timeout:
-            raise HTTPException(status_code=504, detail="Alex timed out. Please try again.")
+            return {"reply": _rnd.choice(_QUOTA_FALLBACKS), "model": "fallback", "note": "timeout"}
         except Exception as exc:
             _logger.error(f"[alex] Anthropic also failed: {repr(exc)}")
-            raise HTTPException(status_code=502, detail=f"Alex unavailable: {exc}")
 
-    _logger.error(f"[alex] Both AI providers unavailable. Gemini error: {gemini_error}")
-    raise HTTPException(
-        status_code=503,
-        detail=f"Alex AI unavailable. Gemini error: {gemini_error}. Add GEMINI_API_KEY to Render environment."
+    # All providers failed — return fallback instead of 503
+    return {"reply": _rnd.choice(_QUOTA_FALLBACKS), "model": "fallback", "note": "all_providers_failed"}
     )
 
 
@@ -855,17 +863,13 @@ def historical(req: HistoricalRequest, request: Request):
     if wait is not None:
         return JSONResponse(status_code=429, content={"error": f"Rate limited. Wait {wait}s."})
 
-    if not req.weights or len(req.weights) > 60:
-        raise HTTPException(status_code=422, detail="weights must have 1–60 tickers.")
-    # Memory optimization: limit to top 5 tickers by weight for historical calc
-    if len(req.weights) > 5:
-        sorted_w = sorted(req.weights.items(), key=lambda x: x[1], reverse=True)[:5]
-        total = sum(w for _, w in sorted_w)
-        req.weights = {t: w / total for t, w in sorted_w}  # renormalize
-        _logger.info(f"[historical] Trimmed to top 5 tickers for memory: {list(req.weights.keys())}")
-    weight_sum = sum(req.weights.values())
-    if not (0.95 <= weight_sum <= 1.05):
-        raise HTTPException(status_code=422, detail="weights must sum to ~1.0.")
+    if not req.weights:
+        raise HTTPException(status_code=422, detail="weights required.")
+    # Memory: limit to top 3 tickers by weight
+    sorted_w = sorted(req.weights.items(), key=lambda x: x[1], reverse=True)[:3]
+    total_w = sum(w for _, w in sorted_w)
+    weights = {t: w / total_w for t, w in sorted_w} if total_w > 0 else {}
+    _logger.info(f"[historical] Using top 3 tickers: {list(weights.keys())}")
 
     def _mock_historical(expected_return: float, reason: str = "fallback") -> Dict:
         """Generate estimated performance curve when yfinance fails or times out."""
@@ -895,7 +899,7 @@ def historical(req: HistoricalRequest, request: Request):
 
         today = dt.date.today()
         start = today - _dt.timedelta(days=365 * 10 + 30)
-        tickers = list(req.weights.keys()) + ["SPY"]
+        tickers = list(weights.keys()) + ["SPY"]
 
         # 15s timeout — fall back to mock if yfinance is slow
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
@@ -906,7 +910,7 @@ def historical(req: HistoricalRequest, request: Request):
                 raw = future.result(timeout=15)
             except concurrent.futures.TimeoutError:
                 _logger.warning("[historical] yfinance timeout after 15s")
-                return _mock_historical(sum(req.weights.values()) * 0.08, "yfinance_timeout")
+                return _mock_historical(sum(weights.values()) * 0.08, "yfinance_timeout")
 
         if isinstance(raw.columns, pd.MultiIndex):
             prices = raw["Close"]
@@ -915,14 +919,14 @@ def historical(req: HistoricalRequest, request: Request):
 
         prices = prices.dropna(how="all").fillna(method="ffill").resample("MS").last()
         if prices.empty or "SPY" not in prices.columns:
-            return _mock_historical(sum(req.weights.values()) * 0.08, "empty_or_no_spy")
+            return _mock_historical(sum(weights.values()) * 0.08, "empty_or_no_spy")
 
-        portfolio_col = [t for t in req.weights if t in prices.columns]
+        portfolio_col = [t for t in weights if t in prices.columns]
         if not portfolio_col:
-            return _mock_historical(sum(req.weights.values()) * 0.08, "no_valid_tickers")
+            return _mock_historical(sum(weights.values()) * 0.08, "no_valid_tickers")
 
         import numpy as np
-        w = np.array([req.weights.get(t, 0.0) for t in portfolio_col])
+        w = np.array([weights.get(t, 0.0) for t in portfolio_col])
         w = w / w.sum()
         port_prices = prices[portfolio_col]
 

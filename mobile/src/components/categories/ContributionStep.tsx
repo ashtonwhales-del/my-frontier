@@ -71,10 +71,16 @@ export default function ContributionStep({ onBuild, onBack }: Props) {
 
   const [lumpSumVal, setLumpSumVal] = useState(0);
   const [lumpInput, setLumpInput] = useState('');
-  const annual = weeklyAmount * 52;
-  const weeklyFV = annual * ((Math.pow(1.07, 30) - 1) / 0.07);
-  const lumpFV = lumpSumVal * Math.pow(1.07, 30);
-  const fv30 = weeklyFV + lumpFV;
+  const RATE = 0.07;
+  const calcFV = (years: number) => {
+    const monthlyRate = Math.pow(1 + RATE, 1 / 12) - 1;
+    const months = years * 12;
+    const monthly = weeklyAmount * 4.33;
+    const fvContrib = monthly * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+    const fvLump = lumpSumVal * Math.pow(1 + RATE, years);
+    return fvContrib + fvLump;
+  };
+  const HORIZONS = [10, 20, 30, 40, 50] as const;
   const fmt = (n: number) => '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
   return (
@@ -136,8 +142,17 @@ export default function ContributionStep({ onBuild, onBack }: Props) {
         </View>
 
         <View style={styles.projCard}>
-          <Text style={styles.projValue}>{fmt(fv30)}</Text>
-          <Text style={styles.projSub}>{fmt(weeklyAmount)}/week{lumpSumVal > 0 ? ' + ' + fmt(lumpSumVal) + ' lump sum' : ''} at 7% for 30 years</Text>
+          <Text style={styles.projLabel}>PROJECTED GROWTH AT 7%</Text>
+          {HORIZONS.map(yr => {
+            const val = calcFV(yr);
+            const is30 = yr === 30;
+            return (
+              <View key={yr} style={styles.projRow}>
+                <Text style={[styles.projYr, is30 && { color: '#F59E0B' }]}>{yr} years</Text>
+                <Text style={[styles.projVal, is30 && { color: '#F59E0B', fontSize: 20 }]}>{fmt(val)}</Text>
+              </View>
+            );
+          })}
         </View>
 
         <AdBanner placement="banner" style={{ marginHorizontal: spacing.lg, marginBottom: spacing.md }} />
@@ -192,8 +207,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card, borderRadius: radius.xl, padding: spacing.lg,
     alignItems: 'center' as const, ...shadow.sm,
   },
-  projValue: { fontSize: 36, fontWeight: '900', color: '#10B981' },
-  projSub: { fontSize: 13, color: colors.textSecondary, marginTop: 4, textAlign: 'center' as const, lineHeight: 19 },
+  projLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.8, textTransform: 'uppercase' as const, marginBottom: spacing.sm },
+  projRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
+  projYr: { fontSize: 14, color: colors.textSecondary },
+  projVal: { fontSize: 16, fontWeight: '700', color: '#10B981' },
   buildBtn: { marginHorizontal: spacing.lg, backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 16, alignItems: 'center' as const, ...shadow.md },
   buildBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });
