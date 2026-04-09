@@ -1077,3 +1077,62 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/src/screens/ProfileScreen.tsx` | AdBanner at bottom |
 
 *Last updated: 2026-04-09 — Phase 17 complete.*
+
+---
+
+## Phase 18 Changes — Contribution Fix, Debt Planner, Ads, Performance (2026-04-09)
+
+### Performance: Warmup + Category Cache (TASK 0)
+- `api.ts`: `fetchCategories()` now caches result in module-level `_categoriesCache` — only hits network once per app session
+- `api.ts`: Added `warmupServer()` export that pings `/health` on app start to wake Render
+- `App.tsx`: Calls `warmupServer()` in startup useEffect — reduces cold-start delay for first user action
+
+### StyleSelector Removed (TASK 1)
+- **Deleted** `mobile/src/components/categories/StyleSelector.tsx` — no longer used
+- `CategoriesScreen.tsx`: Simplified to 2-step funnel (Sectors + Amount, was 3-step)
+- `CategoryPicker.tsx`: Rewritten with grouped categories (BROAD MARKET / GROWTH / INCOME / ALTERNATIVE), search bar at top, expandable "Show N more sectors" for the full 98. No pre-selection — user picks their own sectors.
+
+### ContributionStep Keyboard Fix (TASK 2)
+- **Root cause**: Missing `returnKeyType="done"` and no `KeyboardAvoidingView` wrapper
+- **Fix**: Added `returnKeyType="done"`, `keyboardType="decimal-pad"`, `onSubmitEditing={() => Keyboard.dismiss()}`
+- Wrapped in `KeyboardAvoidingView` + `ScrollView` so Build button stays visible above keyboard
+- Budget card: single tappable card with green left border showing weekly surplus; tapping it pre-fills the input field (which stays editable)
+- Removed fixed `position: 'absolute'` footer — button now scrolls with content
+
+### Ad Placeholders (TASK 3)
+- `AdBanner.tsx`: DEV_MODE and Expo Go now show gold dashed placeholder boxes with "AD PLACEMENT (banner)" text — visible so developer can see exactly where ads appear
+- `InterstitialAd.tsx`: DEV_MODE and Expo Go show `Alert.alert()` with "Ad Would Play Here" and OK button that proceeds — tests the full interstitial flow
+
+### 50 Insights (TASK 4)
+- `HomeWidgets.tsx`: INSIGHTS array expanded from 20 to 50 entries covering basics, risk, Efficient Frontier, ETF specifics, behavioral finance, planning, and My Frontier features
+
+### Debt Planner (TASK 5)
+| File | Purpose |
+|------|---------|
+| `mobile/src/screens/DebtPlannerScreen.tsx` | **Created.** Full debt repayment planner: add/delete debts, avalanche vs snowball strategy comparison, total interest + months to debt-free, after-debt-free investing projection, budget surplus integration, AsyncStorage persistence |
+
+- Added `DebtPlanner: undefined` to `RootStackParamList` in `types.ts`
+- Added `DebtPlannerScreen` to `App.tsx` stack navigator
+- Added "Debt Repayment Planner" button to `BudgetScreen.tsx`
+
+### All Modified Files
+| File | What changed |
+|------|-------------|
+| `mobile/src/api.ts` | Category cache + warmupServer export |
+| `mobile/App.tsx` | warmupServer() call + DebtPlannerScreen registration |
+| `mobile/src/types.ts` | Added DebtPlanner route |
+| `mobile/src/screens/CategoriesScreen.tsx` | 2-step funnel, removed StyleSelector |
+| `mobile/src/components/categories/CategoryPicker.tsx` | Grouped categories, search, expandable more |
+| `mobile/src/components/categories/ContributionStep.tsx` | Keyboard fix, budget card, ScrollView wrapper |
+| `mobile/src/components/AdBanner.tsx` | Gold dashed placeholders in DEV_MODE/Expo Go |
+| `mobile/src/components/ads/InterstitialAd.tsx` | Alert placeholder in DEV_MODE/Expo Go |
+| `mobile/src/components/home/HomeWidgets.tsx` | 50 insights |
+| `mobile/src/screens/BudgetScreen.tsx` | Debt Planner button |
+| `mobile/src/screens/DebtPlannerScreen.tsx` | **New** |
+
+### Deleted Files
+| File | Reason |
+|------|--------|
+| `mobile/src/components/categories/StyleSelector.tsx` | Removed from funnel — users go straight to category picker |
+
+*Last updated: 2026-04-09 — Phase 18 complete.*

@@ -1,5 +1,6 @@
 /**
- * CategoryPicker.tsx -- Step 2 of category funnel
+ * CategoryPicker.tsx -- Grouped category selector with search
+ * Shows all categories organized by group, no pre-selection.
  */
 import React, { useEffect, useState } from 'react';
 import {
@@ -8,52 +9,38 @@ import {
 } from 'react-native';
 import { colors, spacing, radius, shadow } from '../../theme';
 import { fetchCategories } from '../../api';
-import { InvestmentStyle } from './StyleSelector';
 
-const STYLE_CATEGORIES: Record<Exclude<InvestmentStyle, "custom">, string[]> = {
-  safe: [
+// Category groupings for display
+const GROUPS: { label: string; hint: string; cats: string[] }[] = [
+  { label: 'BROAD MARKET', hint: 'Include at least one', cats: [
+    'AI & Technology', 'Small & Mid Cap', 'Emerging & International Markets', 'Consumer & Retail', 'Financials', 'Industrials & Defense',
+  ]},
+  { label: 'GROWTH', hint: 'Higher risk, higher potential', cats: [
+    'Robotics & Innovation', 'Clean Energy & Environment', 'Quantum Computing', 'Crypto & Blockchain', 'Healthcare & Biotech',
+  ]},
+  { label: 'INCOME', hint: 'Steady returns', cats: [
     'Bonds & Fixed Income', 'Dividends & Income', 'Real Estate',
-    'Healthcare & Biotech', 'Consumer & Retail', 'Investment Grade Corporate',
-    'Municipal Bonds', 'Preferred Stock', 'Ultra Short Term',
-    'Money Market / Cash-like', 'Floating Rate', 'Treasury Inflation Protected',
-  ],
-  balanced: [
-    'AI & Technology', 'Healthcare & Biotech', 'Real Estate',
-    'Emerging & International Markets', 'Financials', 'Clean Energy & Environment',
-    'Dividends & Income', 'Bonds & Fixed Income', 'Consumer & Retail',
-    'Industrials & Defense', 'Small & Mid Cap', 'Commodities & Resources',
-  ],
-  aggressive: [
-    'AI & Technology', 'Robotics & Innovation', 'Crypto & Blockchain',
-    'Emerging & International Markets', 'Healthcare & Biotech', 'Clean Energy & Environment',
-    'Quantum Computing', 'Space', 'Genomics',
-    'Electric Vehicles', 'Cybersecurity', 'Metaverse',
-  ],
-};
+  ]},
+  { label: 'ALTERNATIVE', hint: 'Diversifiers', cats: [
+    'Commodities & Resources', 'Leveraged & Alternative', 'Sector Specific',
+  ]},
+];
 
 interface Props {
-  style: InvestmentStyle;
   onConfirm: (categories: string[]) => void;
   onBack: () => void;
 }
 
-export default function CategoryPicker({ style: investStyle, onConfirm, onBack }: Props) {
+export default function CategoryPicker({ onConfirm, onBack }: Props) {
   const [allCategories, setAllCategories] = useState<string[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [showMore, setShowMore] = useState(investStyle === 'custom');
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     fetchCategories()
-      .then(cats => {
-        const sorted = [...cats].sort((a, b) => a.localeCompare(b));
-        setAllCategories(sorted);
-        if (investStyle !== 'custom') {
-          const recs = STYLE_CATEGORIES[investStyle]?.filter(c => cats.includes(c)) ?? [];
-          setSelected(new Set(recs));
-        }
-      })
+      .then(cats => setAllCategories([...cats].sort((a, b) => a.localeCompare(b))))
       .catch(() => Alert.alert('Error', 'Could not load categories.'))
       .finally(() => setLoading(false));
   }, []);
@@ -75,11 +62,9 @@ export default function CategoryPicker({ style: investStyle, onConfirm, onBack }
     );
   }
 
-  const recommended = investStyle !== 'custom'
-    ? (STYLE_CATEGORIES[investStyle] ?? []).filter(c => allCategories.includes(c))
-    : [];
-  const extra = allCategories.filter(c =>
-    !recommended.includes(c) && (!search || c.toLowerCase().includes(search.toLowerCase()))
+  const groupedCats = new Set(GROUPS.flatMap(g => g.cats));
+  const ungrouped = allCategories.filter(c =>
+    !groupedCats.has(c) && (!search || c.toLowerCase().includes(search.toLowerCase()))
   );
   const selCount = selected.size;
 
@@ -88,40 +73,43 @@ export default function CategoryPicker({ style: investStyle, onConfirm, onBack }
       <TouchableOpacity onPress={onBack} style={styles.backBtn}>
         <Text style={styles.backText}>Back</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>
-        {investStyle === 'custom' ? 'Pick Your Sectors' : 'Your Recommended Sectors'}
-      </Text>
+      <Text style={styles.title}>Choose Your Sectors</Text>
+      <TextInput style={styles.searchInput} placeholder="Search categories..." placeholderTextColor={colors.textMuted} value={search} onChangeText={setSearch} />
       {selCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{selCount} selected</Text>
         </View>
       )}
-      <ScrollView contentContainerStyle={styles.chips} showsVerticalScrollIndicator={false}>
-        {recommended.length > 0 && (
-          <>
-            <Text style={styles.sectionLabel}>RECOMMENDED FOR YOU</Text>
-            {recommended.map(cat => (
-              <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
-                <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
-              </TouchableOpacity>
-            ))}
-          </>
-        )}
-        {!showMore && recommended.length > 0 ? (
-          <TouchableOpacity style={styles.addMoreBtn} onPress={() => setShowMore(true)} activeOpacity={0.75}>
-            <Text style={styles.addMoreText}>+ Add more sectors ({extra.length} available)</Text>
+      <ScrollView contentContainerStyle={styles.chips} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        {GROUPS.map(group => {
+          const visible = group.cats.filter(c => allCategories.includes(c) && (!search || c.toLowerCase().includes(search.toLowerCase())));
+          if (!visible.length) return null;
+          return (
+            <View key={group.label}>
+              <Text style={styles.sectionLabel}>{group.label}</Text>
+              <Text style={styles.sectionHint}>{group.hint}</Text>
+              {visible.map(cat => (
+                <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
+                  <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          );
+        })}
+        {!showAll && ungrouped.length > 0 ? (
+          <TouchableOpacity style={styles.addMoreBtn} onPress={() => setShowAll(true)} activeOpacity={0.75}>
+            <Text style={styles.addMoreText}>+ Show {ungrouped.length} more sectors</Text>
           </TouchableOpacity>
-        ) : (
-          <>
-            {recommended.length > 0 && <Text style={styles.sectionLabel}>ALL SECTORS</Text>}
-            <TextInput style={styles.searchInput} placeholder="Search categories..." placeholderTextColor={colors.textMuted} value={search} onChangeText={setSearch} />
-            {extra.map(cat => (
+        ) : ungrouped.length > 0 ? (
+          <View>
+            <Text style={styles.sectionLabel}>ALL OTHER SECTORS</Text>
+            {ungrouped.map(cat => (
               <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
                 <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
               </TouchableOpacity>
             ))}
-          </>
-        )}
+          </View>
+        ) : null}
         <View style={{ height: 80 }} />
       </ScrollView>
       <View style={styles.footer}>
@@ -149,7 +137,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 10,
     fontSize: 14, color: colors.textPrimary,
   },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: spacing.md, marginBottom: spacing.xs, paddingHorizontal: spacing.lg },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: spacing.md, marginBottom: 2 },
+  sectionHint: { fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm },
   badge: { alignSelf: 'flex-start', marginHorizontal: spacing.lg, marginBottom: spacing.sm, backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 4 },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   chips: { paddingHorizontal: spacing.lg, gap: spacing.xs },

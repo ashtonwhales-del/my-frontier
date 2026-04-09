@@ -1,0 +1,273 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal,
+  TextInput, FlatList, Alert, Platform,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RootStackParamList } from '../types';
+import { colors, spacing, radius, shadow } from '../theme';
+
+const STORAGE_KEY = 'debtPlannerData' as const;
+const QUICK_PICKS = [100, 200, 300, 500, 750, 1000] as const;
+
+interface Debt {
+  id: string;
+  name: string;
+  balance: number;
+  apr: number;
+  minPayment: number;
+}
+
+interface PayoffResult { totalInterest: number; months: number }
+
+function simulate(debts: Debt[], extraMonthly: number, strategy: 'avalanche' | 'snowball'): PayoffResult {
+  if (debts.length === 0) return { totalInterest: 0, months: 0 };
+  const pool = debts.map(d => ({ ...d, bal: d.balance }));
+  const sorted = strategy === 'avalanche'
+    ? pool.sort((a, b) => b.apr - a.apr)
+    : pool.sort((a, b) => a.bal - b.bal);
+  let months = 0, totalInterest = 0, extra = extraMonthly;
+  const MAX_MONTHS = 600;
+  while (sorted.some(d => d.bal > 0.01) && months < MAX_MONTHS) {
+    months++;
+    let surplus = extra;
+    for (const d of sorted) {
+      if (d.bal <= 0) continue;
+      const interest = d.bal * (d.apr / 100 / 12);
+      totalInterest += interest;
+      d.bal += interest;
+      const pay = Math.min(d.bal, d.minPayment);
+      d.bal -= pay;
+    }
+    for (const d of sorted) {
+      if (d.bal <= 0 || surplus <= 0) continue;
+      const pay = Math.min(d.bal, surplus);
+      d.bal -= pay;
+      surplus -= pay;
+    }
+  }
+  return { totalInterest: Math.round(totalInterest), months };
+}
+
+function fmt(n: number): string {
+  return n >= 1000 ? `$${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : `$${n.toLocaleString()}`;
+}
+
+export default function DebtPlannerScreen() {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList, 'DebtPlanner'>>();
+  const [debts, setDebts] = useState<Debt[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [name, setName] = useState('');
+  const [balance, setBalance] = useState('');
+  const [apr, setApr] = useState('');
+  const [minPay, setMinPay] = useState('');
+  const [extraMonthly, setExtraMonthly] = useState(200);
+  const [surplus, setSurplus] = useState<number | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY).then(raw => {
+      if (raw) setDebts(JSON.parse(raw) as Debt[]);
+    });
+    const now = new Date();
+    const key = `budgetData_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    AsyncStorage.getItem(key).then(raw => {
+      if (!raw) return;
+      const data = JSON.parse(raw) as { income?: number; categories?: Record<string, number> };
+      if (data.income) {
+        const totalExp = Object.values(data.categories ?? {}).reduce((s, v) => s + v, 0);
+        setSurplus(Math.max(0, data.income - totalExp));
+      }
+    });
+  }, []);
+
+  const persist = useCallback((next: Debt[]) => {
+    setDebts(next);
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  }, []);
+
+  const addDebt = () => {
+    const b = parseFloat(balance), a = parseFloat(apr), m = parseFloat(minPay);
+    if (!name.trim() || isNaN(b) || isNaN(a) || isNaN(m) || b <= 0) {
+      Alert.alert('Missing info', 'Fill in all fields with valid numbers.');
+      return;
+    }
+    const debt: Debt = { id: Date.now().toString(), name: name.trim(), balance: b, apr: a, minPayment: m };
+    persist([...debts, debt]);
+    setName(''); setBalance(''); setApr(''); setMinPay('');
+    setModalVisible(false);
+  };
+
+  const remove = (id: string) => persist(debts.filter(d => d.id !== id));
+
+  const avalanche = simulate(debts, extraMonthly, 'avalanche');
+  const snowball = simulate(debts, extraMonthly, 'snowball');
+  const winner = avalanche.totalInterest <= snowball.totalInterest ? 'avalanche' : 'snowball';
+  const monthlyAfter = debts.reduce((s, d) => s + d.minPayment, 0) + extraMonthly;
+  const investYears = 30;
+  const futureValue = monthlyAfter > 0
+    ? monthlyAfter * ((Math.pow(1 + 0.08 / 12, investYears * 12) - 1) / (0.08 / 12))
+    : 0;
+
+  const renderDebt = ({ item }: { item: Debt }) => (
+    <View style={s.debtCard}>
+      <View style={{ flex: 1 }}>
+        <Text style={s.debtName}>{item.name}</Text>
+        <Text style={s.debtDetail}>
+          ${item.balance.toLocaleString()} at {item.apr}% APR, ${item.minPayment}/mo min
+        </Text>
+      </View>
+      <TouchableOpacity onPress={() => remove(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <Text style={s.deleteBtn}>X</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <View style={s.root}>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <Text style={s.backText}>{'<'}</Text>
+        </TouchableOpacity>
+        <Text style={s.title}>Debt Repayment Plan</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity style={s.addBtn} onPress={() => setModalVisible(true)}>
+          <Text style={s.addBtnText}>+ Add Debt</Text>
+        </TouchableOpacity>
+
+        {debts.length > 0 && (
+          <FlatList data={debts} keyExtractor={d => d.id} renderItem={renderDebt}
+            scrollEnabled={false} style={{ marginBottom: spacing.lg }} />
+        )}
+
+        {surplus !== null && (
+          <View style={s.card}>
+            <Text style={s.cardTitle}>Monthly available from budget: ${surplus.toLocaleString()}</Text>
+          </View>
+        )}
+
+        {debts.length > 0 && (
+          <>
+            <Text style={s.sectionLabel}>Extra monthly payment</Text>
+            <View style={s.pickRow}>
+              {QUICK_PICKS.map(v => (
+                <TouchableOpacity key={v} onPress={() => setExtraMonthly(v)}
+                  style={[s.pick, extraMonthly === v && s.pickActive]}>
+                  <Text style={[s.pickText, extraMonthly === v && s.pickTextActive]}>${v}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={s.stratRow}>
+              {(['avalanche', 'snowball'] as const).map(strat => {
+                const r = strat === 'avalanche' ? avalanche : snowball;
+                const isWinner = winner === strat;
+                return (
+                  <View key={strat} style={[s.stratCard, isWinner && s.stratWinner]}>
+                    {isWinner && <Text style={s.winnerBadge}>Best</Text>}
+                    <Text style={s.stratTitle}>{strat === 'avalanche' ? 'Avalanche' : 'Snowball'}</Text>
+                    <Text style={s.stratSub}>{strat === 'avalanche' ? 'Highest rate first' : 'Lowest balance first'}</Text>
+                    <Text style={s.stratNum}>{fmt(r.totalInterest)}</Text>
+                    <Text style={s.stratLabel}>total interest</Text>
+                    <Text style={s.stratNum}>{r.months} mo</Text>
+                    <Text style={s.stratLabel}>to debt-free</Text>
+                  </View>
+                );
+              })}
+            </View>
+
+            {monthlyAfter > 0 && (
+              <View style={[s.card, { marginTop: spacing.lg }]}>
+                <Text style={s.cardTitle}>After you are debt-free</Text>
+                <Text style={s.projText}>
+                  Redirect ${monthlyAfter.toLocaleString()}/mo to investing
+                </Text>
+                <Text style={s.projBig}>{fmt(Math.round(futureValue))}</Text>
+                <Text style={s.projSub}>projected in {investYears} years at 8% avg return</Text>
+              </View>
+            )}
+          </>
+        )}
+
+        {debts.length === 0 && (
+          <Text style={s.empty}>Add your debts above to see payoff strategies.</Text>
+        )}
+      </ScrollView>
+
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <Text style={s.modalTitle}>Add Debt</Text>
+            <TextInput style={s.input} placeholder="Debt name" placeholderTextColor={colors.textMuted}
+              value={name} onChangeText={setName} />
+            <TextInput style={s.input} placeholder="Balance ($)" placeholderTextColor={colors.textMuted}
+              value={balance} onChangeText={setBalance} keyboardType="number-pad" />
+            <TextInput style={s.input} placeholder="Interest rate (APR %)" placeholderTextColor={colors.textMuted}
+              value={apr} onChangeText={setApr} keyboardType="decimal-pad" />
+            <TextInput style={s.input} placeholder="Minimum payment ($)" placeholderTextColor={colors.textMuted}
+              value={minPay} onChangeText={setMinPay} keyboardType="number-pad" />
+            <TouchableOpacity style={s.addBtn} onPress={addDebt}>
+              <Text style={s.addBtnText}>Add Debt</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: spacing.sm }}>
+              <Text style={[s.stratSub, { textAlign: 'center' }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.bg },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 56 : 16, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
+  backText: { color: colors.primary, fontSize: 22, fontWeight: '700' },
+  title: { color: colors.textPrimary, fontSize: 18, fontWeight: '700' },
+  scroll: { padding: spacing.lg, paddingBottom: 40 },
+  addBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 14,
+    alignItems: 'center', marginBottom: spacing.lg },
+  addBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  debtCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card,
+    borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md,
+    marginBottom: spacing.sm },
+  debtName: { color: colors.textPrimary, fontSize: 15, fontWeight: '600' },
+  debtDetail: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+  deleteBtn: { color: colors.danger, fontSize: 16, fontWeight: '700', paddingHorizontal: 8 },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1,
+    borderColor: colors.border, padding: spacing.lg, ...shadow.sm },
+  cardTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  sectionLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600',
+    marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  pickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: spacing.lg },
+  pick: { backgroundColor: colors.card, borderRadius: radius.sm, borderWidth: 1,
+    borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 14 },
+  pickActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  pickText: { color: colors.textSecondary, fontSize: 14, fontWeight: '600' },
+  pickTextActive: { color: '#fff' },
+  stratRow: { flexDirection: 'row', gap: 10 },
+  stratCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1,
+    borderColor: colors.border, padding: spacing.md, alignItems: 'center' },
+  stratWinner: { borderColor: colors.success, ...shadow.sm },
+  winnerBadge: { color: colors.success, fontSize: 11, fontWeight: '700', textTransform: 'uppercase',
+    marginBottom: 4, letterSpacing: 0.5 },
+  stratTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' },
+  stratSub: { color: colors.textSecondary, fontSize: 12, marginBottom: 8 },
+  stratNum: { color: colors.textPrimary, fontSize: 20, fontWeight: '700', marginTop: 4 },
+  stratLabel: { color: colors.textMuted, fontSize: 12 },
+  projText: { color: colors.textSecondary, fontSize: 14, marginTop: 4 },
+  projBig: { color: colors.success, fontSize: 28, fontWeight: '800', marginTop: 8 },
+  projSub: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
+  empty: { color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginTop: 40 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: spacing.lg },
+  modalContent: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl },
+  modalTitle: { color: colors.textPrimary, fontSize: 18, fontWeight: '700', marginBottom: spacing.lg, textAlign: 'center' },
+  input: { backgroundColor: colors.bg, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border,
+    color: colors.textPrimary, fontSize: 15, padding: 12, marginBottom: spacing.sm },
+});

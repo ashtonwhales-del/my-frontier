@@ -110,9 +110,15 @@ export async function checkHealth(): Promise<boolean> {
 }
 
 // ---------------------------------------------------------------------------
-// fetchCategories
+// fetchCategories — cached at module level so it only hits the network once
 // ---------------------------------------------------------------------------
+let _categoriesCache: string[] | null = null;
+
 export async function fetchCategories(): Promise<string[]> {
+  if (_categoriesCache) {
+    console.log('[fetchCategories] Returning cached result');
+    return _categoriesCache;
+  }
   await assertConnected();
   return withRetry(async () => {
     const url = `${BASE_URL}/categories`;
@@ -124,8 +130,19 @@ export async function fetchCategories(): Promise<string[]> {
       const err = await res.json().catch(() => ({}));
       throw new Error((err as any)?.detail ?? (err as any)?.error ?? `Server error ${res.status}`);
     }
-    return res.json();
+    const data: string[] = await res.json();
+    _categoriesCache = data;
+    return data;
   });
+}
+
+// ---------------------------------------------------------------------------
+// warmupServer — ping /health to wake Render before user needs it
+// ---------------------------------------------------------------------------
+export function warmupServer(): void {
+  fetch(`${BASE_URL}/health`)
+    .then(() => console.log('[warmup] Render awake'))
+    .catch(() => console.log('[warmup] Render waking up'));
 }
 
 // ---------------------------------------------------------------------------

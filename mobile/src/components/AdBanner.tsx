@@ -21,54 +21,46 @@ type Props = {
 export default function AdBanner({ placement, style }: Props) {
   const [skip, setSkip] = useState(DEV_MODE);
   useEffect(() => { if (!DEV_MODE) isPremium().then(p => setSkip(p)); }, []);
-  if (skip) return null;
+
+  // DEV_MODE / premium: show gold dashed placeholder so dev can see placements
+  if (skip) {
+    return (
+      <View style={[styles.devPlaceholder, style]}>
+        <Text style={styles.devText}>AD PLACEMENT ({placement})</Text>
+      </View>
+    );
+  }
+
   if (RNGMAModule) {
     const { BannerAd, BannerAdSize } = RNGMAModule;
-    // AdMob handles all sizing internally — no wrapper View needed.
     return <BannerAd unitId={AD_UNIT_IDS[placement]} size={BannerAdSize.BANNER} />;
   }
 
-  // Expo Go fallback — visible placeholder so the layout slot is reserved
+  // Expo Go fallback — visible placeholder
   return (
-    <View style={[styles.container, style]}>
-      <View style={styles.yellowStrip} />
-      <View style={styles.inner}>
-        <Text style={styles.label}>ADVERTISEMENT</Text>
-        <Text style={styles.placeholder}>{__DEV__ ? `[Dev] ${placement}` : ''}</Text>
-      </View>
+    <View style={[styles.devPlaceholder, style]}>
+      <Text style={styles.devText}>AD PLACEMENT ({placement})</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: 320,
-    height: 50,
-    flexDirection: 'row',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 4,
-    overflow: 'hidden',
-    alignSelf: 'center',
-  },
-  yellowStrip: {
-    width: 3,
-    backgroundColor: '#F5C518',
-  },
-  inner: {
-    flex: 1,
-    alignItems: 'center',
+  devPlaceholder: {
+    height: 60,
+    backgroundColor: '#1a1a2e',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    borderStyle: 'dashed',
     justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 8,
+    borderRadius: 8,
+    alignSelf: 'stretch',
   },
-  label: {
-    fontSize: 9,
-    color: '#999999',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 2,
-  },
-  placeholder: {
+  devText: {
+    color: '#F59E0B',
     fontSize: 12,
-    color: '#AAAAAA',
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: 1,
   },
 });

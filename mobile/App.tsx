@@ -10,6 +10,7 @@ import { RootStackParamList } from './src/types';
 import { STORAGE } from './src/constants';
 import { Colors } from './src/theme/colors';
 import { initializePurchases } from './src/services/purchaseService';
+import { warmupServer } from './src/api';
 import ErrorBoundary           from './src/components/ErrorBoundary';
 import DisclaimerScreen        from './src/screens/DisclaimerScreen';
 import OnboardingScreen        from './src/screens/OnboardingScreen';
@@ -29,6 +30,7 @@ import CompareScreen           from './src/screens/CompareScreen';
 import BudgetScreen            from './src/screens/BudgetScreen';
 import NetWorthScreen          from './src/screens/NetWorthScreen';
 import DebtPayoffScreen        from './src/screens/DebtPayoffScreen';
+import DebtPlannerScreen       from './src/screens/DebtPlannerScreen';
 import SubscriptionAuditScreen from './src/screens/SubscriptionAuditScreen';
 import ProfileScreen           from './src/screens/ProfileScreen';
 
@@ -39,6 +41,7 @@ export default function App() {
 
   useEffect(() => {
     initializePurchases();
+    warmupServer();
 
     (async () => {
       const [disclaimerAccepted, onboardingComplete] = await Promise.all([
@@ -86,6 +89,7 @@ export default function App() {
             <Stack.Screen name="Budget"            component={BudgetScreen} />
             <Stack.Screen name="NetWorth"          component={NetWorthScreen} />
             <Stack.Screen name="DebtPayoff"        component={DebtPayoffScreen} />
+            <Stack.Screen name="DebtPlanner"       component={DebtPlannerScreen} />
             <Stack.Screen name="SubscriptionAudit" component={SubscriptionAuditScreen} />
             <Stack.Screen name="Profile"           component={ProfileScreen} />
           </Stack.Navigator>

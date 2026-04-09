@@ -1,4 +1,6 @@
+import { Alert } from 'react-native';
 import { AD_UNIT_IDS } from '../../config/ads';
+import { DEV_MODE } from '../../services/premiumService';
 
 // react-native-google-mobile-ads is a native module — unavailable in Expo Go.
 let RNGMAModule: any = null;
@@ -13,10 +15,23 @@ try {
  * dismisses the ad, or immediately if the ad fails to load / running in Expo Go.
  */
 export function showInterstitialAd(onClosed: () => void): void {
+  if (DEV_MODE) {
+    // DEV_MODE: show visible placeholder so dev can see the ad flow
+    Alert.alert(
+      'Ad Would Play Here',
+      'In production this shows a full-screen ad before building your portfolio.',
+      [{ text: 'OK', onPress: onClosed }],
+    );
+    return;
+  }
+
   if (!RNGMAModule) {
-    // Expo Go stub — immediately call onClosed so the app is never blocked
-    console.log('[InterstitialAd] Native module unavailable (Expo Go) — skipping ad');
-    onClosed();
+    // Expo Go: show visible placeholder
+    Alert.alert(
+      'Ad Would Play Here',
+      'In production this shows a full-screen ad. Tap OK to continue.',
+      [{ text: 'OK', onPress: onClosed }],
+    );
     return;
   }
 

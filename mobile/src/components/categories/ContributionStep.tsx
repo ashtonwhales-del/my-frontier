@@ -1,9 +1,12 @@
 /**
- * ContributionStep.tsx -- Step 3 of category funnel
- * Shows budget sync if available, amount input, 30yr projection.
+ * ContributionStep.tsx -- Step 2: Set weekly investment amount
+ * Budget card pre-fills, keyboard-safe, live 30yr projection.
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import {
+  View, Text, TouchableOpacity, StyleSheet, TextInput,
+  ScrollView, KeyboardAvoidingView, Platform, Keyboard,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, spacing, radius, shadow } from '../../theme';
 import AdBanner from '../AdBanner';
@@ -14,11 +17,11 @@ interface Props {
   lumpSum: number;
 }
 
-export default function ContributionStep({ onBuild, onBack, lumpSum }: Props) {
+export default function ContributionStep({ onBuild, onBack }: Props) {
   const [weeklyAmount, setWeeklyAmount] = useState(100);
   const [inputValue, setInputValue] = useState('100');
-  const [budgetSurplus, setBudgetSurplus] = useState<number | null>(null);
-  const [useBudget, setUseBudget] = useState(false);
+  const [budgetWeekly, setBudgetWeekly] = useState<number | null>(null);
+  const [budgetActive, setBudgetActive] = useState(false);
 
   useEffect(() => {
     const month = new Date().toISOString().slice(0, 7);
@@ -27,51 +30,43 @@ export default function ContributionStep({ onBuild, onBack, lumpSum }: Props) {
       try {
         const data = JSON.parse(raw);
         const income = data.income ?? 0;
-        const allocated = Object.values(data.categories ?? {}).reduce((s: number, v: any) => s + (v as number), 0);
-        const surplus = income - allocated;
+        const total = Object.values(data.categories ?? {}).reduce((s: number, v: any) => s + (v as number), 0);
+        const surplus = income - total;
         if (surplus > 0) {
-          const weeklyFromBudget = Math.round(surplus / 4.33);
-          setBudgetSurplus(surplus);
-          setUseBudget(true);
-          setWeeklyAmount(weeklyFromBudget);
-          setInputValue(String(weeklyFromBudget));
+          const w = Math.round(surplus / 4.33);
+          setBudgetWeekly(w);
+          setBudgetActive(true);
+          setWeeklyAmount(w);
+          setInputValue(String(w));
         }
       } catch {}
     });
   }, []);
 
-  const handleAmountChange = (text: string) => {
+  const handleChange = (text: string) => {
     setInputValue(text);
-    const parsed = parseInt(text, 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      setWeeklyAmount(Math.min(parsed, 5000));
-    }
+    setBudgetActive(false);
+    const n = parseFloat(text);
+    if (!isNaN(n) && n > 0) setWeeklyAmount(Math.min(Math.round(n), 5000));
   };
 
   const handleBlur = () => {
-    if (!inputValue || isNaN(parseInt(inputValue, 10))) {
+    if (!inputValue || isNaN(parseFloat(inputValue))) {
       setInputValue('100');
       setWeeklyAmount(100);
     } else {
-      const cleaned = Math.min(parseInt(inputValue, 10), 5000);
-      setInputValue(String(cleaned));
-      setWeeklyAmount(cleaned);
+      const v = Math.min(Math.round(parseFloat(inputValue)), 5000);
+      setInputValue(String(v));
+      setWeeklyAmount(v);
     }
   };
 
-  const selectQuick = (amt: number) => {
-    setWeeklyAmount(amt);
-    setInputValue(String(amt));
-    setUseBudget(false);
-  };
-
-  const selectBudget = () => {
-    if (budgetSurplus) {
-      const w = Math.round(budgetSurplus / 4.33);
-      setWeeklyAmount(w);
-      setInputValue(String(w));
-      setUseBudget(true);
-    }
+  const useBudgetAmount = () => {
+    if (!budgetWeekly) return;
+    setWeeklyAmount(budgetWeekly);
+    setInputValue(String(budgetWeekly));
+    setBudgetActive(true);
+    Keyboard.dismiss();
   };
 
   const annual = weeklyAmount * 52;
@@ -79,90 +74,100 @@ export default function ContributionStep({ onBuild, onBack, lumpSum }: Props) {
   const fmt = (n: number) => '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-        <Text style={styles.backText}>Back</Text>
-      </TouchableOpacity>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <TouchableOpacity onPress={onBack} style={styles.backBtn}>
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.title}>Weekly Investment</Text>
+        <Text style={styles.title}>Set Your Weekly Investment</Text>
+        <Text style={styles.subtitle}>How much will you invest each week?</Text>
 
-      {/* Budget sync cards */}
-      {budgetSurplus !== null && (
-        <View style={styles.optionRow}>
-          <TouchableOpacity style={[styles.optionCard, useBudget && styles.optionActive]} onPress={selectBudget} activeOpacity={0.8}>
-            <Text style={styles.optionEmoji}>💰</Text>
-            <Text style={[styles.optionTitle, useBudget && styles.optionTitleActive]}>Use my budget</Text>
-            <Text style={styles.optionSub}>{fmt(Math.round(budgetSurplus / 4.33))}/week from surplus</Text>
+        {budgetWeekly !== null && (
+          <TouchableOpacity style={[styles.budgetCard, budgetActive && styles.budgetCardActive]} onPress={useBudgetAmount} activeOpacity={0.8}>
+            <View style={styles.budgetLeft}>
+              <Text style={styles.budgetEmoji}>💰</Text>
+              <View>
+                <Text style={[styles.budgetTitle, budgetActive && styles.budgetTitleActive]}>Based on your budget</Text>
+                <Text style={styles.budgetSub}>{fmt(budgetWeekly)}/week available after expenses</Text>
+              </View>
+            </View>
+            {budgetActive && <Text style={styles.budgetCheck}>✓</Text>}
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.optionCard, !useBudget && styles.optionActive]} onPress={() => setUseBudget(false)} activeOpacity={0.8}>
-            <Text style={styles.optionEmoji}>✏️</Text>
-            <Text style={[styles.optionTitle, !useBudget && styles.optionTitleActive]}>Custom amount</Text>
-            <Text style={styles.optionSub}>Enter your own</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        )}
 
-      {/* Amount input */}
-      <View style={styles.amountCard}>
-        <View style={styles.inputRow}>
-          <Text style={styles.dollarSign}>$</Text>
-          <TextInput
-            style={styles.amountInput}
-            value={inputValue}
-            onChangeText={handleAmountChange}
-            onBlur={handleBlur}
-            keyboardType="number-pad"
-            maxLength={5}
-            selectTextOnFocus
-          />
-          <Text style={styles.perWeek}>/week</Text>
+        <Text style={styles.inputLabel}>{budgetWeekly ? 'Or enter your own amount:' : 'Enter your weekly amount:'}</Text>
+        <View style={styles.amountCard}>
+          <View style={styles.inputRow}>
+            <Text style={styles.dollarSign}>$</Text>
+            <TextInput
+              style={styles.amountInput}
+              value={inputValue}
+              onChangeText={handleChange}
+              onBlur={handleBlur}
+              keyboardType="decimal-pad"
+              returnKeyType="done"
+              onSubmitEditing={() => Keyboard.dismiss()}
+              maxLength={5}
+              selectTextOnFocus
+            />
+            <Text style={styles.perWeek}>/week</Text>
+          </View>
+          <View style={styles.quickPicks}>
+            {[25, 50, 100, 250, 500].map(amt => (
+              <TouchableOpacity key={amt} style={[styles.quickBtn, weeklyAmount === amt && !budgetActive && styles.quickBtnActive]} onPress={() => { setWeeklyAmount(amt); setInputValue(String(amt)); setBudgetActive(false); }}>
+                <Text style={[styles.quickBtnText, weeklyAmount === amt && !budgetActive && styles.quickBtnTextActive]}>{'$' + amt}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-        <View style={styles.quickPicks}>
-          {[25, 50, 100, 250, 500].map(amt => (
-            <TouchableOpacity key={amt} style={[styles.quickBtn, weeklyAmount === amt && !useBudget && styles.quickBtnActive]} onPress={() => selectQuick(amt)}>
-              <Text style={[styles.quickBtnText, weeklyAmount === amt && !useBudget && styles.quickBtnTextActive]}>{'$' + amt}</Text>
-            </TouchableOpacity>
-          ))}
+
+        <View style={styles.projCard}>
+          <Text style={styles.projValue}>{fmt(fv30)}</Text>
+          <Text style={styles.projSub}>{fmt(weeklyAmount)}/week invested for 30 years at 7% avg return</Text>
         </View>
-      </View>
 
-      {/* Live projection */}
-      <View style={styles.projCard}>
-        <Text style={styles.projValue}>{fmt(fv30)}</Text>
-        <Text style={styles.projSub}>{fmt(weeklyAmount)}/week invested for 30 years at 7% avg return</Text>
-      </View>
+        <AdBanner placement="banner" style={{ marginHorizontal: spacing.lg, marginBottom: spacing.md }} />
 
-      <View style={styles.footer}>
-        <AdBanner placement="banner" style={{ marginBottom: spacing.sm }} />
         <TouchableOpacity style={styles.buildBtn} onPress={() => onBuild(weeklyAmount)} activeOpacity={0.8}>
           <Text style={styles.buildBtnText}>Build My Portfolio</Text>
         </TouchableOpacity>
-      </View>
-    </View>
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  scroll: { paddingBottom: 40 },
   backBtn: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   backText: { fontSize: 15, color: colors.primary, fontWeight: '600' },
-  title: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, paddingHorizontal: spacing.lg, marginTop: spacing.md, marginBottom: spacing.lg },
-  optionRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
-  optionCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.border, padding: spacing.md, alignItems: 'center' as const, gap: 4 },
-  optionActive: { borderColor: colors.primary, backgroundColor: '#3B82F618' },
-  optionEmoji: { fontSize: 24 },
-  optionTitle: { fontSize: 13, fontWeight: '700', color: colors.textSecondary },
-  optionTitleActive: { color: colors.primary },
-  optionSub: { fontSize: 11, color: colors.textMuted, textAlign: 'center' as const },
+  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, paddingHorizontal: spacing.lg, marginTop: spacing.md },
+  subtitle: { fontSize: 14, color: colors.textSecondary, paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
+  budgetCard: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginHorizontal: spacing.lg, marginBottom: spacing.lg,
+    backgroundColor: colors.card, borderRadius: radius.lg,
+    borderWidth: 1.5, borderColor: colors.border, borderLeftWidth: 4, borderLeftColor: '#10B981',
+    padding: spacing.md,
+  },
+  budgetCardActive: { borderColor: '#10B981', backgroundColor: '#10B98112' },
+  budgetLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 },
+  budgetEmoji: { fontSize: 28 },
+  budgetTitle: { fontSize: 14, fontWeight: '700', color: colors.textSecondary },
+  budgetTitleActive: { color: '#10B981' },
+  budgetSub: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  budgetCheck: { fontSize: 18, fontWeight: '900', color: '#10B981' },
+  inputLabel: { fontSize: 13, color: colors.textSecondary, paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   amountCard: {
     marginHorizontal: spacing.lg, marginBottom: spacing.lg,
     backgroundColor: colors.card, borderRadius: radius.xl, padding: spacing.lg,
-    alignItems: 'center', ...shadow.sm,
+    alignItems: 'center' as const, ...shadow.sm,
   },
-  weeklyLabel: { fontSize: 12, color: colors.textSecondary, marginBottom: spacing.sm, textTransform: 'uppercase', fontWeight: '700' },
   inputRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: spacing.md },
   dollarSign: { fontSize: 28, fontWeight: '700', color: colors.textMuted },
-  amountInput: { fontSize: 36, fontWeight: '900', color: colors.textPrimary, minWidth: 80, textAlign: 'center' },
+  amountInput: { fontSize: 36, fontWeight: '900', color: colors.textPrimary, minWidth: 80, textAlign: 'center' as const },
   perWeek: { fontSize: 16, color: colors.textSecondary, fontWeight: '600' },
   quickPicks: { flexDirection: 'row', gap: spacing.sm },
   quickBtn: { backgroundColor: colors.bg, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 6 },
@@ -170,13 +175,12 @@ const styles = StyleSheet.create({
   quickBtnText: { fontSize: 13, fontWeight: '700', color: colors.textSecondary },
   quickBtnTextActive: { color: '#fff' },
   projCard: {
-    marginHorizontal: spacing.lg,
+    marginHorizontal: spacing.lg, marginBottom: spacing.lg,
     backgroundColor: colors.card, borderRadius: radius.xl, padding: spacing.lg,
-    alignItems: 'center', ...shadow.sm,
+    alignItems: 'center' as const, ...shadow.sm,
   },
   projValue: { fontSize: 36, fontWeight: '900', color: '#10B981' },
   projSub: { fontSize: 13, color: colors.textSecondary, marginTop: 4, textAlign: 'center' as const, lineHeight: 19 },
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
-  buildBtn: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 16, alignItems: 'center', ...shadow.md },
+  buildBtn: { marginHorizontal: spacing.lg, backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 16, alignItems: 'center' as const, ...shadow.md },
   buildBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });
