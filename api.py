@@ -122,17 +122,6 @@ async def lifespan(app: FastAPI):
 
     _logger.info(f"[startup] Gemini key loaded: {'YES' if GEMINI_API_KEY else 'NO — set GEMINI_API_KEY in environment'}")
 
-    # Gemini startup test — verify the key actually works
-    if GEMINI_API_KEY:
-        try:
-            import google.generativeai as genai  # type: ignore
-            genai.configure(api_key=GEMINI_API_KEY)
-            test_model = genai.GenerativeModel("gemini-2.0-flash")
-            test_response = test_model.generate_content("say hi")
-            _logger.info(f"[startup] Gemini startup test PASSED: {test_response.text[:50]}")
-        except Exception as e:
-            _logger.error(f"[startup] Gemini startup test FAILED: {repr(e)}")
-
     _logger.info(f"My Frontier API ready — v1.0.0 — {_dt.datetime.utcnow().isoformat()}Z")
     yield
 
@@ -354,23 +343,14 @@ def health():
     }
 
 
-@app.get("/alex-test", summary="Quick test to verify Gemini/Anthropic connectivity")
+@app.get("/alex-test", summary="Quick check — is an AI key configured?")
 def alex_test():
-    """Returns OK if Alex AI can respond. Used by mobile app to show status banner."""
-    try:
-        if GEMINI_API_KEY:
-            import google.generativeai as genai  # type: ignore
-            genai.configure(api_key=GEMINI_API_KEY)
-            model = genai.GenerativeModel("gemini-2.0-flash")
-            resp = model.generate_content("Say exactly: Alex is working")
-            return {"ok": True, "response": resp.text.strip()[:50], "model": "gemini", "key_prefix": GEMINI_API_KEY[:8] + "..."}
-        elif ANTHROPIC_API_KEY:
-            return {"ok": True, "response": "Anthropic available", "model": "anthropic", "key_prefix": ANTHROPIC_API_KEY[:8] + "..."}
-        else:
-            return {"ok": False, "error": "No AI keys configured", "key_present": False}
-    except Exception as e:
-        _logger.error(f"[alex-test] {repr(e)}")
-        return {"ok": False, "error": str(e)[:200], "key_present": bool(GEMINI_API_KEY)}
+    """Key-presence check only. No generate_content call — saves quota."""
+    if GEMINI_API_KEY:
+        return {"ok": True, "message": "Gemini key is configured", "key_present": True}
+    if ANTHROPIC_API_KEY:
+        return {"ok": True, "message": "Anthropic key is configured", "key_present": True}
+    return {"ok": False, "error": "GEMINI_API_KEY not set", "key_present": False}
 
 
 @app.get("/categories", response_model=List[str], summary="List available ETF categories")
