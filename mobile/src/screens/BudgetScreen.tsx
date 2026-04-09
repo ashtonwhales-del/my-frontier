@@ -15,6 +15,7 @@ import { NumberScale, HeadingScale, BodyScale, LabelStyle } from '../theme/typog
 import { Spacing, Radius } from '../theme/spacing';
 import Card from '../components/ui/Card';
 import GradientButton from '../components/ui/GradientButton';
+import TabShell from '../components/TabShell';
 import { IncomeModal, CategoryModal } from './BudgetModals';
 
 // ---------- constants ----------
@@ -104,6 +105,7 @@ export default function BudgetScreen() {
   const dna = spendingDNA(income, amounts);
 
   return (
+    <TabShell active="Budget">
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.screenTitle}>Monthly Budget</Text>
@@ -193,6 +195,7 @@ export default function BudgetScreen() {
         />
       )}
     </SafeAreaView>
+    </TabShell>
   );
 }
 

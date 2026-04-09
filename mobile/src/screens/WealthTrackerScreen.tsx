@@ -18,6 +18,7 @@ import { RootStackParamList, SavedPortfolio } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
 import { STORAGE } from '../constants';
 import { calcFrontierScore } from '../components/PortfolioScoreCard';
+import TabShell from '../components/TabShell';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'WealthTracker'> };
 
@@ -377,6 +378,7 @@ export default function WealthTrackerScreen({ navigation }: Props) {
   const userName = portfolios[0]?.data.name ?? 'Your';
 
   return (
+    <TabShell active="Portfolio" navigation={navigation}>
     <View style={styles.screen}>
       <PortfolioDetailModal portfolio={detailPortfolio} onClose={() => setDetailPortfolio(null)} />
 
@@ -500,6 +502,7 @@ export default function WealthTrackerScreen({ navigation }: Props) {
         <View style={{ height: spacing.xl }} />
       </ScrollView>
     </View>
+    </TabShell>
   );
 }
 

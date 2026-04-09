@@ -24,7 +24,10 @@
       "Bash(set PYTHONIOENCODING=utf-8)",
       "Bash(python -W ignore -c \":*)",
       "Read(//mnt/w/**)",
-      "Bash(wc -l W:/MyFrontier/mobile/src/screens/BudgetScreen.tsx W:/MyFrontier/mobile/src/screens/NetWorthScreen.tsx W:/MyFrontier/mobile/src/components/budget/*.tsx)"
+      "Bash(wc -l W:/MyFrontier/mobile/src/screens/BudgetScreen.tsx W:/MyFrontier/mobile/src/screens/NetWorthScreen.tsx W:/MyFrontier/mobile/src/components/budget/*.tsx)",
+      "Bash(head -10 echo \"---\" ls W:/MyFrontier/mobile/src/screens/Budget* W:/MyFrontier/mobile/src/components/ui/BottomNav*)",
+      "Bash(grep -E \"bottom-tabs|navigation\" echo \"---\" ls W:/MyFrontier/mobile/src/screens/NetWorthScreen.tsx)",
+      "Bash(grep -n \"^  \\);\\\\|^    \\);\\\\|^  }$\" W:/MyFrontier/mobile/src/screens/WelcomeScreen.tsx)"
     ]
   }
 }

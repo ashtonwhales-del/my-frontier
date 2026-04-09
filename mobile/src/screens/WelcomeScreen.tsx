@@ -18,6 +18,7 @@ import { checkHealth } from '../api';
 import { STORAGE } from '../constants';
 import { calcFrontierScore } from '../components/PortfolioScoreCard';
 import MarketPulse from '../components/MarketPulse';
+import TabShell from '../components/TabShell';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Welcome'>;
@@ -155,6 +156,7 @@ export default function WelcomeScreen({ navigation }: Props) {
     const days = daysSince(lastPortfolio.createdAt);
 
     return (
+      <TabShell active="Home" navigation={navigation}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         {serverReady !== true && (
           <View style={styles.serverBanner}>
@@ -222,11 +224,13 @@ export default function WelcomeScreen({ navigation }: Props) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      </TabShell>
     );
   }
 
   // ── Normal first-time / new-analysis view ─────────────────────────────────
   return (
+    <TabShell active="Home" navigation={navigation}>
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       {serverReady !== true && (
         <View style={styles.serverBanner}>
@@ -332,6 +336,7 @@ export default function WelcomeScreen({ navigation }: Props) {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </TabShell>
   );
 }
 

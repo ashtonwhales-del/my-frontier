@@ -311,7 +311,7 @@ def _validate_name(name: str) -> str:
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
-@app.get("/health", summary="Health check — used by the mobile app and Railway to verify server health")
+@app.get("/health", summary="Health check — used by the mobile app and Render to verify server health")
 def health():
     # Universe stats
     categories = len(opt.UNIVERSE_TO_ETFS)
@@ -336,7 +336,7 @@ def health():
         "categories": categories,
         "etfs_in_universe": etfs_in_universe,
         "cache_status": cache_status,
-        "gemini": "configured" if GEMINI_API_KEY else "MISSING — add GEMINI_API_KEY to Railway variables",
+        "gemini": "configured" if GEMINI_API_KEY else "MISSING — add GEMINI_API_KEY to Render environment variables",
         "timestamp": _dt.datetime.utcnow().isoformat() + "Z",
     }
 
@@ -744,7 +744,7 @@ def alex(req: AlexRequest, request: Request):
     if not ANTHROPIC_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="GEMINI_API_KEY not configured. Add it to Railway environment variables. See GEMINI_SETUP.md for instructions."
+            detail="GEMINI_API_KEY not configured. Add it to Render environment variables (render.com → your service → Environment). See GEMINI_SETUP.md for instructions."
         )
 
     try:
