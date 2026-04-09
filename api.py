@@ -121,6 +121,18 @@ async def lifespan(app: FastAPI):
             raise RuntimeError(f"etf_universe_extra.json is invalid JSON: {exc}") from exc
 
     _logger.info(f"[startup] Gemini key loaded: {'YES' if GEMINI_API_KEY else 'NO — set GEMINI_API_KEY in environment'}")
+
+    # Gemini startup test — verify the key actually works
+    if GEMINI_API_KEY:
+        try:
+            import google.generativeai as genai  # type: ignore
+            genai.configure(api_key=GEMINI_API_KEY)
+            test_model = genai.GenerativeModel("gemini-1.5-flash")
+            test_response = test_model.generate_content("say hi")
+            _logger.info(f"[startup] Gemini startup test PASSED: {test_response.text[:50]}")
+        except Exception as e:
+            _logger.error(f"[startup] Gemini startup test FAILED: {repr(e)}")
+
     _logger.info(f"My Frontier API ready — v1.0.0 — {_dt.datetime.utcnow().isoformat()}Z")
     yield
 
@@ -668,28 +680,25 @@ def _build_portfolio_summary(req: AlexRequest) -> str:
 
 
 def _call_alex_gemini(system_prompt: str, messages: List[AdvisorMessage]) -> str:
-    """Call Gemini 1.5 Flash for Alex responses (free tier, 15 RPM). 20s timeout."""
+    """Call Gemini 1.5 Flash for Alex responses (free tier, 15 RPM)."""
     try:
         import google.generativeai as genai  # type: ignore
         genai.configure(api_key=GEMINI_API_KEY)
         model = genai.GenerativeModel("gemini-1.5-flash")
+        # Build a simple prompt — keep conversation short to avoid token limits
+        last_msgs = messages[-6:]  # only last 6 messages for context window
         conversation = "\n".join(
             f"{'User' if m.role == 'user' else 'Alex'}: {m.content}"
-            for m in messages
+            for m in last_msgs
         )
         full_prompt = f"{system_prompt}\n\nConversation:\n{conversation}\n\nAlex:"
-        response = model.generate_content(
-            full_prompt,
-            request_options={"timeout": 20},
-        )
-        return response.text.strip()
+        _logger.info(f"[alex] Calling Gemini with {len(last_msgs)} messages, prompt len={len(full_prompt)}")
+        response = model.generate_content(full_prompt)
+        reply = response.text.strip()
+        _logger.info(f"[alex] Gemini OK, reply len={len(reply)}")
+        return reply
     except Exception as exc:
-        _logger.error(
-            f"[alex] Gemini failed — type={type(exc).__name__}, "
-            f"message={str(exc)[:300]}, "
-            f"key_present={'YES' if GEMINI_API_KEY else 'NO'}, "
-            f"key_prefix={GEMINI_API_KEY[:8] + '...' if GEMINI_API_KEY else 'EMPTY'}"
-        )
+        _logger.error(f"[alex] Gemini FULL error: {repr(exc)}")
         raise
 
 
@@ -737,31 +746,36 @@ def alex(req: AlexRequest, request: Request):
     portfolio_summary = _build_portfolio_summary(req)
     system_prompt = f"{_ALEX_SYSTEM}\n\nUser's portfolio context: {portfolio_summary}"
 
+    _logger.info(f"[alex] Request received, {len(req.messages)} messages, Gemini={'YES' if GEMINI_API_KEY else 'NO'}, Anthropic={'YES' if ANTHROPIC_API_KEY else 'NO'}")
+
     # Try Gemini first (free), fall back to Anthropic
     gemini_error: str = ""
-    try:
-        if GEMINI_API_KEY:
+    if GEMINI_API_KEY:
+        try:
             reply = _call_alex_gemini(system_prompt, req.messages)
             return {"reply": reply, "model": "gemini-1.5-flash"}
-        else:
-            gemini_error = "GEMINI_API_KEY not set in environment"
-    except Exception as exc:
-        gemini_error = f"{type(exc).__name__}: {str(exc)[:200]}"
+        except Exception as exc:
+            gemini_error = f"{type(exc).__name__}: {str(exc)[:200]}"
+            _logger.error(f"[alex] Gemini failed, trying Anthropic fallback. Error: {gemini_error}")
+    else:
+        gemini_error = "GEMINI_API_KEY not set in environment"
+        _logger.warning("[alex] No Gemini key, trying Anthropic")
 
-    if not ANTHROPIC_API_KEY:
-        _logger.error(f"[alex] Both AI providers unavailable. Gemini error: {gemini_error}")
-        raise HTTPException(
-            status_code=503,
-            detail=f"Alex AI unavailable. Gemini error: {gemini_error}. Add GEMINI_API_KEY to Render environment (render.com > your service > Environment tab)."
-        )
+    if ANTHROPIC_API_KEY:
+        try:
+            reply = _call_alex_anthropic(system_prompt, req.messages)
+            return {"reply": reply, "model": "claude-haiku"}
+        except http_requests.exceptions.Timeout:
+            raise HTTPException(status_code=504, detail="Alex timed out. Please try again.")
+        except Exception as exc:
+            _logger.error(f"[alex] Anthropic also failed: {repr(exc)}")
+            raise HTTPException(status_code=502, detail=f"Alex unavailable: {exc}")
 
-    try:
-        reply = _call_alex_anthropic(system_prompt, req.messages)
-        return {"reply": reply, "model": "claude-haiku"}
-    except http_requests.exceptions.Timeout:
-        raise HTTPException(status_code=504, detail="Alex timed out. Please try again.")
-    except http_requests.exceptions.RequestException as exc:
-        raise HTTPException(status_code=502, detail=f"Alex unavailable: {exc}")
+    _logger.error(f"[alex] Both AI providers unavailable. Gemini error: {gemini_error}")
+    raise HTTPException(
+        status_code=503,
+        detail=f"Alex AI unavailable. Gemini error: {gemini_error}. Add GEMINI_API_KEY to Render environment."
+    )
 
 
 # ── Market Pulse ──────────────────────────────────────────────────────────────
@@ -840,8 +854,9 @@ def historical(req: HistoricalRequest, request: Request):
     if not (0.95 <= weight_sum <= 1.05):
         raise HTTPException(status_code=422, detail="weights must sum to ~1.0.")
 
-    def _mock_historical(expected_return: float) -> Dict:
-        """Generate estimated performance curve when yfinance times out."""
+    def _mock_historical(expected_return: float, reason: str = "fallback") -> Dict:
+        """Generate estimated performance curve when yfinance fails or times out."""
+        _logger.info(f"[historical] Using mock data (reason: {reason}, er={expected_return:.3f})")
         import datetime as dt
         points = []
         today = dt.date.today()
@@ -849,14 +864,16 @@ def historical(req: HistoricalRequest, request: Request):
         spy_annual = 0.10
         for month in range(121):  # 10 years monthly
             date = today - _dt.timedelta(days=(120 - month) * 30)
-            port_val = 10000 * (1 + annual_ret) ** (month / 12)
-            spy_val = 10000 * (1 + spy_annual) ** (month / 12)
+            # Add slight noise so chart looks realistic
+            noise = 1.0 + ((hash(str(month)) % 100) - 50) / 2000.0
+            port_val = 10000 * ((1 + annual_ret) ** (month / 12)) * noise
+            spy_val = 10000 * ((1 + spy_annual) ** (month / 12))
             points.append({
                 "date": str(date),
                 "portfolio": round(port_val, 2),
                 "spy": round(spy_val, 2),
             })
-        return {"points": points, "start_value": 10000, "estimated": True}
+        return {"points": points, "start_value": 10000, "estimated": True, "label": "Estimated performance based on expected return"}
 
     try:
         import yfinance as yf
@@ -875,8 +892,8 @@ def historical(req: HistoricalRequest, request: Request):
             try:
                 raw = future.result(timeout=15)
             except concurrent.futures.TimeoutError:
-                _logger.warning("[historical] yfinance timeout — returning estimated curve")
-                return _mock_historical(sum(req.weights.values()) * 0.08)
+                _logger.warning("[historical] yfinance timeout after 15s")
+                return _mock_historical(sum(req.weights.values()) * 0.08, "yfinance_timeout")
 
         if isinstance(raw.columns, pd.MultiIndex):
             prices = raw["Close"]
@@ -885,11 +902,11 @@ def historical(req: HistoricalRequest, request: Request):
 
         prices = prices.dropna(how="all").fillna(method="ffill").resample("MS").last()
         if prices.empty or "SPY" not in prices.columns:
-            return _mock_historical(sum(req.weights.values()) * 0.08)
+            return _mock_historical(sum(req.weights.values()) * 0.08, "empty_or_no_spy")
 
         portfolio_col = [t for t in req.weights if t in prices.columns]
         if not portfolio_col:
-            return _mock_historical(sum(req.weights.values()) * 0.08)
+            return _mock_historical(sum(req.weights.values()) * 0.08, "no_valid_tickers")
 
         import numpy as np
         w = np.array([req.weights.get(t, 0.0) for t in portfolio_col])
@@ -913,8 +930,8 @@ def historical(req: HistoricalRequest, request: Request):
     except HTTPException:
         raise
     except Exception as exc:
-        _logger.error(f"[historical] error: {exc}")
-        return _mock_historical(0.08)
+        _logger.error(f"[historical] error: {repr(exc)}")
+        return _mock_historical(0.08, f"exception_{type(exc).__name__}")
 
 
 # ── Anonymous Leaderboard ─────────────────────────────────────────────────────

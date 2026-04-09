@@ -18,6 +18,7 @@ import { Colors } from '../theme/colors';
 import { Spacing, Radius } from '../theme/spacing';
 import { HeadingScale, BodyScale, LabelStyle, NumberScale } from '../theme/typography';
 import { isPremium } from '../services/premiumService';
+import AdBanner from '../components/AdBanner';
 import TabShell from '../components/TabShell';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Profile'> };
@@ -187,6 +188,7 @@ export default function ProfileScreen({ navigation }: Props) {
             <SettingsRow emoji="🗑️" label="Reset App Data" onPress={handleResetApp} danger />
           </View>
 
+          <AdBanner placement="banner" />
           <View style={{ height: Spacing.xxxl }} />
         </ScrollView>
       </SafeAreaView>

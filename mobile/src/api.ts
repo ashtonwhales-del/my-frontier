@@ -180,7 +180,7 @@ export async function callAlex(
   await assertConnected();
   const url = `${BASE_URL}/alex`;
   console.log('[Alex] calling:', url);
-  const ALEX_TIMEOUT = 20_000;
+  const ALEX_TIMEOUT = 45_000; // 45s — Gemini typically 3-8s but Render cold start can add 30s
 
   async function attempt(): Promise<string> {
     const res = await fetchWithTimeout(
@@ -197,22 +197,33 @@ export async function callAlex(
       ALEX_TIMEOUT,
     );
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error((err as any)?.detail ?? (err as any)?.error ?? `API error ${res.status}`);
+      const errText = await res.text().catch(() => '');
+      console.error('[Alex] error response:', res.status, errText);
+      let detail = '';
+      try { detail = JSON.parse(errText)?.detail ?? errText; } catch { detail = errText; }
+      throw new Error(detail || `API error ${res.status}`);
     }
     const data = await res.json();
+    console.log('[Alex] success, model:', data?.model);
     return (data?.reply ?? '').trim();
   }
 
   try {
     return await attempt();
-  } catch {
-    // Retry once after 2s
-    await new Promise(r => setTimeout(r, 2000));
+  } catch (err: any) {
+    console.error('[Alex] first attempt failed:', err?.message);
+    // Retry once after 3s (covers Render cold start)
+    await new Promise(r => setTimeout(r, 3000));
     try {
       return await attempt();
-    } catch {
-      return 'Having trouble connecting. Try again in a moment!';
+    } catch (err2: any) {
+      console.error('[Alex] second attempt failed:', err2?.message);
+      // Return the actual error so users/devs can debug
+      const msg = err2?.message ?? '';
+      if (msg.includes('503')) return 'Alex is not configured on this server. Check GEMINI_API_KEY in Render settings.';
+      if (msg.includes('429')) return 'Too many messages too quickly. Wait a moment and try again.';
+      if (msg.includes('timed out')) return 'Alex is taking too long. The server may be waking up. Try again in 30 seconds.';
+      return 'Having trouble connecting to Alex. Try again in a moment.';
     }
   }
 }

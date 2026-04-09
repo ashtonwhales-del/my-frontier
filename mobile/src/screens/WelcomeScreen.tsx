@@ -17,11 +17,12 @@ import { RootStackParamList, SavedPortfolio, MarketPulseData } from '../types';
 import { STORAGE } from '../constants';
 import { Colors } from '../theme/colors';
 import { Spacing, Radius } from '../theme/spacing';
-import { NumberScale, HeadingScale, BodyScale, LabelStyle } from '../theme/typography';
+import { BodyScale } from '../theme/typography';
 import { fetchMarketPulse } from '../api';
 import TabShell from '../components/TabShell';
 import MarketTicker from '../components/MarketTicker';
-import { HomeMarketPulse, DashboardGrid, RecentPortfolios } from '../components/home/HomeWidgets';
+import AdBanner from '../components/AdBanner';
+import { PortfolioSnapshot, WeeklyInsight, QuickStats, LearningProgress } from '../components/home/HomeWidgets';
 import HelpFAB from '../components/HelpSystem';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Welcome'> };
@@ -70,11 +71,8 @@ export default function WelcomeScreen({ navigation }: Props) {
     fetchMarketPulse().then(setPulse).catch(() => null);
   }, []);
 
-  const bestGrade = portfolios.length > 0
-    ? portfolios.reduce((best, p) => {
-        const order = ['A', 'B', 'C', 'D', 'F'];
-        return order.indexOf(p.result.scores.grade) < order.indexOf(best) ? p.result.scores.grade : best;
-      }, portfolios[0].result.scores.grade)
+  const bestScore = portfolios.length > 0
+    ? Math.max(...portfolios.map(p => p.result.scores.smart_score))
     : null;
 
   return (
@@ -99,19 +97,19 @@ export default function WelcomeScreen({ navigation }: Props) {
           <Text style={styles.greeting}>{getGreeting()},</Text>
           <Text style={styles.userName}>{savedName}</Text>
 
-          {/* Market Pulse */}
-          <HomeMarketPulse pulse={pulse} />
+          {/* Portfolio Snapshot */}
+          <PortfolioSnapshot portfolios={portfolios} navigation={navigation} />
 
-          {/* Dashboard 2x2 grid */}
-          <DashboardGrid
-            portfolioCount={portfolios.length}
-            bestGrade={bestGrade}
-            lessonsComplete={lessonsComplete}
-            badgeCount={badgeCount}
-            navigation={navigation}
-          />
+          {/* Ad banner (free users) */}
+          <AdBanner placement="banner" />
 
-          {/* Build new portfolio CTA */}
+          {/* Weekly Insight */}
+          <WeeklyInsight navigation={navigation} />
+
+          {/* Quick Stats Row */}
+          <QuickStats portfolioCount={portfolios.length} bestScore={bestScore} badgeCount={badgeCount} />
+
+          {/* Action Buttons */}
           <TouchableOpacity
             onPress={() => navigation.navigate('Categories', { name: savedName })}
             activeOpacity={0.85}
@@ -123,12 +121,20 @@ export default function WelcomeScreen({ navigation }: Props) {
               end={{ x: 1, y: 0 }}
               style={styles.buildGradient}
             >
-              <Text style={styles.buildText}>Build New Portfolio →</Text>
+              <Text style={styles.buildText}>Build New Portfolio</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Recent portfolio strip */}
-          <RecentPortfolios portfolios={portfolios} navigation={navigation} />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Budget')}
+            activeOpacity={0.8}
+            style={styles.budgetBtn}
+          >
+            <Text style={styles.budgetText}>Open Budget</Text>
+          </TouchableOpacity>
+
+          {/* Learning Progress */}
+          <LearningProgress completed={lessonsComplete} total={12} navigation={navigation} />
 
           <Text style={styles.disclaimer}>For educational purposes only. Not financial advice.</Text>
         </ScrollView>
@@ -163,9 +169,12 @@ const styles = StyleSheet.create({
   greeting: { ...BodyScale.lg, color: Colors.textSecondary, marginTop: Spacing.lg },
   userName: { fontSize: 28, fontWeight: '800', color: Colors.textPrimary, marginBottom: Spacing.lg, letterSpacing: -0.5 },
 
-  buildBtn:      { marginBottom: Spacing.xl, borderRadius: Radius.xl, overflow: 'hidden' },
+  buildBtn:      { marginBottom: Spacing.sm, borderRadius: Radius.xl, overflow: 'hidden' },
   buildGradient: { paddingVertical: 17, alignItems: 'center', borderRadius: Radius.xl },
   buildText:     { fontSize: 16, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.3 },
+
+  budgetBtn: { borderWidth: 1.5, borderColor: Colors.borderSubtle, borderRadius: Radius.xl, paddingVertical: 14, alignItems: 'center', marginBottom: Spacing.lg },
+  budgetText: { fontSize: 15, fontWeight: '600', color: Colors.textSecondary },
 
   disclaimer: { ...BodyScale.sm, color: Colors.textTertiary, textAlign: 'center', marginTop: Spacing.md },
 });

@@ -1024,3 +1024,56 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 - One-time tooltip "Tap ? for help" on first visit (AsyncStorage tracked)
 
 *Last updated: 2026-04-09 — Phase 16 complete.*
+
+---
+
+## Phase 17 Changes — Fix Everything + Home Redesign (2026-04-09)
+
+### Alex AI Fix (TASK 0)
+- **Root cause**: `request_options={"timeout": 20}` in Gemini call was killing requests prematurely; frontend 20s timeout too short for Render cold starts
+- **api.py fixes**: Removed `request_options` timeout wrapper from `_call_alex_gemini()` (let Gemini respond naturally, typically 3-8s); added Gemini startup test at boot that logs PASSED/FAILED; trimmed conversation to last 6 messages to avoid token limits; added detailed `repr(exc)` logging for every failure path; improved /alex endpoint flow with explicit logging at each decision point
+- **api.ts fixes**: Increased frontend timeout from 20s to 45s (covers Render cold start); added error text logging from response; retry after 3s instead of 2s; returns descriptive error messages (503=key missing, 429=rate limit, timeout=server waking up) instead of generic fallback
+
+### Historical Chart Fix (TASK 1)
+- Mock fallback now always returns data (never 500) with realistic noise via `hash(month)` for chart variety
+- Each mock call logs the reason (yfinance_timeout, empty_or_no_spy, no_valid_tickers, exception_*)
+- Response includes `"estimated": true` and `"label"` field so frontend can display "Estimated performance"
+
+### Market Ticker Fix (TASK 2)
+- Removed MarketTicker import and component from ResultsScreen (was cluttering results)
+- Ticker tape stays on WelcomeScreen only
+
+### Home Screen Redesign (TASK 3)
+- **Removed**: HomeMarketPulse card, DashboardGrid 2x2, RecentPortfolios strip
+- **Added**: PortfolioSnapshot (best portfolio with large grade letter, or "Build your first portfolio" empty state), WeeklyInsight (daily rotating investing tip from 20 insights, seeded by day-of-year), QuickStats (3-card row: Portfolios/Best Score/Badges with gold numbers), LearningProgress (progress bar with completed/total and continue link)
+- **Layout order**: MarketTicker > Header > Greeting > PortfolioSnapshot > AdBanner > WeeklyInsight > QuickStats > Build Portfolio CTA > Open Budget button > LearningProgress > Disclaimer
+
+### Category Selector Fix (TASK 4)
+- **CategoryPicker**: Shows "RECOMMENDED FOR YOU" section with pre-selected chips (tap to deselect); dashed "+ Add more sectors (N available)" button expands to show all remaining 98 categories with search; no maximum category limit
+- **ContributionStep**: Fixed input bug with controlled input pattern (`inputValue` string state separate from `weeklyAmount` number state); `handleBlur` cleans up display; budget sync now shows two option cards ("Use my budget" vs "Custom amount") when budget data exists; live 30yr projection shows weekly amount in label
+
+### New Ad Placements (TASK 5)
+- WelcomeScreen: banner between PortfolioSnapshot and WeeklyInsight
+- ResultsScreen: second banner between WhatThisMeans and Projections
+- ProfileScreen: banner at bottom
+- ContributionStep: banner above Build My Portfolio button
+- Created `RewardedMessageButton.tsx` for AdvisorScreen limit unlock
+
+### New File
+| File | Purpose |
+|------|---------|
+| `mobile/src/components/ads/RewardedMessageButton.tsx` | Rewarded ad button that grants +5 Alex messages |
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `api.py` | Gemini startup test, removed request_options timeout, detailed logging, mock historical with noise+reasons |
+| `mobile/src/api.ts` | callAlex 45s timeout, error text logging, descriptive fallback messages |
+| `mobile/src/screens/WelcomeScreen.tsx` | Full redesign with PortfolioSnapshot/WeeklyInsight/QuickStats/LearningProgress |
+| `mobile/src/components/home/HomeWidgets.tsx` | Replaced HomeMarketPulse/DashboardGrid/RecentPortfolios with PortfolioSnapshot/WeeklyInsight/QuickStats/LearningProgress |
+| `mobile/src/screens/ResultsScreen.tsx` | Removed MarketTicker, added second AdBanner |
+| `mobile/src/components/categories/CategoryPicker.tsx` | Recommended chips + expandable add more with search |
+| `mobile/src/components/categories/ContributionStep.tsx` | Controlled input fix, budget sync option cards, ad banner |
+| `mobile/src/screens/ProfileScreen.tsx` | AdBanner at bottom |
+
+*Last updated: 2026-04-09 — Phase 17 complete.*

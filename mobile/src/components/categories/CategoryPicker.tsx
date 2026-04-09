@@ -42,6 +42,7 @@ export default function CategoryPicker({ style: investStyle, onConfirm, onBack }
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [showMore, setShowMore] = useState(investStyle === 'custom');
 
   useEffect(() => {
     fetchCategories()
@@ -49,16 +50,13 @@ export default function CategoryPicker({ style: investStyle, onConfirm, onBack }
         const sorted = [...cats].sort((a, b) => a.localeCompare(b));
         setAllCategories(sorted);
         if (investStyle !== 'custom') {
-          setSelected(new Set(STYLE_CATEGORIES[investStyle]?.filter(c => cats.includes(c)) ?? []));
+          const recs = STYLE_CATEGORIES[investStyle]?.filter(c => cats.includes(c)) ?? [];
+          setSelected(new Set(recs));
         }
       })
       .catch(() => Alert.alert('Error', 'Could not load categories.'))
       .finally(() => setLoading(false));
   }, []);
-
-  const displayCats = investStyle === 'custom'
-    ? allCategories.filter(c => !search || c.toLowerCase().includes(search.toLowerCase()))
-    : (STYLE_CATEGORIES[investStyle] ?? []).filter(c => allCategories.includes(c));
 
   function toggle(cat: string) {
     setSelected(prev => {
@@ -77,6 +75,12 @@ export default function CategoryPicker({ style: investStyle, onConfirm, onBack }
     );
   }
 
+  const recommended = investStyle !== 'custom'
+    ? (STYLE_CATEGORIES[investStyle] ?? []).filter(c => allCategories.includes(c))
+    : [];
+  const extra = allCategories.filter(c =>
+    !recommended.includes(c) && (!search || c.toLowerCase().includes(search.toLowerCase()))
+  );
   const selCount = selected.size;
 
   return (
@@ -85,52 +89,45 @@ export default function CategoryPicker({ style: investStyle, onConfirm, onBack }
         <Text style={styles.backText}>Back</Text>
       </TouchableOpacity>
       <Text style={styles.title}>
-        {investStyle === 'custom' ? 'Pick Your Sectors' : 'Refine Your Picks'}
+        {investStyle === 'custom' ? 'Pick Your Sectors' : 'Your Recommended Sectors'}
       </Text>
-      <Text style={styles.subtitle}>
-        {investStyle === 'custom'
-          ? 'Search and select from all 98 categories'
-          : 'Pre-selected sectors match your style. Adjust as you like.'}
-      </Text>
-      {investStyle === 'custom' && (
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search categories..."
-          placeholderTextColor={colors.textMuted}
-          value={search}
-          onChangeText={setSearch}
-        />
-      )}
       {selCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{selCount} selected</Text>
         </View>
       )}
       <ScrollView contentContainerStyle={styles.chips} showsVerticalScrollIndicator={false}>
-        {displayCats.map(cat => {
-          const isSel = selected.has(cat);
-          return (
-            <TouchableOpacity
-              key={cat}
-              style={[styles.chip, isSel && styles.chipSelected]}
-              onPress={() => toggle(cat)}
-              activeOpacity={0.75}
-            >
-              <Text style={[styles.chipLabel, isSel && styles.chipLabelSel]}>{cat}</Text>
-            </TouchableOpacity>
-          );
-        })}
+        {recommended.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>RECOMMENDED FOR YOU</Text>
+            {recommended.map(cat => (
+              <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
+                <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+        {!showMore && recommended.length > 0 ? (
+          <TouchableOpacity style={styles.addMoreBtn} onPress={() => setShowMore(true)} activeOpacity={0.75}>
+            <Text style={styles.addMoreText}>+ Add more sectors ({extra.length} available)</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            {recommended.length > 0 && <Text style={styles.sectionLabel}>ALL SECTORS</Text>}
+            <TextInput style={styles.searchInput} placeholder="Search categories..." placeholderTextColor={colors.textMuted} value={search} onChangeText={setSearch} />
+            {extra.map(cat => (
+              <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
+                <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
         <View style={{ height: 80 }} />
       </ScrollView>
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.continueBtn, !selCount && styles.btnDisabled]}
-          onPress={() => onConfirm(Array.from(selected))}
-          disabled={!selCount}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={[styles.continueBtn, !selCount && styles.btnDisabled]} onPress={() => onConfirm(Array.from(selected))} disabled={!selCount} activeOpacity={0.8}>
           <Text style={styles.continueBtnText}>
-            {selCount ? 'Continue with ' + selCount + ' sectors' : 'Select at least one sector'}
+            {selCount ? 'Continue with ' + selCount + ' sector' + (selCount > 1 ? 's' : '') : 'Select at least one sector'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -152,9 +149,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 10,
     fontSize: 14, color: colors.textPrimary,
   },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: spacing.md, marginBottom: spacing.xs, paddingHorizontal: spacing.lg },
   badge: { alignSelf: 'flex-start', marginHorizontal: spacing.lg, marginBottom: spacing.sm, backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 4 },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  chips: { paddingHorizontal: spacing.lg, gap: spacing.sm },
+  chips: { paddingHorizontal: spacing.lg, gap: spacing.xs },
+  addMoreBtn: { marginTop: spacing.md, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.lg, borderStyle: 'dashed' as any, paddingVertical: 14, alignItems: 'center' as const },
+  addMoreText: { fontSize: 14, fontWeight: '600', color: colors.primary },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     backgroundColor: colors.card, borderRadius: radius.lg,
