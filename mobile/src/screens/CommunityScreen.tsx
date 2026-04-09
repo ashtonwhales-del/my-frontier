@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Share } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, shadow } from '../theme';
 
 const MOCK_POSTS = [
@@ -31,6 +32,9 @@ export default function CommunityScreen() {
   return (
     <View style={s.root}>
       <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
         <Text style={s.title}>Community</Text>
         <TouchableOpacity onPress={handleShare}><Text style={s.shareBtn}>Share Mine</Text></TouchableOpacity>
       </View>

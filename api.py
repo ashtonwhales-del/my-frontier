@@ -127,7 +127,7 @@ async def lifespan(app: FastAPI):
         try:
             import google.generativeai as genai  # type: ignore
             genai.configure(api_key=GEMINI_API_KEY)
-            test_model = genai.GenerativeModel("gemini-1.5-flash")
+            test_model = genai.GenerativeModel("gemini-2.0-flash")
             test_response = test_model.generate_content("say hi")
             _logger.info(f"[startup] Gemini startup test PASSED: {test_response.text[:50]}")
         except Exception as e:
@@ -360,7 +360,7 @@ def alex_test():
         if GEMINI_API_KEY:
             import google.generativeai as genai  # type: ignore
             genai.configure(api_key=GEMINI_API_KEY)
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            model = genai.GenerativeModel("gemini-2.0-flash")
             resp = model.generate_content("Say exactly: Alex is working")
             return {"ok": True, "response": resp.text.strip()[:50], "model": "gemini", "key_prefix": GEMINI_API_KEY[:8] + "..."}
         elif ANTHROPIC_API_KEY:
@@ -708,7 +708,7 @@ def _call_alex_gemini(system_prompt: str, messages: List[AdvisorMessage]) -> str
     try:
         import google.generativeai as genai  # type: ignore
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.0-flash")
         # Build a simple prompt — keep conversation short to avoid token limits
         last_msgs = messages[-6:]  # only last 6 messages for context window
         conversation = "\n".join(
@@ -777,7 +777,7 @@ def alex(req: AlexRequest, request: Request):
     if GEMINI_API_KEY:
         try:
             reply = _call_alex_gemini(system_prompt, req.messages)
-            return {"reply": reply, "model": "gemini-1.5-flash"}
+            return {"reply": reply, "model": "gemini-2.0-flash"}
         except Exception as exc:
             gemini_error = f"{type(exc).__name__}: {str(exc)[:200]}"
             _logger.error(f"[alex] Gemini failed, trying Anthropic fallback. Error: {gemini_error}")

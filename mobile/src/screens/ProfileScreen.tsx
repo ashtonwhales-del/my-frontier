@@ -128,7 +128,6 @@ export default function ProfileScreen({ navigation }: Props) {
             </View>
             <View style={styles.nameRow}>
               <Text style={styles.userName}>{savedName || 'My Frontier User'}</Text>
-              {premium && <View style={styles.proBadge}><Text style={styles.proText}>PRO</Text></View>}
             </View>
             <Text style={styles.memberSince}>Member since {MEMBER_SINCE}</Text>
           </View>
@@ -164,22 +163,11 @@ export default function ProfileScreen({ navigation }: Props) {
             <SettingsRow emoji="ℹ️" label="About My Frontier" value={`v${APP_VERSION}`} onPress={() => navigation.navigate('About')} />
           </View>
 
-          {/* Premium section */}
-          <Text style={styles.sectionLabel}>MEMBERSHIP</Text>
-          {premium ? (
-            <View style={[styles.card, styles.proCard]}>
-              <Text style={styles.proCardTitle}>✦ My Frontier Pro</Text>
-              <Text style={styles.proCardSub}>Unlimited portfolios, no ads, full learning center</Text>
-            </View>
-          ) : (
-            <TouchableOpacity style={[styles.card, styles.upgradeCard]} onPress={() => navigation.navigate('Premium')} activeOpacity={0.8}>
-              <View style={styles.upgradeRow}>
-                <Text style={styles.upgradeTitle}>✦ Upgrade to Pro</Text>
-                <Ionicons name="chevron-forward" size={18} color={Colors.brandGold} />
-              </View>
-              <Text style={styles.upgradeSub}>Unlimited saves · No ads · Full learning center</Text>
-            </TouchableOpacity>
-          )}
+          {/* Support section */}
+          <Text style={styles.sectionLabel}>SUPPORT</Text>
+          <View style={styles.card}>
+            <SettingsRow emoji="☕" label="Support the App" onPress={() => navigation.navigate('Premium')} />
+          </View>
 
           {/* Danger zone */}
           <Text style={styles.sectionLabel}>DANGER ZONE</Text>

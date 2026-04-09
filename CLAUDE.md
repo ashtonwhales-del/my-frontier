@@ -1211,3 +1211,17 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/src/screens/LearningScreen.tsx` | Removed TabShell wrapper |
 
 *Last updated: 2026-04-09 — Phase 19 complete.*
+
+---
+
+## Phase 19 Fixes — Targeted (2026-04-09)
+
+| Fix | File | What changed |
+|-----|------|-------------|
+| Alex model name | `api.py` | `gemini-1.5-flash` replaced with `gemini-2.0-flash` in ALL 4 locations (startup test, /alex-test, _call_alex_gemini, /alex response). This was the root cause of Alex never working — 1.5-flash was deprecated/404. |
+| Gemini SDK pin | `requirements.txt` | `google-generativeai>=0.7.0` updated to `>=0.8.0` |
+| Remove PRO badge | `ProfileScreen.tsx` | Removed PRO badge next to username, removed entire MEMBERSHIP section, replaced with "Support the App" row linking to free PremiumScreen |
+| Community back button | `CommunityScreen.tsx` | Added Ionicons back arrow to header (left side) |
+| Coffee link | `PremiumScreen.tsx` | Buy Me a Coffee now opens `https://www.buymeacoffee.com` with error catch |
+
+*Last updated: 2026-04-09 — Phase 19 fixes applied.*
