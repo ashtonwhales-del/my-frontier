@@ -159,8 +159,9 @@ app.add_middleware(
 # ── X-App-Secret middleware ────────────────────────────────────────────────────
 class _AppSecretMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # Health check is exempt so load balancers can probe without the secret
-        if request.url.path == "/health":
+        # Public endpoints exempt from X-App-Secret so load balancers and
+        # diagnostic tools can probe without the secret header.
+        if request.url.path in ("/health", "/alex-test"):
             return await call_next(request)
         if APP_SECRET and request.headers.get("X-App-Secret") != APP_SECRET:
             return JSONResponse(status_code=403, content={"error": "Forbidden"})
