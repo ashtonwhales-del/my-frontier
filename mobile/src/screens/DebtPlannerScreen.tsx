@@ -74,6 +74,7 @@ export default function DebtPlannerScreen() {
   const [balance, setBalance] = useState('');
   const [apr, setApr] = useState('');
   const [minPay, setMinPay] = useState('');
+  const [termYears, setTermYears] = useState('');
   const [extraMonthly, setExtraMonthly] = useState(200);
   const [surplus, setSurplus] = useState<number | null>(null);
 
@@ -106,7 +107,7 @@ export default function DebtPlannerScreen() {
     }
     const debt: Debt = { id: Date.now().toString(), name: name.trim(), balance: b, apr: a, minPayment: m };
     persist([...debts, debt]);
-    setName(''); setBalance(''); setApr(''); setMinPay('');
+    setName(''); setBalance(''); setApr(''); setMinPay(''); setTermYears('');
     setModalVisible(false);
   };
 
@@ -154,15 +155,11 @@ export default function DebtPlannerScreen() {
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         {debts.length === 0 ? (
-          <View style={s.emptyState}>
-            <Text style={{ fontSize: 48, textAlign: 'center', marginBottom: spacing.md }}>{'✅'}</Text>
-            <Text style={s.emptyTitle}>No debts yet</Text>
-            <Text style={s.emptyText}>Add your first debt to see your payoff plan</Text>
-          </View>
+          <View style={s.emptyState}><Text style={{ fontSize: 48, textAlign: 'center' }}>{'✅'}</Text><Text style={s.emptyTitle}>No debts yet</Text><Text style={s.emptyText}>Add your first debt to see your payoff plan</Text></View>
         ) : (
           <View style={[s.card, { borderColor: colors.primary, borderWidth: 1 }]}>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.8 }}>TOTAL DEBT</Text>
-            <Text style={{ fontSize: 28, fontWeight: '900', color: '#EF4444', marginTop: 4 }}>${totalDebt.toLocaleString()}</Text>
+            <Text style={s.sectionLabel}>TOTAL DEBT</Text>
+            <Text style={{ fontSize: 28, fontWeight: '900', color: '#EF4444' }}>${totalDebt.toLocaleString()}</Text>
             {bestMonths > 0 && <Text style={{ fontSize: 13, color: '#F59E0B', fontWeight: '700', marginTop: 4 }}>Debt-free: {debtFreeDate(bestMonths)}</Text>}
           </View>
         )}
@@ -240,6 +237,16 @@ export default function DebtPlannerScreen() {
               value={balance} onChangeText={setBalance} keyboardType="number-pad" />
             <TextInput style={s.input} placeholder="Interest rate (APR %)" placeholderTextColor={colors.textMuted}
               value={apr} onChangeText={setApr} keyboardType="decimal-pad" />
+            <TextInput style={s.input} placeholder="Loan term years (optional)" placeholderTextColor={colors.textMuted}
+              value={termYears} onChangeText={t => {
+                setTermYears(t);
+                const b = parseFloat(balance), a = parseFloat(apr), y = parseFloat(t);
+                if (!isNaN(b) && !isNaN(a) && !isNaN(y) && y > 0 && a > 0) {
+                  const mr = a / 100 / 12, n = y * 12;
+                  const pmt = b * (mr * Math.pow(1 + mr, n)) / (Math.pow(1 + mr, n) - 1);
+                  setMinPay(String(Math.round(pmt)));
+                }
+              }} keyboardType="number-pad" />
             <TextInput style={s.input} placeholder="Minimum payment ($)" placeholderTextColor={colors.textMuted}
               value={minPay} onChangeText={setMinPay} keyboardType="number-pad" />
             <TouchableOpacity style={s.addBtn} onPress={addDebt}>
@@ -271,28 +278,20 @@ const s = StyleSheet.create({
   debtBalance: { color: colors.textPrimary, fontSize: 20, fontWeight: '900' },
   debtDetail: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
   emptyState: { alignItems: 'center', paddingVertical: spacing.xl },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
-  emptyText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
-  deleteBtn: { color: colors.danger, fontSize: 16, fontWeight: '700', paddingHorizontal: 8 },
-  card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, ...shadow.sm },
-  cardTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 }, emptyText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' }, deleteBtn: { color: colors.danger, fontSize: 16, fontWeight: '700', paddingHorizontal: 8 },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, ...shadow.sm }, cardTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
   sectionLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   pickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: spacing.lg },
   pick: { backgroundColor: colors.card, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 14 },
   pickActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  pickText: { color: colors.textSecondary, fontSize: 14, fontWeight: '600' },
-  pickTextActive: { color: '#fff' },
+  pickText: { color: colors.textSecondary, fontSize: 14, fontWeight: '600' }, pickTextActive: { color: '#fff' },
   stratRow: { flexDirection: 'row', gap: 10 },
   stratCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, alignItems: 'center' },
   stratWinner: { borderColor: colors.success, ...shadow.sm },
   winnerBadge: { color: colors.success, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
-  stratTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' },
-  stratSub: { color: colors.textSecondary, fontSize: 12, marginBottom: 8 },
-  stratNum: { color: colors.textPrimary, fontSize: 20, fontWeight: '700', marginTop: 4 },
-  stratLabel: { color: colors.textMuted, fontSize: 12 },
-  projText: { color: colors.textSecondary, fontSize: 14, marginTop: 4 },
-  projBig: { color: colors.success, fontSize: 28, fontWeight: '800', marginTop: 8 },
-  projSub: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
+  stratTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' }, stratSub: { color: colors.textSecondary, fontSize: 12, marginBottom: 8 },
+  stratNum: { color: colors.textPrimary, fontSize: 20, fontWeight: '700', marginTop: 4 }, stratLabel: { color: colors.textMuted, fontSize: 12 },
+  projText: { color: colors.textSecondary, fontSize: 14, marginTop: 4 }, projBig: { color: colors.success, fontSize: 28, fontWeight: '800', marginTop: 8 }, projSub: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
   empty: { color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginTop: 40 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: spacing.lg },
   modalContent: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl },

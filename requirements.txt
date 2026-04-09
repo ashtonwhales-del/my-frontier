@@ -8,5 +8,4 @@ uvicorn
 curl_cffi>=0.6.0
 python-dotenv
 requests
-google-generativeai>=0.8.0
 psutil

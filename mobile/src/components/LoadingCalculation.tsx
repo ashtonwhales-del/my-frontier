@@ -3,14 +3,11 @@ import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { showRewardedAd } from './ads/RewardedAd';
 import AdBanner from './AdBanner';
 
-// ── Detect native module availability once at module load ─────────────────────
-// In Expo Go the native AdMob SDK is unavailable — we fall back to a banner.
-// In a dev build or production build the rewarded video runs normally.
 let _hasNativeModule = false;
 try {
   require('react-native-google-mobile-ads');
   _hasNativeModule = true;
-} catch { /* Expo Go — native module not available */ }
+} catch { /* Expo Go */ }
 
 const TIPS = [
   'Diversification is the only free lunch in investing.',
@@ -45,10 +42,20 @@ const TIPS = [
   'Checking your portfolio daily increases anxiety without improving returns.',
 ];
 
+const PROGRESS_STEPS = [
+  { time: 0, label: 'Selecting your ETF universe...' },
+  { time: 8, label: 'Fetching live market data...' },
+  { time: 18, label: 'Running Efficient Frontier model...' },
+  { time: 30, label: 'Optimizing your allocation...' },
+  { time: 45, label: 'Calculating your Frontier Score...' },
+  { time: 55, label: 'Almost ready...' },
+];
+
 type AdPhase = 'idle' | 'prompt' | 'rewarded';
 
 export default function LoadingCalculation() {
   const [tipIndex, setTipIndex] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
   const [adPhase, setAdPhase] = useState<AdPhase>('idle');
   const [showWarmup, setShowWarmup] = useState(false);
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -82,12 +89,18 @@ export default function LoadingCalculation() {
     return () => clearInterval(interval);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Warm-up message: show after 8s in case server is cold-starting
+  // Elapsed time tracker for progress steps
+  useEffect(() => {
+    const t = setInterval(() => setElapsed(s => s + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Warm-up message: show after 25s
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowWarmup(true);
       Animated.timing(warmupAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
-    }, 8000);
+    }, 25000);
     return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -119,13 +132,25 @@ export default function LoadingCalculation() {
           <View style={styles.spinnerInner} />
         </Animated.View>
 
-        <Text style={styles.title}>Building your portfolio…</Text>
-        <Text style={styles.subtitle}>Analyzing 10 years of market data</Text>
+        <Text style={styles.title}>Building your portfolio</Text>
 
-        {/* Cold-start warm-up notice — appears after 8s */}
+        {/* Progress steps */}
+        <View style={styles.stepsWrap}>
+          {PROGRESS_STEPS.map((step, i) => {
+            const done = elapsed >= (PROGRESS_STEPS[i + 1]?.time ?? 999);
+            const active = !done && elapsed >= step.time;
+            return (
+              <View key={i} style={styles.stepRow}>
+                <Text style={[styles.stepIcon, done && styles.stepDone]}>{done ? '✓' : active ? '◉' : '○'}</Text>
+                <Text style={[styles.stepLabel, active && styles.stepActive]}>{step.label}</Text>
+              </View>
+            );
+          })}
+        </View>
+
         {showWarmup && (
           <Animated.Text style={[styles.warmupText, { opacity: warmupAnim }]}>
-            ☕ Waking up the server… first load may take 30s
+            Server is waking up. First load can take up to 60 seconds.
           </Animated.Text>
         )}
 
@@ -179,7 +204,6 @@ function AdZone({ phase, hasNative }: { phase: AdPhase; hasNative: boolean }) {
   );
 }
 
-// ── Animated progress dots ────────────────────────────────────────────────────
 function DotsIndicator() {
   const [step, setStep] = useState(0);
   useEffect(() => {
@@ -227,19 +251,13 @@ const styles = StyleSheet.create({
     borderColor: '#7209B7',
     borderTopColor: 'transparent',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.55)',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
+  title: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', textAlign: 'center', marginBottom: 16 },
+  stepsWrap: { width: '100%', marginBottom: 16, gap: 8 },
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  stepIcon: { fontSize: 14, color: 'rgba(255,255,255,0.3)', width: 18, textAlign: 'center' },
+  stepDone: { color: '#10B981' },
+  stepLabel: { fontSize: 13, color: 'rgba(255,255,255,0.35)' },
+  stepActive: { color: 'rgba(255,255,255,0.85)', fontWeight: '600' },
   warmupText: {
     fontSize: 12,
     color: 'rgba(255,255,255,0.38)',

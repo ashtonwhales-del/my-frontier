@@ -147,14 +147,9 @@ export default function AdvisorScreen({ navigation, route }: Props) {
           <Text style={styles.headerAvatar}>🤖</Text>
           <View>
             <Text style={styles.headerTitle}>Alex</Text>
-            <Text style={styles.headerSub}>Portfolio Educator · Free on Gemini AI</Text>
+            <Text style={styles.headerSub}>Portfolio Educator</Text>
           </View>
         </View>
-        {!premium && (
-          <TouchableOpacity onPress={() => navigation.navigate('Premium')} style={styles.upgradeChip}>
-            <Text style={styles.upgradeChipText}>PRO</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {alexOk === false && (
@@ -218,14 +213,11 @@ export default function AdvisorScreen({ navigation, route }: Props) {
         </View>
       ) : (
         <View style={styles.unlockBar}>
-          <Text style={styles.unlockTitle}>You've used all 5 free messages today</Text>
-          <Text style={styles.unlockSub}>Resets at midnight · or unlock with a video ad</Text>
+          <Text style={styles.unlockTitle}>Daily messages refreshing</Text>
+          <Text style={styles.unlockSub}>Resets at midnight. Watch an ad for more right now.</Text>
           <View style={styles.unlockBtns}>
             <TouchableOpacity style={styles.unlockAdBtn} onPress={handleUnlockAd} activeOpacity={0.8}>
-              <Text style={styles.unlockAdBtnText}>▶ Watch Ad (+10 messages)</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.upgradeBigBtn} onPress={() => navigation.navigate('Premium')} activeOpacity={0.8}>
-              <Text style={styles.upgradeBigBtnText}>🚀 Go Premium — Unlimited</Text>
+              <Text style={styles.unlockAdBtnText}>Watch Ad (+10 messages)</Text>
             </TouchableOpacity>
           </View>
         </View>

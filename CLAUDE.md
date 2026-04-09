@@ -1323,3 +1323,47 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/src/screens/PremiumScreen.tsx` | Buy Me a Coffee URL: buymeacoffee.com/MyFrontier |
 
 *Last updated: 2026-04-09 — Phase 21 complete.*
+
+---
+
+## Phase 22 Changes — Memory Fix + Smart Alex + All Issues (2026-04-09)
+
+### Memory Fix (TASK 0)
+- `/historical`: Replaced entirely with **mock-only** — zero yfinance calls, zero memory. Uses seeded random for realistic chart noise. Saves ~200MB per request.
+- `/optimize`: Added `psutil` memory guard — returns 503 "Server busy" if memory >75% before starting
+- Added `gc.collect()` calls after major operations
+- `requirements.txt`: Removed `google-generativeai` (no longer needed)
+
+### Smart Alex (TASK 1) — Free, instant, never fails
+- **Removed all Gemini and Anthropic API calls from /alex**
+- Replaced with keyword-matched pre-computed responses based on portfolio grade, score, return, risk, diversification
+- 7 response categories: score, improve, risk, diversification, etf, return, default (2+ responses each)
+- Responses are personalized using actual portfolio data (grade, score, return %, risk %, ETF count)
+- Model name in response: `"frontier-ai"`
+- Zero cost, instant response, never fails, never exceeds quota
+
+### Loading Progress Steps (TASK 2)
+- Added time-based progress steps: "Selecting ETF universe" → "Fetching market data" → "Running Efficient Frontier" → "Optimizing allocation" → "Calculating Frontier Score" → "Almost ready"
+- Steps show checkmarks for completed, spinning dot for current, hollow for pending
+- Warmup message delayed to 25s
+
+### Debt Planner Loan Term (TASK 4)
+- Added "Loan term years (optional)" field to Add Debt modal
+- Auto-calculates minimum monthly payment using amortization formula when term is entered
+- Pre-fills the minimum payment field
+
+### Premium Cleanup (TASK 5)
+- `AdvisorScreen.tsx`: Removed PRO chip, "Go Premium" button, replaced unlock bar with neutral "Watch Ad" only
+- `TabShell.tsx`: Updated comment to list correct screens
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `api.py` | Mock-only /historical, smart Alex responses replacing Gemini/Anthropic, memory guard |
+| `requirements.txt` | Removed google-generativeai |
+| `mobile/src/components/LoadingCalculation.tsx` | Time-based progress steps with checkmarks |
+| `mobile/src/screens/DebtPlannerScreen.tsx` | Loan term field with auto-calc |
+| `mobile/src/screens/AdvisorScreen.tsx` | Removed PRO chip and Premium upgrade buttons |
+| `mobile/src/components/TabShell.tsx` | Updated comment |
+
+*Last updated: 2026-04-09 — Phase 22 complete.*

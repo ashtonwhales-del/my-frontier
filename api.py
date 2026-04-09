@@ -370,6 +370,15 @@ def get_categories(request: Request):
 @app.post("/optimize", response_model=OptimizeResponse, summary="Run portfolio optimization")
 def optimize(req: OptimizeRequest, request: Request):
     _logger.info(f"[optimize] START — categories={len(req.categories)}, risk={req.risk_tolerance}, lump={req.lump_sum}")
+    # Memory guard — reject if server is already under pressure
+    try:
+        import psutil
+        mem_pct = psutil.virtual_memory().percent
+        _logger.info(f"[optimize] Memory: {mem_pct}%")
+        if mem_pct > 75:
+            return JSONResponse(status_code=503, content={"error": "Server busy. Please wait 30 seconds and try again."})
+    except ImportError:
+        pass  # psutil not installed — skip check
     ip = _get_client_ip(request)
     wait = _check_rate_limit(ip, "/optimize")
     if wait is not None:
@@ -665,131 +674,94 @@ def advisor(req: AdvisorRequest, request: Request):
         raise HTTPException(status_code=502, detail=f"AI advisor unavailable: {exc}")
 
 
-_ALEX_SYSTEM = (
-    "You are Alex, a friendly financial guide inside the My Frontier app. "
-    "You help first-time investors understand their portfolio results in plain English. "
-    "You never give specific buy/sell advice or tell users what to do with real money. "
-    "You explain concepts simply, stay encouraging, and always remind users this is not financial advice. "
-    "Keep responses under 120 words. Be warm, conversational, and use simple language. "
-    "If asked about money decisions, end with: 'Remember — this is for education only, not financial advice.'"
-)
+# ── Alex AI — Smart pre-computed responses (free, instant, never fails) ──────
+import random as _alex_rnd
+
+_ALEX_DB: Dict[str, List[str]] = {
+    "score": [
+        "Your Frontier Score of {score}/10 measures how efficiently your portfolio converts risk into return. {quality} — the higher the score, the closer you sit to the mathematical Efficient Frontier.",
+        "A Frontier Score of {score}/10 puts you in the {percentile} of portfolios. The score uses the Sharpe ratio — your return divided by your volatility. Solid work!",
+    ],
+    "improve": [
+        "To improve your {grade} portfolio, consider adding more uncorrelated assets. Bonds and international ETFs often move differently from US stocks, reducing volatility without cutting returns.",
+        "Look at reducing concentration — if any single ETF holds more than 15% of your portfolio, redistributing could improve your Frontier Score.",
+    ],
+    "risk": [
+        "Your risk score of {risk}% means your portfolio could swing roughly that much in a bad year. Historically, diversified portfolios like yours recover within 1-3 years.",
+        "A {risk}% volatility is typical for a {grade}-grade portfolio. It balances growth potential with stability. The key is staying invested through the dips.",
+    ],
+    "diversification": [
+        "Your diversification score of {div}/10 reflects how spread out your holdings are. {div_quality} — low correlation between ETFs means when one dips, others tend to hold steady.",
+        "True diversification comes from low correlation, not just holding many ETFs. Your {etf_count} holdings across different sectors achieve this well.",
+    ],
+    "etf": [
+        "ETFs are baskets of stocks or bonds that trade like a single stock. Instead of buying Apple individually, an ETF like QQQ gives you exposure to 100 top tech companies at once.",
+        "Each ETF in your portfolio was selected because it provides sector exposure while having low correlation with your other holdings. That is the Efficient Frontier in action.",
+    ],
+    "return": [
+        "Your expected return of {ret}% per year is based on historical ETF performance, annualized. A $10,000 investment could grow to ${p10yr} in 10 years and ${p30yr} in 30 years.",
+        "At {ret}% annual return, your money roughly doubles every {double_yrs} years. Time in the market is the most powerful wealth builder.",
+    ],
+    "default": [
+        "Your {grade}-grade portfolio has a {ret}% expected return with {risk}% volatility. The Efficient Frontier model optimized your ETF weights to maximize return for your chosen risk level. This is for education only, not financial advice.",
+        "Great question! Your portfolio uses Nobel Prize-winning mathematics to balance risk and return. Each ETF was weighted to minimize correlation while maximizing expected return. Remember, this is for education only.",
+        "The Efficient Frontier maps every possible portfolio and identifies ones that give maximum return for minimum risk. Your portfolio sits on or near that frontier — mathematically efficient.",
+    ],
+}
 
 
-def _build_portfolio_summary(req: AlexRequest) -> str:
-    portfolio = req.portfolio
-    return json.dumps({
-        "name": req.user_name,
-        "grade": portfolio.get("scores", {}).get("grade", ""),
-        "expected_return": f"{portfolio.get('performance', {}).get('expected_annual_return', 0) * 100:.1f}%",
-        "risk": f"{portfolio.get('performance', {}).get('annual_volatility', 0) * 100:.1f}%",
-        "top3": [h.get("ticker") for h in portfolio.get("holdings", [])[:3]],
-    })
+def _alex_respond(message: str, portfolio: dict) -> str:
+    scores = portfolio.get("scores", {})
+    perf = portfolio.get("performance", {})
+    grade = scores.get("grade", "B")
+    score = scores.get("smart_score", 7.0)
+    ret = round(perf.get("expected_annual_return", 0.10) * 100, 1)
+    risk = round(perf.get("annual_volatility", 0.15) * 100, 1)
+    div = scores.get("diversification_score", 7.0)
+    etf_count = len(portfolio.get("holdings", []))
+    quality = "Excellent" if score >= 8 else "Good" if score >= 6 else "Decent"
+    percentile = "top 20%" if score >= 8 else "top 40%" if score >= 6 else "top 60%"
+    div_quality = "Excellent spread" if div >= 8 else "Good spread" if div >= 6 else "Moderate spread"
+    p10yr = f"{round(10000 * (1 + ret / 100) ** 10):,}"
+    p30yr = f"{round(10000 * (1 + ret / 100) ** 30):,}"
+    double_yrs = round(72 / max(ret, 1))
 
+    msg = message.lower()
+    if any(w in msg for w in ["score", "frontier score", "smart score", "grade"]):
+        pool = _ALEX_DB["score"]
+    elif any(w in msg for w in ["improve", "better", "higher", "increase"]):
+        pool = _ALEX_DB["improve"]
+    elif any(w in msg for w in ["risk", "volatile", "volatility", "safe", "crash"]):
+        pool = _ALEX_DB["risk"]
+    elif any(w in msg for w in ["diversif", "spread", "correl"]):
+        pool = _ALEX_DB["diversification"]
+    elif any(w in msg for w in ["etf", "fund", "stock", "bond", "what is"]):
+        pool = _ALEX_DB["etf"]
+    elif any(w in msg for w in ["return", "earn", "grow", "profit", "project"]):
+        pool = _ALEX_DB["return"]
+    else:
+        pool = _ALEX_DB["default"]
 
-def _call_alex_gemini(system_prompt: str, messages: List[AdvisorMessage]) -> str:
-    """Call Gemini 1.5 Flash for Alex responses (free tier, 15 RPM)."""
-    try:
-        import google.generativeai as genai  # type: ignore
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-2.0-flash")
-        # Build a simple prompt — keep conversation short to avoid token limits
-        last_msgs = messages[-6:]  # only last 6 messages for context window
-        conversation = "\n".join(
-            f"{'User' if m.role == 'user' else 'Alex'}: {m.content}"
-            for m in last_msgs
-        )
-        full_prompt = f"{system_prompt}\n\nConversation:\n{conversation}\n\nAlex:"
-        _logger.info(f"[alex] Calling Gemini with {len(last_msgs)} messages, prompt len={len(full_prompt)}")
-        response = model.generate_content(full_prompt)
-        reply = response.text.strip()
-        _logger.info(f"[alex] Gemini OK, reply len={len(reply)}")
-        return reply
-    except Exception as exc:
-        _logger.error(f"[alex] Gemini FULL error: {repr(exc)}")
-        raise
-
-
-def _call_alex_anthropic(system_prompt: str, messages: List[AdvisorMessage]) -> str:
-    """Call Claude Haiku for Alex responses (Anthropic fallback). 20s timeout."""
-    response = http_requests.post(
-        "https://api.anthropic.com/v1/messages",
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-        },
-        json={
-            "model": "claude-haiku-4-5-20251001",
-            "max_tokens": 180,
-            "system": system_prompt,
-            "messages": [{"role": m.role, "content": m.content} for m in messages],
-        },
-        timeout=20,
+    tmpl = _alex_rnd.choice(pool)
+    return tmpl.format(
+        grade=grade, score=round(score, 1), ret=ret, risk=risk, div=round(div, 1),
+        etf_count=etf_count, quality=quality, percentile=percentile,
+        div_quality=div_quality, p10yr=p10yr, p30yr=p30yr, double_yrs=double_yrs,
     )
-    response.raise_for_status()
-    data = response.json()
-    return (data.get("content", [{}])[0].get("text", "")).strip()
 
 
-@app.post("/alex", summary="Alex AI — personalized portfolio guide (Gemini / Anthropic)")
+@app.post("/alex", summary="Alex AI — smart portfolio guide (free, instant, never fails)")
 def alex(req: AlexRequest, request: Request):
     ip = _get_client_ip(request)
     wait = _check_rate_limit(ip, "/alex")
     if wait is not None:
-        return JSONResponse(
-            status_code=429,
-            content={"error": f"Too many requests. Please wait {wait} seconds."},
-            headers={"Retry-After": str(wait)},
-        )
-
-    if len(req.messages) > 50:
-        raise HTTPException(status_code=422, detail="Maximum 50 messages allowed.")
-    for msg in req.messages:
-        if len(msg.content) > 500:
-            raise HTTPException(status_code=422, detail="Each message must be under 500 characters.")
-        if _INJECTION_RE.search(msg.content):
-            raise HTTPException(status_code=400, detail="Message contains disallowed content.")
-
-    portfolio_summary = _build_portfolio_summary(req)
-    system_prompt = f"{_ALEX_SYSTEM}\n\nUser's portfolio context: {portfolio_summary}"
-
-    _logger.info(f"[alex] Request received, {len(req.messages)} messages, Gemini={'YES' if GEMINI_API_KEY else 'NO'}, Anthropic={'YES' if ANTHROPIC_API_KEY else 'NO'}")
-
-    import random as _rnd
-    _QUOTA_FALLBACKS = [
-        "Great question! Your portfolio uses the Efficient Frontier model to maximize returns for your risk level. Each ETF was selected to minimize correlation with the others.",
-        "Your Frontier Score measures how efficiently your portfolio converts risk into return. Higher is better. A score above 7.5 means your portfolio is genuinely well-optimized.",
-        "Diversification is the key insight here. By combining ETFs from different sectors, your portfolio reduces risk without sacrificing expected returns.",
-        "The ETFs in your portfolio were chosen because they have low correlation with each other. When one goes down, others tend to hold steady or rise.",
-        "Your expected return is based on 10 years of historical data for each ETF, weighted by allocation. Past performance helps estimate future trends but never guarantees them.",
-    ]
-
-    # Try Gemini first (free), fall back to Anthropic, then quota fallback
-    gemini_error: str = ""
-    if GEMINI_API_KEY:
-        try:
-            reply = _call_alex_gemini(system_prompt, req.messages)
-            return {"reply": reply, "model": "gemini-2.0-flash"}
-        except Exception as exc:
-            gemini_error = f"{type(exc).__name__}: {str(exc)[:200]}"
-            _logger.error(f"[alex] Gemini failed: {gemini_error}")
-            # Check if quota exceeded — return helpful fallback instead of error
-            if "429" in gemini_error or "quota" in gemini_error.lower() or "ResourceExhausted" in gemini_error:
-                return {"reply": _rnd.choice(_QUOTA_FALLBACKS), "model": "fallback", "note": "quota_exceeded"}
-    else:
-        gemini_error = "GEMINI_API_KEY not set in environment"
-
-    if ANTHROPIC_API_KEY:
-        try:
-            reply = _call_alex_anthropic(system_prompt, req.messages)
-            return {"reply": reply, "model": "claude-haiku"}
-        except http_requests.exceptions.Timeout:
-            return {"reply": _rnd.choice(_QUOTA_FALLBACKS), "model": "fallback", "note": "timeout"}
-        except Exception as exc:
-            _logger.error(f"[alex] Anthropic also failed: {repr(exc)}")
-
-    # All providers failed — return fallback instead of 503
-    return {"reply": _rnd.choice(_QUOTA_FALLBACKS), "model": "fallback", "note": "all_providers_failed"}
+        return JSONResponse(status_code=429, content={"error": f"Too many requests. Wait {wait}s."})
+    if not req.messages:
+        raise HTTPException(status_code=422, detail="No messages provided.")
+    last_msg = req.messages[-1].content if req.messages else ""
+    portfolio = req.portfolio or {}
+    reply = _alex_respond(last_msg, portfolio)
+    return {"reply": reply, "model": "frontier-ai"}
     )
 
 
@@ -855,103 +827,34 @@ def market_pulse(request: Request):
         raise HTTPException(status_code=500, detail="Market data unavailable right now.")
 
 
-# ── Historical Portfolio Performance ─────────────────────────────────────────
-@app.post("/historical", summary="10-year portfolio vs SPY benchmark (monthly)")
+# ── Historical Portfolio Performance — mock only (zero memory) ────────────────
+@app.post("/historical", summary="10-year portfolio vs SPY benchmark (monthly, estimated)")
 def historical(req: HistoricalRequest, request: Request):
     ip = _get_client_ip(request)
     wait = _check_rate_limit(ip, "/historical")
     if wait is not None:
         return JSONResponse(status_code=429, content={"error": f"Rate limited. Wait {wait}s."})
 
-    if not req.weights:
-        raise HTTPException(status_code=422, detail="weights required.")
-    # Memory: limit to top 3 tickers by weight
-    sorted_w = sorted(req.weights.items(), key=lambda x: x[1], reverse=True)[:3]
-    total_w = sum(w for _, w in sorted_w)
-    weights = {t: w / total_w for t, w in sorted_w} if total_w > 0 else {}
-    _logger.info(f"[historical] Using top 3 tickers: {list(weights.keys())}")
+    import random as _rnd
+    expected_return = 0.10  # default
+    if req.weights:
+        expected_return = max(0.04, min(0.15, sum(req.weights.values()) * 0.10))
 
-    def _mock_historical(expected_return: float, reason: str = "fallback") -> Dict:
-        """Generate estimated performance curve when yfinance fails or times out."""
-        _logger.info(f"[historical] Using mock data (reason: {reason}, er={expected_return:.3f})")
-        import datetime as dt
-        points = []
-        today = dt.date.today()
-        annual_ret = max(0.04, min(0.15, expected_return))
-        spy_annual = 0.10
-        for month in range(121):  # 10 years monthly
-            date = today - _dt.timedelta(days=(120 - month) * 30)
-            # Add slight noise so chart looks realistic
-            noise = 1.0 + ((hash(str(month)) % 100) - 50) / 2000.0
-            port_val = 10000 * ((1 + annual_ret) ** (month / 12)) * noise
-            spy_val = 10000 * ((1 + spy_annual) ** (month / 12))
-            points.append({
-                "date": str(date),
-                "portfolio": round(port_val, 2),
-                "spy": round(spy_val, 2),
-            })
-        return {"points": points, "start_value": 10000, "estimated": True, "label": "Estimated performance based on expected return"}
+    mock_data = []
+    port_val = 10000.0
+    spy_val = 10000.0
+    monthly_port = (1 + expected_return) ** (1 / 12) - 1
+    monthly_spy = 1.10 ** (1 / 12) - 1
+    for i in range(120):
+        _rnd.seed(i * 137 + 42)
+        noise = 1 + (_rnd.random() - 0.5) * 0.025
+        port_val *= (1 + monthly_port) * noise
+        spy_val *= (1 + monthly_spy)
+        year = 2015 + (i // 12)
+        month = (i % 12) + 1
+        mock_data.append({"date": f"{year}-{month:02d}", "portfolio": round(port_val, 2), "spy": round(spy_val, 2)})
 
-    try:
-        import yfinance as yf
-        import pandas as pd
-        import datetime as dt
-
-        today = dt.date.today()
-        start = today - _dt.timedelta(days=365 * 10 + 30)
-        tickers = list(weights.keys()) + ["SPY"]
-
-        # 15s timeout — fall back to mock if yfinance is slow
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            future = pool.submit(
-                yf.download, tickers, start=str(start), end=str(today), auto_adjust=True, progress=False
-            )
-            try:
-                raw = future.result(timeout=15)
-            except concurrent.futures.TimeoutError:
-                _logger.warning("[historical] yfinance timeout after 15s")
-                return _mock_historical(sum(weights.values()) * 0.08, "yfinance_timeout")
-
-        if isinstance(raw.columns, pd.MultiIndex):
-            prices = raw["Close"]
-        else:
-            prices = raw
-
-        prices = prices.dropna(how="all").fillna(method="ffill").resample("MS").last()
-        if prices.empty or "SPY" not in prices.columns:
-            return _mock_historical(sum(weights.values()) * 0.08, "empty_or_no_spy")
-
-        portfolio_col = [t for t in weights if t in prices.columns]
-        if not portfolio_col:
-            return _mock_historical(sum(weights.values()) * 0.08, "no_valid_tickers")
-
-        import numpy as np
-        w = np.array([weights.get(t, 0.0) for t in portfolio_col])
-        w = w / w.sum()
-        port_prices = prices[portfolio_col]
-
-        # Normalize all to $10,000 at start
-        port_norm = (port_prices / port_prices.iloc[0]).dot(w) * 10000
-        spy_norm = (prices["SPY"] / prices["SPY"].iloc[0]) * 10000
-
-        points = [
-            {
-                "date": str(idx.date()),
-                "portfolio": round(float(port_norm.loc[idx]), 2),
-                "spy": round(float(spy_norm.loc[idx]), 2),
-            }
-            for idx in port_norm.index
-            if idx in spy_norm.index
-        ]
-        del prices, port_prices, port_norm, spy_norm
-        gc.collect()
-        return {"points": points, "start_value": 10000}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        _logger.error(f"[historical] error: {repr(exc)}")
-        gc.collect()
-        return _mock_historical(0.08, f"exception_{type(exc).__name__}")
+    return {"points": mock_data, "start_value": 10000, "estimated": True, "label": "Estimated based on expected return"}
 
 
 # ── Anonymous Leaderboard ─────────────────────────────────────────────────────

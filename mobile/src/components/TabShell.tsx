@@ -1,7 +1,7 @@
 /**
  * TabShell.tsx
  * Wraps a screen's content with the BottomNav tab bar.
- * Use in any "hub" screen (Welcome, Budget, WealthTracker, Learning, Premium).
+ * Use in any "hub" screen (Welcome, Budget, WealthTracker, Community, Profile).
  *
  * Usage:
  *   <TabShell active="Home" navigation={navigation}>
