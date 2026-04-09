@@ -67,7 +67,7 @@ Create `W:\MyFrontier\.env` (never commit this file):
 ## App Store Submission Checklist
 
 - [ ] Replace `APP_SECRET` placeholder with a production-generated value
-- [ ] Set real `ANTHROPIC_API_KEY` in server `.env`
+- [ ] Set real `GEMINI_API_KEY` in server `.env`
 - [ ] Update `BASE_URL` in `api.ts` to production URL
 - [ ] Update AdMob app IDs in `app.json` to real production IDs
 - [ ] Implement SSL certificate pinning (see `SECURITY.md`)

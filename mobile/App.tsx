@@ -23,6 +23,8 @@ import PremiumScreen        from './src/screens/PremiumScreen';
 import PrivacyPolicyScreen  from './src/screens/PrivacyPolicyScreen';
 import TermsScreen          from './src/screens/TermsScreen';
 import AboutScreen          from './src/screens/AboutScreen';
+import LearningScreen       from './src/screens/LearningScreen';
+import CompareScreen        from './src/screens/CompareScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -74,6 +76,8 @@ export default function App() {
             <Stack.Screen name="Privacy"       component={PrivacyPolicyScreen} />
             <Stack.Screen name="Terms"         component={TermsScreen} />
             <Stack.Screen name="About"         component={AboutScreen} />
+            <Stack.Screen name="Learning"      component={LearningScreen} />
+            <Stack.Screen name="Compare"       component={CompareScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </GestureHandlerRootView>

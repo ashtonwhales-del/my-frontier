@@ -1,7 +1,7 @@
 // TODO: Before App Store launch, implement SSL certificate pinning using
 // react-native-ssl-pinning to prevent man-in-the-middle attacks. See SECURITY.md.
 
-import { OnboardingData, OptimizeResponse } from './types';
+import { OnboardingData, OptimizeResponse, MarketPulseData, HistoricalPoint, LeaderboardRank } from './types';
 import { APP_SECRET } from './constants';
 
 // Install via: npx expo install @react-native-community/netinfo
@@ -197,4 +197,53 @@ export async function callAlex(
   }
   const data = await res.json();
   return (data?.reply ?? '').trim();
+}
+
+// ---------------------------------------------------------------------------
+// fetchMarketPulse — GET /market-pulse (SPY, QQQ, AGG daily changes)
+// ---------------------------------------------------------------------------
+export async function fetchMarketPulse(): Promise<MarketPulseData> {
+  const res = await fetchWithTimeout(`${BASE_URL}/market-pulse`, { headers: AUTH_HEADERS });
+  if (!res.ok) throw new Error(`Market pulse error ${res.status}`);
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// fetchHistorical — POST /historical (portfolio vs SPY over 10y)
+// ---------------------------------------------------------------------------
+export async function fetchHistorical(
+  weights: Record<string, number>,
+): Promise<HistoricalPoint[]> {
+  await assertConnected();
+  const res = await fetchWithTimeout(
+    `${BASE_URL}/historical`,
+    {
+      method: 'POST',
+      headers: AUTH_HEADERS,
+      body: JSON.stringify({ weights }),
+    },
+    OPTIMIZE_TIMEOUT_MS,
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any)?.detail ?? `Historical error ${res.status}`);
+  }
+  const data = await res.json();
+  return data?.points ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// submitLeaderboard — POST /leaderboard/submit (anonymous score submission)
+// ---------------------------------------------------------------------------
+export async function submitLeaderboard(smartScore: number, grade: string): Promise<LeaderboardRank> {
+  const res = await fetchWithTimeout(
+    `${BASE_URL}/leaderboard/submit`,
+    {
+      method: 'POST',
+      headers: AUTH_HEADERS,
+      body: JSON.stringify({ smart_score: smartScore, grade }),
+    },
+  );
+  if (!res.ok) throw new Error(`Leaderboard error ${res.status}`);
+  return res.json();
 }

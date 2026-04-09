@@ -769,4 +769,63 @@ Loading finishes   → ResultsScreen replaces LoadingCalculation
 | App icon PNG | `mobile/assets/icon.png` | Follow icon-concept.html export instructions — 1024×1024 PNG, no alpha |
 | EAS production build | `eas build --profile production --platform ios` | After all above steps complete |
 
-*Last updated: 2026-04-06 — Phase 11 complete. Ready for GitHub Pages + RevenueCat setup.*
+*Last updated: 2026-04-08 — Phase 11 complete. Ready for GitHub Pages + RevenueCat setup.*
+
+---
+
+## Phase 12 Changes — Full Engagement Suite (2026-04-08)
+
+### Pricing
+- Monthly: **$2.99/month** | Yearly: **$24.99/year (save 30%)**
+
+### New Files Created
+| File | Purpose |
+|------|---------|
+| `GEMINI_SETUP.md` | Gemini API key setup guide |
+| `mobile/src/services/badgeService.ts` | Badge award logic (8 free + 5 premium badges) |
+| `mobile/src/services/premiumService.ts` | Free vs premium gating (daily Alex limits, lesson gates) |
+| `mobile/src/components/results/DNAPersonality.tsx` | Portfolio personality pill (6 types) |
+| `mobile/src/components/MarketPulse.tsx` | Market sentiment widget (SPY/QQQ/AGG) |
+| `mobile/src/components/results/ETFDetailModal.tsx` | ETF detail bottom sheet (long-press) |
+| `mobile/src/components/results/HistoricalChart.tsx` | 10-year history chart (premium, react-native-svg) |
+| `mobile/src/components/results/ShareCard.tsx` | Shareable dark portfolio card (react-native-view-shot) |
+| `mobile/src/screens/LearningData.ts` | 12 lesson content + 4 game definitions |
+| `mobile/src/screens/LearningScreen.tsx` | Learning Center (3 tiers, lesson modal, games) |
+| `mobile/src/screens/CompareScreen.tsx` | Portfolio comparison (8-metric table, winner badge) |
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `api.py` | `/alex` → Gemini primary + Anthropic fallback; added `/market-pulse`, `/historical`, `/leaderboard/submit`, `/leaderboard/rank` |
+| `requirements.txt` | Added `google-generativeai>=0.7.0` |
+| `mobile/src/screens/PremiumScreen.tsx` | Pricing updated; feature list updated |
+| `mobile/src/screens/AdvisorScreen.tsx` | Daily 5/day limit with midnight reset; suggested questions; unlock via ad or premium; dual-mode header |
+| `mobile/src/screens/ResultsScreen.tsx` | Alex FAB re-enabled; ETFDetailModal on long-press; ShareCard + HistoricalChart added; badge awards on save |
+| `mobile/src/screens/WelcomeScreen.tsx` | MarketPulse widget added; Learning Center button added |
+| `mobile/src/screens/WealthTrackerScreen.tsx` | Compare button added to header |
+| `mobile/src/components/results/ScoreCard.tsx` | DNA personality pill + anonymous leaderboard rank |
+| `mobile/src/types.ts` | Added `MarketPulseData`, `HistoricalPoint`, `LeaderboardRank`; added `Learning` + `Compare` routes |
+| `mobile/src/constants.ts` | Added `FREE_LIMITS`, new STORAGE keys (`ADVISOR_MSGS_DATE`, `BADGES_EARNED`, etc.) |
+| `mobile/src/api.ts` | Added `fetchMarketPulse`, `fetchHistorical`, `submitLeaderboard` |
+| `mobile/App.tsx` | Added `Learning` and `Compare` stack screens |
+
+### New API Endpoints
+| Endpoint | Description |
+|----------|-------------|
+| `POST /alex` | Gemini 1.5 Flash (free), Anthropic fallback |
+| `GET /market-pulse` | SPY/QQQ/AGG daily changes, 4-hour server cache |
+| `POST /historical` | 10-year monthly portfolio vs SPY ($10K normalized) |
+| `POST /leaderboard/submit` | Anonymous weekly score submission |
+| `GET /leaderboard/rank` | Leaderboard stats for current week |
+
+### Free vs Premium Limits (Phase 12)
+| Feature | Free | Premium |
+|---------|------|---------|
+| Saved portfolios | 2 | Unlimited |
+| Compare portfolios | 2 | Unlimited |
+| Learning lessons | 3 (beginner) | 12 + 4 games |
+| Alex messages | 5/day (resets midnight) | Unlimited |
+| Historical chart | Locked | ✓ |
+| Ads | Yes | No |
+
+*Last updated: 2026-04-08 — Phase 12 complete.*

@@ -385,6 +385,9 @@ export default function WealthTrackerScreen({ navigation }: Props) {
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{userName}'s Wealth Journey</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Compare')} style={styles.headerCompareBtn}>
+          <Text style={styles.headerCompareBtnText}>⚖️ Compare</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -515,7 +518,9 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: spacing.sm },
   backText: { fontSize: 22, color: colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
+  headerTitle: { flex: 1, fontSize: 18, fontWeight: '800', color: colors.textPrimary },
+  headerCompareBtn: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 5 },
+  headerCompareBtnText: { fontSize: 12, color: colors.primary, fontWeight: '700' },
   scroll: { flex: 1 },
   content: { padding: spacing.lg },
 

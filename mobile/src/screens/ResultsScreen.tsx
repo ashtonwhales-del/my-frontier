@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Share,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Print from 'expo-print';
@@ -17,7 +16,6 @@ import { RouteProp } from '@react-navigation/native';
 import AdBanner from '../components/AdBanner';
 import LoadingAd from '../components/LoadingAd';
 import LoadingCalculation from '../components/LoadingCalculation';
-import { SkeletonResults } from '../components/SkeletonLoader';
 import NativeAdCard from '../components/ads/NativeAdCard';
 import RewardedFeature from '../components/ads/RewardedFeature';
 import PortfolioScoreCard, { calcFrontierScore } from '../components/PortfolioScoreCard';
@@ -26,19 +24,22 @@ import HoldingCard from '../components/results/ETFBreakdown';
 import WhatThisMeansSection from '../components/results/WhatThisMeans';
 import ProjectionsSection from '../components/results/ProjectionsSection';
 import RiskSwitcher from '../components/results/RiskSwitcher';
+import ShareCard from '../components/results/ShareCard';
+import HistoricalChart from '../components/results/HistoricalChart';
+import ETFDetailModal from '../components/results/ETFDetailModal';
 import { buildShareText, generatePortfolioHTML } from '../components/results/pdfExport';
 
 import { STORAGE, PREMIUM_TRIGGER_COUNT } from '../constants';
-import { RootStackParamList, OptimizeResponse, SavedPortfolio, OnboardingData } from '../types';
+import { RootStackParamList, OptimizeResponse, SavedPortfolio, OnboardingData, HoldingResult } from '../types';
 import { optimizePortfolio } from '../api';
 import { colors, spacing, radius } from '../theme';
+import { checkAndAwardBadges } from '../services/badgeService';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Results'>;
   route: RouteProp<RootStackParamList, 'Results'>;
 };
 
-// ── Storage helper ────────────────────────────────────────────────────────────
 async function savePortfolioToStorage(data: OnboardingData, result: OptimizeResponse): Promise<number> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE.SAVED_PORTFOLIOS);
@@ -56,16 +57,11 @@ async function savePortfolioToStorage(data: OnboardingData, result: OptimizeResp
     const count = countRaw ? parseInt(countRaw, 10) : 0;
     await AsyncStorage.setItem(STORAGE.PORTFOLIO_RUN_COUNT, String(count + 1));
     const firstTs = await AsyncStorage.getItem(STORAGE.FIRST_PORTFOLIO_TIMESTAMP);
-    if (!firstTs) {
-      await AsyncStorage.setItem(STORAGE.FIRST_PORTFOLIO_TIMESTAMP, String(Date.now()));
-    }
+    if (!firstTs) await AsyncStorage.setItem(STORAGE.FIRST_PORTFOLIO_TIMESTAMP, String(Date.now()));
     return count + 1;
-  } catch {
-    return 0;
-  }
+  } catch { return 0; }
 }
 
-// ── Screen ────────────────────────────────────────────────────────────────────
 export default function ResultsScreen({ navigation, route }: Props) {
   const { data } = route.params;
   const [result, setResult] = useState<OptimizeResponse | null>(null);
@@ -75,6 +71,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
   const [exporting, setExporting] = useState(false);
   const [selectedRisk, setSelectedRisk] = useState<number>(data.riskTolerance);
   const [riskSwitching, setRiskSwitching] = useState(false);
+  const [detailHolding, setDetailHolding] = useState<HoldingResult | null>(null);
 
   async function handleRiskChange(newRisk: number) {
     if (newRisk === selectedRisk || riskSwitching) return;
@@ -85,9 +82,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
       setResult(res);
     } catch (e: any) {
       setError(e.message ?? 'Recalculation failed');
-    } finally {
-      setRiskSwitching(false);
-    }
+    } finally { setRiskSwitching(false); }
   }
 
   useEffect(() => {
@@ -95,15 +90,23 @@ export default function ResultsScreen({ navigation, route }: Props) {
       .then(async res => {
         setResult(res);
         const newCount = await savePortfolioToStorage(data, res);
+        // Award badges based on portfolio results
+        await checkAndAwardBadges({
+          portfolioCount: newCount,
+          grade: res.scores.grade,
+          smartScore: res.scores.smart_score,
+          divScore: res.scores.diversification_score,
+          expectedReturn: res.performance.expected_annual_return,
+          volatility: res.performance.annual_volatility,
+          sharpe: res.performance.sharpe_ratio,
+          categoriesCount: res.profile.categories.length,
+        });
         if (newCount >= PREMIUM_TRIGGER_COUNT) {
           setTimeout(() => navigation.navigate('Premium'), 1200);
         }
       })
       .catch(e => setError(e.message ?? 'Optimization failed'))
-      .finally(() => {
-        setLoading(false);
-        setLoadingAdVisible(false);
-      });
+      .finally(() => { setLoading(false); setLoadingAdVisible(false); });
   }, []);
 
   async function handleExport() {
@@ -120,9 +123,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
       }
     } catch (e: any) {
       Alert.alert('Export failed', e.message ?? 'Could not generate PDF.');
-    } finally {
-      setExporting(false);
-    }
+    } finally { setExporting(false); }
   }
 
   if (loading) {
@@ -164,13 +165,6 @@ export default function ResultsScreen({ navigation, route }: Props) {
           <Text style={styles.subheading}>
             {result.profile.risk_label} · {result.profile.categories.length} sector{result.profile.categories.length !== 1 ? 's' : ''}
           </Text>
-          <TouchableOpacity
-            style={styles.shareBtn}
-            activeOpacity={0.75}
-            onPress={() => Share.share({ message: buildShareText(result) }).catch(() => null)}
-          >
-            <Text style={styles.shareBtnText}>↑ Share</Text>
-          </TouchableOpacity>
         </View>
 
         <PortfolioScoreCard result={result} />
@@ -178,21 +172,26 @@ export default function ResultsScreen({ navigation, route }: Props) {
         <RiskSwitcher selected={selectedRisk} onSelect={handleRiskChange} switching={riskSwitching} />
 
         <Text style={styles.sectionTitle}>📊 Your ETF Allocation</Text>
-        <Text style={styles.sectionHint}>Tap any card to expand details</Text>
+        <Text style={styles.sectionHint}>Tap any card to expand · long-press for detail</Text>
         {result.holdings.map((h, idx) => (
           <React.Fragment key={h.ticker}>
-            <HoldingCard holding={h} lumpSum={result.profile.lump_sum} />
+            <TouchableOpacity onLongPress={() => setDetailHolding(h)} activeOpacity={1}>
+              <HoldingCard holding={h} lumpSum={result.profile.lump_sum} />
+            </TouchableOpacity>
             {idx === 2 && <NativeAdCard />}
           </React.Fragment>
         ))}
 
         <WhatThisMeansSection result={result} />
         <RewardedFeature holdings={result.holdings} />
-        <ProjectionsSection
-          projections={result.projections}
-          profile={result.profile}
-          performance={result.performance}
-        />
+        <ProjectionsSection projections={result.projections} profile={result.profile} performance={result.performance} />
+        <HistoricalChart result={result} />
+
+        {/* Share Card */}
+        <View style={styles.sectionWrap}>
+          <Text style={styles.sectionTitle}>📤 Share Your Portfolio</Text>
+          <ShareCard result={result} />
+        </View>
 
         <View style={styles.disclaimer}>
           <Text style={styles.disclaimerText}>
@@ -204,12 +203,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
           <Text style={styles.restartText}>Start a New Analysis</Text>
         </TouchableOpacity>
 
-        {/* Auto-Invest locked behind premium — re-enable when payment processor is integrated */}
-        <TouchableOpacity
-          style={styles.autoInvestBtn}
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate('Premium')}
-        >
+        <TouchableOpacity style={styles.autoInvestBtn} activeOpacity={0.8} onPress={() => navigation.navigate('Premium')}>
           <Text style={styles.autoInvestText}>Set Up Auto-Invest →</Text>
         </TouchableOpacity>
 
@@ -217,19 +211,22 @@ export default function ResultsScreen({ navigation, route }: Props) {
         <View style={{ height: spacing.xl }} />
       </ScrollView>
 
-      {/* Alex entry point hidden — premium feature, re-enable when paywall is active */}
-      {/* <TouchableOpacity
+      {/* Alex FAB — re-enabled (free on Gemini) */}
+      <TouchableOpacity
         style={styles.fab}
         onPress={() => navigation.navigate('Advisor', { portfolio: result })}
         activeOpacity={0.85}
       >
         <Text style={styles.fabText}>🤖</Text>
         <Text style={styles.fabLabel}>Ask Alex</Text>
-      </TouchableOpacity> */}
+      </TouchableOpacity>
 
       <View style={styles.persistentFooter}>
         <Text style={styles.persistentFooterText}>Not financial advice. For educational purposes only.</Text>
       </View>
+
+      {/* ETF Detail Modal */}
+      <ETFDetailModal holding={detailHolding} lumpSum={result.profile.lump_sum} onClose={() => setDetailHolding(null)} />
     </View>
   );
 }
@@ -239,8 +236,6 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   container: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   centered: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-  loadingTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginTop: spacing.lg, textAlign: 'center' },
-  loadingSubtitle: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm, lineHeight: 22 },
   errorEmoji: { fontSize: 48, marginBottom: spacing.md },
   errorTitle: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.sm },
   errorMsg: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 22, marginBottom: spacing.lg },
@@ -251,10 +246,9 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 30, fontWeight: '900', color: colors.textPrimary, marginBottom: 4 },
   subheadingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   subheading: { fontSize: 15, color: colors.textSecondary, flex: 1 },
-  shareBtn: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 5 },
-  shareBtnText: { fontSize: 13, color: colors.primary, fontWeight: '700' },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, marginBottom: 2 },
   sectionHint: { fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm },
+  sectionWrap: { marginBottom: spacing.lg },
   disclaimer: { backgroundColor: '#FFF9E6', borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.lg, borderLeftWidth: 3, borderLeftColor: colors.warning },
   disclaimerText: { fontSize: 12, color: '#92400E', lineHeight: 18 },
   restartBtn: { borderWidth: 2, borderColor: colors.primary, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', marginBottom: spacing.md },

@@ -17,6 +17,7 @@ import { colors, spacing, radius, shadow } from '../theme';
 import { checkHealth } from '../api';
 import { STORAGE } from '../constants';
 import { calcFrontierScore } from '../components/PortfolioScoreCard';
+import MarketPulse from '../components/MarketPulse';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Welcome'>;
@@ -171,6 +172,8 @@ export default function WelcomeScreen({ navigation }: Props) {
             </Text>
           </Animated.View>
 
+          <MarketPulse />
+
           <View style={styles.card}>
             <Text style={styles.welcomeBackTitle}>Welcome back, {savedName}! 👋</Text>
             <Text style={styles.welcomeBackSub}>
@@ -268,6 +271,8 @@ export default function WelcomeScreen({ navigation }: Props) {
           ))}
         </View>
 
+        <MarketPulse />
+
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Let's get started</Text>
           <Text style={styles.cardSubtitle}>What should we call you?</Text>
@@ -298,6 +303,13 @@ export default function WelcomeScreen({ navigation }: Props) {
             activeOpacity={0.75}
           >
             <Text style={styles.portfoliosBtnText}>📂 My Portfolios</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.portfoliosBtn, { marginTop: spacing.sm, borderColor: '#06D6A0' }]}
+            onPress={() => navigation.navigate('Learning')}
+            activeOpacity={0.75}
+          >
+            <Text style={[styles.portfoliosBtnText, { color: '#06D6A0' }]}>📚 Learning Center</Text>
           </TouchableOpacity>
         </View>
 

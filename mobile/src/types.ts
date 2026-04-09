@@ -64,6 +64,25 @@ export interface SavedPortfolio {
   result: OptimizeResponse;
 }
 
+export interface MarketPulseData {
+  spy_change: number;
+  qqq_change: number;
+  agg_change: number;
+  sentiment: 'bullish' | 'bearish' | 'neutral';
+  message: string;
+}
+
+export interface HistoricalPoint {
+  date: string;
+  portfolio: number;
+  spy: number;
+}
+
+export interface LeaderboardRank {
+  percentile: number;
+  total_submissions: number;
+}
+
 export type RootStackParamList = {
   Disclaimer:    undefined;
   Onboarding:    undefined;
@@ -78,4 +97,6 @@ export type RootStackParamList = {
   Privacy:       undefined;
   Terms:         undefined;
   About:         undefined;
+  Learning:      undefined;
+  Compare:       undefined;
 };

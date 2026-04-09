@@ -24,6 +24,7 @@ load_dotenv()
 
 # ── Environment ────────────────────────────────────────────────────────────────
 ANTHROPIC_API_KEY: str = os.environ.get("ANTHROPIC_API_KEY", "")
+GEMINI_API_KEY: str = os.environ.get("GEMINI_API_KEY", "")
 APP_SECRET: str = os.environ.get("APP_SECRET", "")
 ENV: str = os.environ.get("ENV", "development")
 
@@ -62,11 +63,15 @@ _rate_buckets: Dict[str, Dict[str, float]] = defaultdict(dict)
 
 # Config: (max_tokens, refill_rate tokens/second)
 _RATE_CONFIG = {
-    "/optimize":   {"max": 3,  "window": 300},  # 3 per 5 min
-    "/advisor":    {"max": 10, "window": 60},   # 10 per 1 min
-    "/alex":       {"max": 10, "window": 60},   # 10 per 1 min
-    "/categories": {"max": 60, "window": 60},   # 60 per 1 min
-    "/health":     {"max": 60, "window": 60},   # 60 per 1 min
+    "/optimize":            {"max": 3,  "window": 300},  # 3 per 5 min
+    "/advisor":             {"max": 10, "window": 60},   # 10 per 1 min
+    "/alex":                {"max": 10, "window": 60},   # 10 per 1 min
+    "/categories":          {"max": 60, "window": 60},   # 60 per 1 min
+    "/health":              {"max": 60, "window": 60},   # 60 per 1 min
+    "/market-pulse":        {"max": 30, "window": 60},   # 30 per 1 min
+    "/historical":          {"max": 5,  "window": 300},  # 5 per 5 min
+    "/leaderboard/submit":  {"max": 10, "window": 300},  # 10 per 5 min
+    "/leaderboard/rank":    {"max": 30, "window": 60},   # 30 per 1 min
 }
 
 
@@ -266,6 +271,15 @@ class AlexRequest(BaseModel):
     messages: List[AdvisorMessage]
     portfolio: dict
     user_name: str
+
+
+class HistoricalRequest(BaseModel):
+    weights: Dict[str, float]
+
+
+class LeaderboardSubmitRequest(BaseModel):
+    smart_score: float = Field(ge=0.0, le=10.0)
+    grade: str = Field(max_length=1)
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -619,7 +633,72 @@ def advisor(req: AdvisorRequest, request: Request):
         raise HTTPException(status_code=502, detail=f"AI advisor unavailable: {exc}")
 
 
-@app.post("/alex", summary="Alex AI — personalized portfolio guide")
+_ALEX_SYSTEM = (
+    "You are Alex, a friendly financial guide inside the My Frontier app. "
+    "You help first-time investors understand their portfolio results in plain English. "
+    "You never give specific buy/sell advice or tell users what to do with real money. "
+    "You explain concepts simply, stay encouraging, and always remind users this is not financial advice. "
+    "Keep responses under 120 words. Be warm, conversational, and use simple language. "
+    "If asked about money decisions, end with: 'Remember — this is for education only, not financial advice.'"
+)
+
+
+def _build_portfolio_summary(req: AlexRequest) -> str:
+    portfolio = req.portfolio
+    return json.dumps({
+        "name": req.user_name,
+        "risk_label": portfolio.get("profile", {}).get("risk_label", ""),
+        "grade": portfolio.get("scores", {}).get("grade", ""),
+        "smart_score": portfolio.get("scores", {}).get("smart_score", 0),
+        "expected_return": f"{portfolio.get('performance', {}).get('expected_annual_return', 0) * 100:.1f}%",
+        "top_holdings": [
+            {"ticker": h.get("ticker"), "weight": f"{h.get('weight', 0) * 100:.1f}%"}
+            for h in portfolio.get("holdings", [])[:5]
+        ],
+    })
+
+
+def _call_alex_gemini(system_prompt: str, messages: List[AdvisorMessage]) -> str:
+    """Call Gemini 1.5 Flash for Alex responses (free tier, 15 RPM)."""
+    try:
+        import google.generativeai as genai  # type: ignore
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        conversation = "\n".join(
+            f"{'User' if m.role == 'user' else 'Alex'}: {m.content}"
+            for m in messages
+        )
+        full_prompt = f"{system_prompt}\n\nConversation:\n{conversation}\n\nAlex:"
+        response = model.generate_content(full_prompt)
+        return response.text.strip()
+    except Exception as exc:
+        _logger.warning(f"[alex] Gemini failed: {exc} — falling back to Anthropic")
+        raise
+
+
+def _call_alex_anthropic(system_prompt: str, messages: List[AdvisorMessage]) -> str:
+    """Call Claude Haiku for Alex responses (Anthropic fallback)."""
+    response = http_requests.post(
+        "https://api.anthropic.com/v1/messages",
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+        },
+        json={
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 180,
+            "system": system_prompt,
+            "messages": [{"role": m.role, "content": m.content} for m in messages],
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    data = response.json()
+    return (data.get("content", [{}])[0].get("text", "")).strip()
+
+
+@app.post("/alex", summary="Alex AI — personalized portfolio guide (Gemini / Anthropic)")
 def alex(req: AlexRequest, request: Request):
     ip = _get_client_ip(request)
     wait = _check_rate_limit(ip, "/alex")
@@ -638,52 +717,190 @@ def alex(req: AlexRequest, request: Request):
         if _INJECTION_RE.search(msg.content):
             raise HTTPException(status_code=400, detail="Message contains disallowed content.")
 
-    if not ANTHROPIC_API_KEY:
-        raise HTTPException(status_code=503, detail="Alex AI is not configured on this server.")
+    portfolio_summary = _build_portfolio_summary(req)
+    system_prompt = f"{_ALEX_SYSTEM}\n\nUser's portfolio context: {portfolio_summary}"
 
-    # Build portfolio context for personalized responses
-    portfolio = req.portfolio
-    portfolio_summary = json.dumps({
-        "name": req.user_name,
-        "risk_label": portfolio.get("profile", {}).get("risk_label", ""),
-        "grade": portfolio.get("scores", {}).get("grade", ""),
-        "smart_score": portfolio.get("scores", {}).get("smart_score", 0),
-        "expected_return": f"{portfolio.get('performance', {}).get('expected_annual_return', 0) * 100:.1f}%",
-        "top_holdings": [
-            {"ticker": h.get("ticker"), "weight": f"{h.get('weight', 0) * 100:.1f}%"}
-            for h in portfolio.get("holdings", [])[:5]
-        ],
-    })
-    system_prompt = (
-        "You are Alex, a friendly financial guide inside the My Frontier app. "
-        "You help first-time investors understand their portfolio results in plain English. "
-        "You never give specific buy/sell advice. "
-        "You explain concepts simply, stay encouraging, and always remind users this is not financial advice. "
-        "Keep responses under 100 words. "
-        f"The user's current portfolio: {portfolio_summary}"
-    )
+    # Try Gemini first (free), fall back to Anthropic
+    try:
+        if GEMINI_API_KEY:
+            reply = _call_alex_gemini(system_prompt, req.messages)
+            return {"reply": reply, "model": "gemini-1.5-flash"}
+    except Exception:
+        pass
+
+    if not ANTHROPIC_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="Alex AI is not configured. Add GEMINI_API_KEY or ANTHROPIC_API_KEY to the server .env."
+        )
 
     try:
-        response = http_requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "Content-Type": "application/json",
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 150,
-                "system": system_prompt,
-                "messages": [{"role": m.role, "content": m.content} for m in req.messages],
-            },
-            timeout=30,
-        )
-        response.raise_for_status()
-        data = response.json()
-        reply = (data.get("content", [{}])[0].get("text", "")).strip()
-        return {"reply": reply}
+        reply = _call_alex_anthropic(system_prompt, req.messages)
+        return {"reply": reply, "model": "claude-haiku"}
     except http_requests.exceptions.Timeout:
         raise HTTPException(status_code=504, detail="Alex timed out. Please try again.")
     except http_requests.exceptions.RequestException as exc:
         raise HTTPException(status_code=502, detail=f"Alex unavailable: {exc}")
+
+
+# ── Market Pulse ──────────────────────────────────────────────────────────────
+_MARKET_PULSE_CACHE: Dict = {}
+
+
+@app.get("/market-pulse", summary="Today's market sentiment (SPY, QQQ, AGG)")
+def market_pulse(request: Request):
+    ip = _get_client_ip(request)
+    wait = _check_rate_limit(ip, "/market-pulse")
+    if wait is not None:
+        return JSONResponse(status_code=429, content={"error": f"Rate limited. Wait {wait}s."})
+
+    # 4-hour server-side cache
+    now = time.time()
+    if _MARKET_PULSE_CACHE.get("ts") and now - _MARKET_PULSE_CACHE["ts"] < 14400:
+        return _MARKET_PULSE_CACHE["data"]
+
+    try:
+        import yfinance as yf
+        def _pct(ticker: str) -> float:
+            hist = yf.Ticker(ticker).history(period="5d")
+            if len(hist) < 2:
+                return 0.0
+            return float((hist["Close"].iloc[-1] - hist["Close"].iloc[-2]) / hist["Close"].iloc[-2] * 100)
+
+        spy_c = _pct("SPY")
+        qqq_c = _pct("QQQ")
+        agg_c = _pct("AGG")
+
+        sentiment = "bullish" if spy_c > 1 else ("bearish" if spy_c < -1 else "neutral")
+        messages = {
+            "bullish": "Markets are up today 📈 — growth portfolios are having a good day",
+            "bearish": "Markets dipped today 📉 — every crash in history has recovered",
+            "neutral": "Markets are steady today — business as usual",
+        }
+        data = {
+            "spy_change": round(spy_c, 2),
+            "qqq_change": round(qqq_c, 2),
+            "agg_change": round(agg_c, 2),
+            "sentiment": sentiment,
+            "message": messages[sentiment],
+        }
+        _MARKET_PULSE_CACHE.update({"ts": now, "data": data})
+        return data
+    except Exception as exc:
+        _logger.error(f"[market-pulse] error: {exc}")
+        raise HTTPException(status_code=500, detail="Market data unavailable right now.")
+
+
+# ── Historical Portfolio Performance ─────────────────────────────────────────
+@app.post("/historical", summary="10-year portfolio vs SPY benchmark (monthly)")
+def historical(req: HistoricalRequest, request: Request):
+    ip = _get_client_ip(request)
+    wait = _check_rate_limit(ip, "/historical")
+    if wait is not None:
+        return JSONResponse(status_code=429, content={"error": f"Rate limited. Wait {wait}s."})
+
+    if not req.weights or len(req.weights) > 60:
+        raise HTTPException(status_code=422, detail="weights must have 1–60 tickers.")
+    weight_sum = sum(req.weights.values())
+    if not (0.95 <= weight_sum <= 1.05):
+        raise HTTPException(status_code=422, detail="weights must sum to ~1.0.")
+
+    try:
+        import yfinance as yf
+        import pandas as pd
+        import datetime as dt
+
+        today = dt.date.today()
+        start = today - _dt.timedelta(days=365 * 10 + 30)
+        tickers = list(req.weights.keys()) + ["SPY"]
+        raw = yf.download(tickers, start=str(start), end=str(today), auto_adjust=True, progress=False)
+        if isinstance(raw.columns, pd.MultiIndex):
+            prices = raw["Close"]
+        else:
+            prices = raw
+
+        prices = prices.dropna(how="all").fillna(method="ffill").resample("MS").last()
+        if prices.empty or "SPY" not in prices.columns:
+            raise HTTPException(status_code=422, detail="Insufficient data for selected tickers.")
+
+        portfolio_col = [t for t in req.weights if t in prices.columns]
+        if not portfolio_col:
+            raise HTTPException(status_code=422, detail="No valid tickers with historical data.")
+
+        import numpy as np
+        w = np.array([req.weights.get(t, 0.0) for t in portfolio_col])
+        w = w / w.sum()
+        port_prices = prices[portfolio_col]
+
+        # Normalize all to $10,000 at start
+        port_norm = (port_prices / port_prices.iloc[0]).dot(w) * 10000
+        spy_norm = (prices["SPY"] / prices["SPY"].iloc[0]) * 10000
+
+        points = [
+            {
+                "date": str(idx.date()),
+                "portfolio": round(float(port_norm.loc[idx]), 2),
+                "spy": round(float(spy_norm.loc[idx]), 2),
+            }
+            for idx in port_norm.index
+            if idx in spy_norm.index
+        ]
+        return {"points": points, "start_value": 10000}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        _logger.error(f"[historical] error: {exc}")
+        raise HTTPException(status_code=500, detail="Historical calculation failed.")
+
+
+# ── Anonymous Leaderboard ─────────────────────────────────────────────────────
+_LEADERBOARD_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "leaderboard.json")
+
+
+def _load_leaderboard() -> List[Dict]:
+    if not os.path.exists(_LEADERBOARD_PATH):
+        return []
+    try:
+        with open(_LEADERBOARD_PATH, "r") as f:
+            data = json.load(f)
+        # Keep only entries from current week (ISO week)
+        current_week = _dt.datetime.utcnow().isocalendar()[:2]
+        return [e for e in data if tuple(e.get("week", [0, 0])) == current_week]
+    except Exception:
+        return []
+
+
+def _save_leaderboard(entries: List[Dict]) -> None:
+    try:
+        with open(_LEADERBOARD_PATH, "w") as f:
+            json.dump(entries, f)
+    except Exception as exc:
+        _logger.error(f"[leaderboard] save failed: {exc}")
+
+
+@app.post("/leaderboard/submit", summary="Submit anonymous portfolio score to leaderboard")
+def leaderboard_submit(req: LeaderboardSubmitRequest, request: Request):
+    ip = _get_client_ip(request)
+    wait = _check_rate_limit(ip, "/leaderboard/submit")
+    if wait is not None:
+        return JSONResponse(status_code=429, content={"error": f"Rate limited. Wait {wait}s."})
+
+    entries = _load_leaderboard()
+    now = _dt.datetime.utcnow()
+    week = list(now.isocalendar()[:2])
+    entries.append({"smart_score": req.smart_score, "grade": req.grade, "week": week, "ts": now.isoformat()})
+    _save_leaderboard(entries)
+
+    scores = [e["smart_score"] for e in entries]
+    scores.sort()
+    rank = sum(1 for s in scores if s <= req.smart_score)
+    percentile = round((1 - rank / len(scores)) * 100) if scores else 50
+    return {"percentile": percentile, "total_submissions": len(scores)}
+
+
+@app.get("/leaderboard/rank", summary="Get leaderboard stats for current week")
+def leaderboard_rank(request: Request):
+    entries = _load_leaderboard()
+    if not entries:
+        return {"percentile": 50, "total_submissions": 0}
+    return {"total_submissions": len(entries), "avg_score": round(sum(e["smart_score"] for e in entries) / len(entries), 2)}

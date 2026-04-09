@@ -10,54 +10,52 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, OptimizeResponse } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
-import {
-  STORAGE,
-  ADVISOR_FREE_MESSAGES,
-  ADVISOR_AD_UNLOCK_MESSAGES,
-} from '../constants';
+import { STORAGE, FREE_LIMITS } from '../constants';
 import { callAdvisor } from '../api';
+import { canSendAlexMessage, decrementAlexMessages, isPremium } from '../services/premiumService';
 import { showRewardedAd } from '../components/ads/RewardedAd';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Advisor'>;
   route: RouteProp<RootStackParamList, 'Advisor'>;
 };
 
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
+interface ChatMessage { role: 'user' | 'assistant'; content: string; }
 
+const SUGGESTED = [
+  'What does my Frontier Score mean?',
+  'How can I improve my portfolio?',
+  'What is the Efficient Frontier?',
+  'Should I be worried about my risk level?',
+];
 
-const HISTORY_KEY = (portfolioName: string) =>
-  `${STORAGE.ADVISOR_HISTORY}_${portfolioName}`;
+const HISTORY_KEY = (name: string) => `${STORAGE.ADVISOR_HISTORY}_${name}`;
 
 export default function AdvisorScreen({ navigation, route }: Props) {
   const { portfolio } = route.params;
-
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [msgsRemaining, setMsgsRemaining] = useState(ADVISOR_FREE_MESSAGES);
+  const [remaining, setRemaining] = useState<number>(FREE_LIMITS.alexMessagesPerDay);
+  const [premium, setPremium] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const histKey = HISTORY_KEY(portfolio.profile.name);
 
-  // Load persisted history and message count on mount
   useEffect(() => {
     (async () => {
-      const [storedHistory, storedCount] = await Promise.all([
-        AsyncStorage.getItem(histKey),
-        AsyncStorage.getItem(STORAGE.ADVISOR_MSGS_REMAINING),
-      ]);
+      const [prem, { remaining: rem }] = await Promise.all([isPremium(), canSendAlexMessage()]);
+      setPremium(prem);
+      setRemaining(prem ? 999 : rem);
+
+      const storedHistory = await AsyncStorage.getItem(histKey);
       if (storedHistory) {
         try { setMessages(JSON.parse(storedHistory)); } catch {}
       } else {
-        // Greet the user on first open
         const greeting: ChatMessage = {
           role: 'assistant',
           content: `Hi ${portfolio.profile.name}! I'm Alex, your personal portfolio guide. I can see your ${portfolio.profile.risk_label} portfolio with a ${portfolio.scores.grade} grade. What would you like to know?`,
@@ -65,23 +63,26 @@ export default function AdvisorScreen({ navigation, route }: Props) {
         setMessages([greeting]);
         await AsyncStorage.setItem(histKey, JSON.stringify([greeting]));
       }
-      if (storedCount !== null) setMsgsRemaining(parseInt(storedCount, 10));
     })();
   }, []);
 
-  async function handleSend() {
-    const text = input.trim();
-    if (!text || loading || msgsRemaining <= 0) return;
+  async function handleSend(text?: string) {
+    const msg = (text ?? input).trim();
+    if (!msg || loading) return;
 
-    const userMsg: ChatMessage = { role: 'user', content: text };
+    const { allowed, remaining: rem } = await canSendAlexMessage();
+    if (!allowed && !premium) { setRemaining(0); return; }
+
+    const userMsg: ChatMessage = { role: 'user', content: msg };
     const updatedHistory = [...messages, userMsg];
     setMessages(updatedHistory);
     setInput('');
     setLoading(true);
 
-    const newCount = msgsRemaining - 1;
-    setMsgsRemaining(newCount);
-    await AsyncStorage.setItem(STORAGE.ADVISOR_MSGS_REMAINING, String(newCount));
+    if (!premium) {
+      const newRem = await decrementAlexMessages();
+      setRemaining(newRem);
+    }
 
     try {
       const reply = await callAdvisor(updatedHistory, portfolio);
@@ -90,21 +91,15 @@ export default function AdvisorScreen({ navigation, route }: Props) {
       setMessages(finalHistory);
       await AsyncStorage.setItem(histKey, JSON.stringify(finalHistory));
     } catch (e: any) {
-      console.warn('[Alex] error:', e?.message ?? e);
       const detail = e?.message ?? '';
-      // Surface the actual error so it's debuggable, but keep language friendly
       const content = detail.includes('503')
-        ? "Alex isn't available right now — the AI service isn't configured on the server. Please check that ANTHROPIC_API_KEY is set in the backend .env."
+        ? "Alex isn't available — add GEMINI_API_KEY or ANTHROPIC_API_KEY to the server .env."
         : detail.includes('429')
         ? "You've sent messages too quickly. Please wait a moment and try again."
         : detail.includes('No internet')
-        ? "No internet connection detected. Please check your Wi-Fi or mobile data."
-        : `Sorry, I couldn't respond right now. ${detail ? `(${detail})` : 'Please check the server is running and try again.'}`;
-      const errMsg: ChatMessage = {
-        role: 'assistant',
-        content,
-      };
-      setMessages([...updatedHistory, errMsg]);
+        ? "No internet connection. Please check your network."
+        : `Sorry, I couldn't respond. ${detail ? `(${detail})` : 'Check the server is running.'}`;
+      setMessages([...updatedHistory, { role: 'assistant', content }]);
     } finally {
       setLoading(false);
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
@@ -113,18 +108,19 @@ export default function AdvisorScreen({ navigation, route }: Props) {
 
   function handleUnlockAd() {
     showRewardedAd(async () => {
-      const newCount = msgsRemaining + ADVISOR_AD_UNLOCK_MESSAGES;
-      setMsgsRemaining(newCount);
-      await AsyncStorage.setItem(STORAGE.ADVISOR_MSGS_REMAINING, String(newCount));
+      const newRem = remaining + 10;
+      setRemaining(newRem);
+      await AsyncStorage.setItem(STORAGE.ADVISOR_MSGS_REMAINING, String(newRem));
     });
   }
 
+  const showInput = premium || remaining > 0;
+  const limitLabel = premium
+    ? 'Unlimited messages'
+    : `${remaining} free message${remaining !== 1 ? 's' : ''} today — upgrade for unlimited`;
+
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-    >
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -134,49 +130,29 @@ export default function AdvisorScreen({ navigation, route }: Props) {
           <Text style={styles.headerAvatar}>🤖</Text>
           <View>
             <Text style={styles.headerTitle}>Alex</Text>
-            <Text style={styles.headerSub}>Portfolio Educator</Text>
+            <Text style={styles.headerSub}>Portfolio Educator · Free on Gemini AI</Text>
           </View>
         </View>
-        <View style={styles.msgBadge}>
-          <Text style={styles.msgBadgeText}>{msgsRemaining}</Text>
-        </View>
+        {!premium && (
+          <TouchableOpacity onPress={() => navigation.navigate('Premium')} style={styles.upgradeChip}>
+            <Text style={styles.upgradeChipText}>PRO</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Messages */}
-      <ScrollView
-        ref={scrollRef}
-        style={styles.messageList}
-        contentContainerStyle={styles.messageListContent}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
-      >
+      <ScrollView ref={scrollRef} style={styles.messageList} contentContainerStyle={styles.messageListContent} showsVerticalScrollIndicator={false} onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}>
         {messages.map((msg, i) => (
-          <View
-            key={i}
-            style={[styles.bubbleRow, msg.role === 'user' ? styles.bubbleRowUser : styles.bubbleRowAlex]}
-          >
-            {msg.role === 'assistant' && (
-              <View style={styles.avatarCircle}>
-                <Text style={styles.avatarEmoji}>🤖</Text>
-              </View>
-            )}
-            <View
-              style={[
-                styles.bubble,
-                msg.role === 'user' ? styles.bubbleUser : styles.bubbleAlex,
-              ]}
-            >
-              <Text style={[styles.bubbleText, msg.role === 'user' && styles.bubbleTextUser]}>
-                {msg.content}
-              </Text>
+          <View key={i} style={[styles.bubbleRow, msg.role === 'user' ? styles.bubbleRowUser : styles.bubbleRowAlex]}>
+            {msg.role === 'assistant' && <View style={styles.avatarCircle}><Text style={styles.avatarEmoji}>🤖</Text></View>}
+            <View style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAlex]}>
+              <Text style={[styles.bubbleText, msg.role === 'user' && styles.bubbleTextUser]}>{msg.content}</Text>
             </View>
           </View>
         ))}
         {loading && (
           <View style={[styles.bubbleRow, styles.bubbleRowAlex]}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarEmoji}>🤖</Text>
-            </View>
+            <View style={styles.avatarCircle}><Text style={styles.avatarEmoji}>🤖</Text></View>
             <View style={[styles.bubble, styles.bubbleAlex, styles.bubbleTyping]}>
               <ActivityIndicator size="small" color={colors.textMuted} />
               <Text style={styles.typingText}>Alex is thinking…</Text>
@@ -185,12 +161,20 @@ export default function AdvisorScreen({ navigation, route }: Props) {
         )}
       </ScrollView>
 
-      {/* Input area or unlock CTA */}
-      {msgsRemaining > 0 ? (
+      {/* Input or unlock */}
+      {showInput ? (
         <View style={styles.inputBar}>
-          <Text style={styles.msgCountLabel}>
-            {msgsRemaining} message{msgsRemaining !== 1 ? 's' : ''} remaining
-          </Text>
+          <Text style={styles.limitLabel}>{limitLabel}</Text>
+          {/* Suggested questions (only if no conversation yet) */}
+          {messages.length <= 1 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestRow} contentContainerStyle={styles.suggestContent}>
+              {SUGGESTED.map(q => (
+                <TouchableOpacity key={q} style={styles.suggestChip} onPress={() => handleSend(q)} activeOpacity={0.75}>
+                  <Text style={styles.suggestText}>{q}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
           <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
@@ -202,25 +186,25 @@ export default function AdvisorScreen({ navigation, route }: Props) {
               maxLength={300}
               returnKeyType="send"
               blurOnSubmit
-              onSubmitEditing={handleSend}
+              onSubmitEditing={() => handleSend()}
             />
-            <TouchableOpacity
-              style={[styles.sendBtn, (!input.trim() || loading) && styles.sendBtnDisabled]}
-              onPress={handleSend}
-              disabled={!input.trim() || loading}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity style={[styles.sendBtn, (!input.trim() || loading) && styles.sendBtnDisabled]} onPress={() => handleSend()} disabled={!input.trim() || loading} activeOpacity={0.8}>
               <Text style={styles.sendBtnText}>↑</Text>
             </TouchableOpacity>
           </View>
         </View>
       ) : (
         <View style={styles.unlockBar}>
-          <Text style={styles.unlockTitle}>You've used all your free messages</Text>
-          <Text style={styles.unlockSub}>Watch a short ad to unlock {ADVISOR_AD_UNLOCK_MESSAGES} more messages</Text>
-          <TouchableOpacity style={styles.unlockBtn} onPress={handleUnlockAd} activeOpacity={0.8}>
-            <Text style={styles.unlockBtnText}>▶ Watch Ad to Unlock {ADVISOR_AD_UNLOCK_MESSAGES} Messages</Text>
-          </TouchableOpacity>
+          <Text style={styles.unlockTitle}>You've used all 5 free messages today</Text>
+          <Text style={styles.unlockSub}>Resets at midnight · or unlock with a video ad</Text>
+          <View style={styles.unlockBtns}>
+            <TouchableOpacity style={styles.unlockAdBtn} onPress={handleUnlockAd} activeOpacity={0.8}>
+              <Text style={styles.unlockAdBtnText}>▶ Watch Ad (+10 messages)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.upgradeBigBtn} onPress={() => navigation.navigate('Premium')} activeOpacity={0.8}>
+              <Text style={styles.upgradeBigBtnText}>🚀 Go Premium — Unlimited</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </KeyboardAvoidingView>
@@ -229,133 +213,46 @@ export default function AdvisorScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingTop: 56,
-    paddingBottom: spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    gap: spacing.sm,
-  },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border, gap: spacing.sm },
   backBtn: { padding: spacing.sm },
   backText: { fontSize: 22, color: colors.primary, fontWeight: '700' },
   headerCenter: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   headerAvatar: { fontSize: 28 },
   headerTitle: { fontSize: 16, fontWeight: '800', color: colors.textPrimary },
-  headerSub: { fontSize: 12, color: colors.textSecondary },
-  msgBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  msgBadgeText: { color: '#fff', fontSize: 12, fontWeight: '800' },
-
+  headerSub: { fontSize: 11, color: colors.textSecondary },
+  upgradeChip: { backgroundColor: '#F59E0B', borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
+  upgradeChipText: { color: '#000', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
   messageList: { flex: 1 },
   messageListContent: { padding: spacing.md, gap: spacing.md },
-
   bubbleRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm },
   bubbleRowUser: { justifyContent: 'flex-end' },
   bubbleRowAlex: { justifyContent: 'flex-start' },
-
-  avatarCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#EEF2FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
+  avatarCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   avatarEmoji: { fontSize: 18 },
-
-  bubble: {
-    maxWidth: '75%',
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    ...shadow.sm,
-  },
-  bubbleUser: {
-    backgroundColor: colors.primary,
-    borderBottomRightRadius: 4,
-  },
-  bubbleAlex: {
-    backgroundColor: colors.card,
-    borderBottomLeftRadius: 4,
-  },
-  bubbleTyping: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: 12,
-  },
+  bubble: { maxWidth: '75%', borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 10, ...shadow.sm },
+  bubbleUser: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
+  bubbleAlex: { backgroundColor: colors.card, borderBottomLeftRadius: 4 },
+  bubbleTyping: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 12 },
   bubbleText: { fontSize: 14, color: colors.textPrimary, lineHeight: 20 },
   bubbleTextUser: { color: '#fff' },
   typingText: { fontSize: 13, color: colors.textMuted },
-
-  inputBar: {
-    backgroundColor: colors.card,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    padding: spacing.md,
-    paddingBottom: Platform.OS === 'ios' ? 32 : spacing.md,
-  },
-  msgCountLabel: {
-    fontSize: 11,
-    color: colors.textMuted,
-    textAlign: 'center',
-    marginBottom: spacing.sm,
-  },
+  inputBar: { backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border, padding: spacing.md, paddingBottom: Platform.OS === 'ios' ? 32 : spacing.md },
+  limitLabel: { fontSize: 11, color: colors.textMuted, textAlign: 'center', marginBottom: spacing.xs },
+  suggestRow: { marginBottom: spacing.sm },
+  suggestContent: { gap: spacing.sm, paddingRight: spacing.sm },
+  suggestChip: { backgroundColor: colors.bg, borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 6 },
+  suggestText: { fontSize: 12, color: colors.primary, fontWeight: '600' },
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm },
-  input: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: colors.textPrimary,
-    maxHeight: 120,
-    backgroundColor: colors.bg,
-  },
-  sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadow.md,
-  },
+  input: { flex: 1, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 10, fontSize: 14, color: colors.textPrimary, maxHeight: 120, backgroundColor: colors.bg },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', ...shadow.md },
   sendBtnDisabled: { opacity: 0.4 },
   sendBtnText: { color: '#fff', fontSize: 20, fontWeight: '700' },
-
-  unlockBar: {
-    backgroundColor: colors.card,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    padding: spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 40 : spacing.lg,
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
+  unlockBar: { backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border, padding: spacing.lg, paddingBottom: Platform.OS === 'ios' ? 40 : spacing.lg, alignItems: 'center', gap: spacing.sm },
   unlockTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   unlockSub: { fontSize: 13, color: colors.textSecondary, textAlign: 'center' },
-  unlockBtn: {
-    backgroundColor: '#7209B7',
-    borderRadius: radius.md,
-    paddingVertical: 13,
-    paddingHorizontal: spacing.xl,
-    marginTop: spacing.sm,
-    ...shadow.md,
-  },
-  unlockBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  unlockBtns: { width: '100%', gap: spacing.sm, marginTop: spacing.xs },
+  unlockAdBtn: { backgroundColor: '#7209B7', borderRadius: radius.md, paddingVertical: 13, alignItems: 'center', ...shadow.md },
+  unlockAdBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  upgradeBigBtn: { backgroundColor: '#F59E0B', borderRadius: radius.md, paddingVertical: 13, alignItems: 'center', ...shadow.md },
+  upgradeBigBtnText: { color: '#000', fontSize: 14, fontWeight: '800' },
 });

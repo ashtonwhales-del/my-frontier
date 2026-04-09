@@ -14,12 +14,31 @@ export const STORAGE = {
   PORTFOLIO_RUN_COUNT:        'portfolioRunCount',   // number of times /optimize was called
   ADVISOR_HISTORY:            'advisorHistory',      // per-portfolio chat history (keyed by portfolio id)
   ADVISOR_MSGS_REMAINING:     'advisorMsgsRemaining',
+  ADVISOR_MSGS_DATE:          'advisorMsgsDate',     // date string YYYY-MM-DD for daily reset
   NOTIFICATION_PREF:          'notificationPref',    // 'granted' | 'denied'
   FIRST_PORTFOLIO_TIMESTAMP:  'firstPortfolioTimestamp',
+  BADGES_EARNED:              'badgesEarned',        // JSON array of badge IDs
+  STRESS_TEST_DONE:           'stressTestDone',      // boolean string
+  LESSONS_COMPLETE:           'lessonsComplete',     // JSON array of completed lesson IDs
+  MARKET_PULSE_CACHE:         'marketPulseCache',    // cached market pulse JSON + timestamp
+  IS_PREMIUM:                 'isPremium',           // boolean string — override for testing
 } as const;
 
+// Free tier limits
+export const FREE_LIMITS: {
+  savedPortfolios: number;
+  comparisonPortfolios: number;
+  learningLessons: number;
+  alexMessagesPerDay: number;
+} = {
+  savedPortfolios: 2,
+  comparisonPortfolios: 2,
+  learningLessons: 3,
+  alexMessagesPerDay: 5,
+};
+
 // Free messages before requiring a rewarded ad
-export const ADVISOR_FREE_MESSAGES = 3;
+export const ADVISOR_FREE_MESSAGES = FREE_LIMITS.alexMessagesPerDay;
 
 // Messages granted after watching a rewarded ad
 export const ADVISOR_AD_UNLOCK_MESSAGES = 10;

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, radius, shadow } from '../../theme';
 import { OptimizeResponse } from '../../types';
+import DNAPersonality from './DNAPersonality';
+import { submitLeaderboard } from '../../api';
 
 export function gradeColor(grade: string): string {
   return grade === 'A' ? '#06D6A0' : grade === 'B' ? '#4361EE' : grade === 'C' ? '#FFB703' : '#EF233C';
@@ -10,6 +12,15 @@ export function gradeColor(grade: string): string {
 export default function ScoreCard({ result }: { result: OptimizeResponse }) {
   const { scores, performance } = result;
   const gc = gradeColor(scores.grade);
+  const [percentile, setPercentile] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Submit score anonymously to leaderboard
+    submitLeaderboard(scores.smart_score, scores.grade)
+      .then(rank => setPercentile(rank.percentile))
+      .catch(() => null); // silently ignore network errors
+  }, [scores.smart_score, scores.grade]);
+
   return (
     <View style={scoreStyles.card}>
       {/* Grade + grade tooltip */}
@@ -22,6 +33,11 @@ export default function ScoreCard({ result }: { result: OptimizeResponse }) {
           <Text style={scoreStyles.gradeInfoTooltip}>
             Overall portfolio quality based on diversification and expected returns
           </Text>
+          {percentile !== null && (
+            <Text style={scoreStyles.leaderboard}>
+              📊 Top {percentile}% of My Frontier investors this week
+            </Text>
+          )}
         </View>
       </View>
 
@@ -50,6 +66,9 @@ export default function ScoreCard({ result }: { result: OptimizeResponse }) {
           <Text style={scoreStyles.metricTooltip}>How spread out your risk is across different holdings</Text>
         </View>
       </View>
+
+      {/* DNA Personality */}
+      <DNAPersonality result={result} />
     </View>
   );
 }
@@ -62,40 +81,15 @@ const scoreStyles = StyleSheet.create({
     ...shadow.sm,
     marginBottom: spacing.lg,
   },
-  gradeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    gap: spacing.md,
-  },
-  gradeCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
+  gradeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.md },
+  gradeCircle: { width: 72, height: 72, borderRadius: 36, borderWidth: 4, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   gradeText: { fontSize: 32, fontWeight: '900' },
   gradeInfo: { flex: 1 },
   gradeInfoLabel: { fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
   gradeInfoTooltip: { fontSize: 12, color: colors.textSecondary, lineHeight: 17 },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-  },
-  metricBox: {
-    width: '50%',
-    padding: spacing.md,
-    backgroundColor: colors.bg,
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
-  },
+  leaderboard: { fontSize: 11, color: colors.primary, fontWeight: '600', marginTop: 4 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, overflow: 'hidden' },
+  metricBox: { width: '50%', padding: spacing.md, backgroundColor: colors.bg, borderRightWidth: 1, borderRightColor: colors.border },
   metricBoxRight: { borderRightWidth: 0 },
   metricBoxBottom: { borderTopWidth: 1, borderTopColor: colors.border },
   metricLabel: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 },

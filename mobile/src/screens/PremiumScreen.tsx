@@ -18,11 +18,13 @@ import { purchasePremium, restorePurchases } from '../services/purchaseService';
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Premium'> };
 
 const FEATURES = [
-  { icon: '🤖', text: 'Unlimited AI Advisor messages with Alex' },
-  { icon: '💾', text: 'Unlimited portfolio saves & comparisons' },
-  { icon: '📊', text: 'Advanced stress testing — 10 historical scenarios' },
-  { icon: '⚡', text: 'Priority portfolio recalculation (no ads)' },
+  { icon: '🤖', text: 'Unlimited Alex AI messages (free: 5/day)' },
+  { icon: '💾', text: 'Unlimited saves & comparisons (free: 2 each)' },
+  { icon: '📈', text: 'Historical 10-year portfolio chart vs S&P 500' },
+  { icon: '📚', text: 'Full Learning Center: 12 lessons + 4 mini games' },
+  { icon: '⚡', text: 'No ads — clean, distraction-free experience' },
   { icon: '📄', text: 'Export portfolio as PDF' },
+  { icon: '🏆', text: 'Exclusive premium badges + advanced analytics' },
 ];
 
 export default function PremiumScreen({ navigation }: Props) {
@@ -99,13 +101,13 @@ export default function PremiumScreen({ navigation }: Props) {
         <View style={styles.pricingRow}>
           <View style={[styles.pricingCard, styles.pricingCardSelected]}>
             <Text style={styles.pricingLabel}>MONTHLY</Text>
-            <Text style={styles.pricingPrice}>$4.99</Text>
+            <Text style={styles.pricingPrice}>$2.99</Text>
             <Text style={styles.pricingPeriod}>per month</Text>
           </View>
           <View style={styles.pricingCard}>
-            <View style={styles.saveBadge}><Text style={styles.saveBadgeText}>SAVE 33%</Text></View>
+            <View style={styles.saveBadge}><Text style={styles.saveBadgeText}>SAVE 30%</Text></View>
             <Text style={styles.pricingLabel}>YEARLY</Text>
-            <Text style={styles.pricingPrice}>$39.99</Text>
+            <Text style={styles.pricingPrice}>$24.99</Text>
             <Text style={styles.pricingPeriod}>per year</Text>
           </View>
         </View>
