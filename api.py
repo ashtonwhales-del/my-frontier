@@ -762,7 +762,6 @@ def alex(req: AlexRequest, request: Request):
     portfolio = req.portfolio or {}
     reply = _alex_respond(last_msg, portfolio)
     return {"reply": reply, "model": "frontier-ai"}
-    )
 
 
 # ── Market Pulse ──────────────────────────────────────────────────────────────
