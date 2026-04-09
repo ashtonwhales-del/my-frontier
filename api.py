@@ -120,6 +120,7 @@ async def lifespan(app: FastAPI):
             _logger.error(f"[startup] etf_universe_extra.json is invalid JSON: {exc}")
             raise RuntimeError(f"etf_universe_extra.json is invalid JSON: {exc}") from exc
 
+    _logger.info(f"[startup] Gemini key loaded: {'YES' if GEMINI_API_KEY else 'NO — set GEMINI_API_KEY in environment'}")
     _logger.info(f"My Frontier API ready — v1.0.0 — {_dt.datetime.utcnow().isoformat()}Z")
     yield
 
@@ -335,6 +336,7 @@ def health():
         "categories": categories,
         "etfs_in_universe": etfs_in_universe,
         "cache_status": cache_status,
+        "gemini": "configured" if GEMINI_API_KEY else "MISSING — add GEMINI_API_KEY to Railway variables",
         "timestamp": _dt.datetime.utcnow().isoformat() + "Z",
     }
 
@@ -466,18 +468,29 @@ def optimize(req: OptimizeRequest, request: Request):
             ))
 
         risk_score = float(min(0.20, max(0.0, perf.volatility)))
-        # Smart Score: 10 * (1 - e^(-1.5 * sharpe))
-        # ×1.5 exponent maps realistic ETF Sharpe range (0–1.5) to full 0–10 scale:
-        #   A (≥7.5) → Sharpe ≥ 0.92 | B (≥6.0) → Sharpe ≥ 0.67
-        #   C (≥4.5) → Sharpe ≥ 0.47 | D (≥2.5) → Sharpe ≥ 0.19 | F (<2.5)
-        smart = max(0.0, min(10.0, 10.0 * (1.0 - math.exp(-1.5 * max(0.0, float(perf.sharpe))))))
-        div_eff = 1.0 / float((weights.fillna(0.0) ** 2).sum()) if not weights.empty else 1.0
-        diversification_score = max(0.0, min(10.0, div_eff))
+        # Smart Score: 10 * (1 - e^(-1.8 * sharpe))
+        # ×1.8 exponent maps realistic ETF Sharpe range (0–1.5) to full 0–10 scale:
+        #   A (≥9.0) → Sharpe ≥ 1.28 | B (≥7.5) → Sharpe ≥ 0.83
+        #   C (≥6.0) → Sharpe ≥ 0.56 | D (≥4.5) → Sharpe ≥ 0.32 | F (<4.5)
+        smart = max(0.0, min(10.0, 10.0 * (1.0 - math.exp(-1.8 * max(0.0, float(perf.sharpe))))))
+        import math as _math
+        _weight_vals = weights.fillna(0.0).values.tolist() if not weights.empty else [1.0]
+        _n = len(_weight_vals)
+        # Component 1: holdings count score (max 3.5)
+        _holdings_score = min(3.5, 1.5 * _math.log(_n / 5 + 1))
+        # Component 2: HHI concentration (max 4.0) — lower HHI = better
+        _hhi = sum(w**2 for w in _weight_vals)
+        _perfect_hhi = 1.0 / _n
+        _hhi_denom = max(1.0 - _perfect_hhi, 1e-9)
+        _hhi_score = max(0.0, 4.0 * (1.0 - (_hhi - _perfect_hhi) / _hhi_denom))
+        # Component 3: partial corr credit from count (max 2.5)
+        _corr_score = min(2.5, _n * 0.15)
+        diversification_score = max(0.0, min(10.0, _holdings_score + _hhi_score + _corr_score))
         grade = (
-            "A" if (smart >= 7.5 and diversification_score >= 6.0) else
-            "B" if smart >= 6.0 else
-            "C" if smart >= 4.5 else
-            "D" if smart >= 2.5 else
+            "A" if (smart >= 9.0 and diversification_score >= 6.0) else
+            "B" if smart >= 7.5 else
+            "C" if smart >= 6.0 else
+            "D" if smart >= 4.5 else
             "F"
         )
 
@@ -731,7 +744,7 @@ def alex(req: AlexRequest, request: Request):
     if not ANTHROPIC_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="Alex AI is not configured. Add GEMINI_API_KEY or ANTHROPIC_API_KEY to the server .env."
+            detail="GEMINI_API_KEY not configured. Add it to Railway environment variables. See GEMINI_SETUP.md for instructions."
         )
 
     try:

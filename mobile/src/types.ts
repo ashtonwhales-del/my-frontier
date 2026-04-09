@@ -83,20 +83,31 @@ export interface LeaderboardRank {
   total_submissions: number;
 }
 
+export interface BudgetContext {
+  monthlyIncome: number;
+  totalExpenses: number;
+  surplus: number;
+  spendingDNA: string;
+}
+
 export type RootStackParamList = {
-  Disclaimer:    undefined;
-  Onboarding:    undefined;
-  Welcome:       undefined;
-  Categories:    { name: string };
-  RiskTolerance: { name: string; categories: string[] };
-  Investment:    { name: string; categories: string[]; riskTolerance: number };
-  Results:       { data: OnboardingData };
-  Advisor:       { portfolio: OptimizeResponse };
-  WealthTracker: undefined;
-  Premium:       undefined;
-  Privacy:       undefined;
-  Terms:         undefined;
-  About:         undefined;
-  Learning:      undefined;
-  Compare:       undefined;
+  Disclaimer:        undefined;
+  Onboarding:        undefined;
+  Welcome:           undefined;
+  Categories:        { name: string };
+  RiskTolerance:     { name: string; categories: string[] };
+  Investment:        { name: string; categories: string[]; riskTolerance: number };
+  Results:           { data: OnboardingData };
+  Advisor:           { portfolio?: OptimizeResponse; budgetContext?: BudgetContext };
+  WealthTracker:     undefined;
+  Premium:           undefined;
+  Privacy:           undefined;
+  Terms:             undefined;
+  About:             undefined;
+  Learning:          undefined;
+  Compare:           undefined;
+  Budget:            undefined;
+  NetWorth:          undefined;
+  DebtPayoff:        undefined;
+  SubscriptionAudit: undefined;
 };

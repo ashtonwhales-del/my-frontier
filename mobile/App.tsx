@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { RootStackParamList } from './src/types';
 import { STORAGE } from './src/constants';
+import { Colors } from './src/theme/colors';
 import { initializePurchases } from './src/services/purchaseService';
 import ErrorBoundary        from './src/components/ErrorBoundary';
 import DisclaimerScreen     from './src/screens/DisclaimerScreen';
@@ -25,6 +26,10 @@ import TermsScreen          from './src/screens/TermsScreen';
 import AboutScreen          from './src/screens/AboutScreen';
 import LearningScreen       from './src/screens/LearningScreen';
 import CompareScreen        from './src/screens/CompareScreen';
+import BudgetScreen            from './src/screens/BudgetScreen';
+import NetWorthScreen          from './src/screens/NetWorthScreen';
+import DebtPayoffScreen        from './src/screens/DebtPayoffScreen';
+import SubscriptionAuditScreen from './src/screens/SubscriptionAuditScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -47,37 +52,41 @@ export default function App() {
   }, []);
 
   if (!initialRoute) {
-    return <View style={{ flex: 1, backgroundColor: '#1a1f3a' }} />;
+    return <View style={{ flex: 1, backgroundColor: Colors.bgPrimary }} />;
   }
 
   return (
     <ErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <NavigationContainer>
-          <StatusBar style="dark" />
+          <StatusBar style="light" />
           <Stack.Navigator
             initialRouteName={initialRoute}
-            screenOptions={{ headerShown: false, cardStyle: { backgroundColor: '#F0F4FF' } }}
+            screenOptions={{ headerShown: false, cardStyle: { backgroundColor: Colors.bgPrimary } }}
           >
             <Stack.Screen
               name="Disclaimer"
               component={DisclaimerScreen}
               options={{ gestureEnabled: false }}
             />
-            <Stack.Screen name="Onboarding"    component={OnboardingScreen} />
-            <Stack.Screen name="Welcome"       component={WelcomeScreen} />
-            <Stack.Screen name="Categories"    component={CategoriesScreen} />
-            <Stack.Screen name="RiskTolerance" component={RiskToleranceScreen} />
-            <Stack.Screen name="Investment"    component={InvestmentScreen} />
-            <Stack.Screen name="Results"       component={ResultsScreen} />
-            <Stack.Screen name="Advisor"       component={AdvisorScreen} />
-            <Stack.Screen name="WealthTracker" component={WealthTrackerScreen} />
-            <Stack.Screen name="Premium"       component={PremiumScreen} />
-            <Stack.Screen name="Privacy"       component={PrivacyPolicyScreen} />
-            <Stack.Screen name="Terms"         component={TermsScreen} />
-            <Stack.Screen name="About"         component={AboutScreen} />
-            <Stack.Screen name="Learning"      component={LearningScreen} />
-            <Stack.Screen name="Compare"       component={CompareScreen} />
+            <Stack.Screen name="Onboarding"        component={OnboardingScreen} />
+            <Stack.Screen name="Welcome"           component={WelcomeScreen} />
+            <Stack.Screen name="Categories"        component={CategoriesScreen} />
+            <Stack.Screen name="RiskTolerance"     component={RiskToleranceScreen} />
+            <Stack.Screen name="Investment"        component={InvestmentScreen} />
+            <Stack.Screen name="Results"           component={ResultsScreen} />
+            <Stack.Screen name="Advisor"           component={AdvisorScreen} />
+            <Stack.Screen name="WealthTracker"     component={WealthTrackerScreen} />
+            <Stack.Screen name="Premium"           component={PremiumScreen} />
+            <Stack.Screen name="Privacy"           component={PrivacyPolicyScreen} />
+            <Stack.Screen name="Terms"             component={TermsScreen} />
+            <Stack.Screen name="About"             component={AboutScreen} />
+            <Stack.Screen name="Learning"          component={LearningScreen} />
+            <Stack.Screen name="Compare"           component={CompareScreen} />
+            <Stack.Screen name="Budget"            component={BudgetScreen} />
+            <Stack.Screen name="NetWorth"          component={NetWorthScreen} />
+            <Stack.Screen name="DebtPayoff"        component={DebtPayoffScreen} />
+            <Stack.Screen name="SubscriptionAudit" component={SubscriptionAuditScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </GestureHandlerRootView>

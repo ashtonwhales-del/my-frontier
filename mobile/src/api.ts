@@ -162,7 +162,7 @@ export async function optimizePortfolio(data: OnboardingData): Promise<OptimizeR
 // ---------------------------------------------------------------------------
 export async function callAdvisor(
   messages: { role: string; content: string }[],
-  portfolio: OptimizeResponse,
+  portfolio: OptimizeResponse | null,
 ): Promise<string> {
   return callAlex(messages, portfolio);
 }
@@ -173,7 +173,7 @@ export async function callAdvisor(
 // ---------------------------------------------------------------------------
 export async function callAlex(
   messages: { role: string; content: string }[],
-  portfolio: OptimizeResponse,
+  portfolio: OptimizeResponse | null,
 ): Promise<string> {
   await assertConnected();
   const url = `${BASE_URL}/alex`;
@@ -186,7 +186,7 @@ export async function callAlex(
       body: JSON.stringify({
         messages,
         portfolio,
-        user_name: portfolio.profile.name,
+        user_name: portfolio?.profile?.name ?? 'User',
       }),
     },
     TIMEOUT_MS,

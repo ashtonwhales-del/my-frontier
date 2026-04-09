@@ -23,7 +23,8 @@
       "Bash(python -c \"import riskfolio as rp; print\\(rp.__version__\\)\")",
       "Bash(set PYTHONIOENCODING=utf-8)",
       "Bash(python -W ignore -c \":*)",
-      "Read(//mnt/w/**)"
+      "Read(//mnt/w/**)",
+      "Bash(wc -l W:/MyFrontier/mobile/src/screens/BudgetScreen.tsx W:/MyFrontier/mobile/src/screens/NetWorthScreen.tsx W:/MyFrontier/mobile/src/components/budget/*.tsx)"
     ]
   }
 }

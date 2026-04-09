@@ -6,6 +6,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE, FREE_LIMITS } from '../constants';
 
+// Budget-specific limits (not in FREE_LIMITS to avoid changing the union type used by canUseFeature)
+export const BUDGET_FREE_LIMITS = {
+  budgetMonthsHistory: 1,
+  netWorthSnapshots: 3,
+  debtPayoffPlanner: false,
+  subscriptionAudit: false,
+  savingsStreakHistory: false,
+};
+
 export { FREE_LIMITS };
 
 // --------------------------------------------------------------------------

@@ -829,3 +829,72 @@ Loading finishes   → ResultsScreen replaces LoadingCalculation
 | Ads | Yes | No |
 
 *Last updated: 2026-04-08 — Phase 12 complete.*
+
+---
+
+## Phases 13+14 Changes — Design System + Budget Hub (2026-04-09)
+
+### Scoring fixes (optimizer.py + api.py — both files updated)
+- Smart score exponent: `1.5` → `1.8` (A grade now requires Sharpe ~1.3, not ~0.92)
+- Grade thresholds: A≥9.0 / B≥7.5 / C≥6.0 / D≥4.5 / F<4.5 (tightened across the board)
+- Diversification score: replaced `1/HHI` with 3-component formula (count 3.5 + HHI 4.0 + correlation 2.5 = max 10; typical well-diversified portfolio scores 6.5–8.5)
+
+### Alex key + health fixes (api.py)
+- Startup log: `Gemini key loaded: YES / NO - CHECK ENV`
+- `/health` returns `gemini: "configured"` or `"MISSING"`
+- `/alex` 503 message references RAILWAY_ENV_CHECKLIST.md
+- `RAILWAY_ENV_CHECKLIST.md` created — Railway deployment checklist
+
+### New files created
+
+| File | Purpose |
+|------|---------|
+| `mobile/src/theme/colors.ts` | All color tokens (Colors export + legacy aliases) |
+| `mobile/src/theme/typography.ts` | NumberScale/HeadingScale/BodyScale/LabelStyle |
+| `mobile/src/theme/spacing.ts` | Spacing/Radius/Shadow + legacy aliases |
+| `mobile/src/theme/index.ts` | Barrel re-export of all theme files |
+| `mobile/src/theme.ts` | Updated: re-exports from theme/ with merged shadow (sm+md+card+blueGlow+goldGlow) |
+| `mobile/src/components/ui/Card.tsx` | Card component: bgCard, border, Radius.lg, optional glow prop |
+| `mobile/src/components/ui/GradientButton.tsx` | h:56, Radius.xl, blue/gold, animated press scale, loading spinner |
+| `mobile/src/components/ui/StatBadge.tsx` | Pill badge: positive/negative/gold/blue/neutral variants |
+| `mobile/src/components/ui/BottomNav.tsx` | 5-tab nav bar: active=brandBlue+top line, h:60+safeArea |
+| `mobile/src/components/ui/EmptyState.tsx` | Centered icon/title/subtitle + optional CTA |
+| `mobile/src/components/ui/LoadingSkeleton.tsx` | Shimmer animation, card/row/chart variants |
+| `mobile/src/components/ui/SectionHeader.tsx` | LabelStyle title + optional action link |
+| `mobile/src/utils/animations.ts` | pressScale/fadeIn/slideUp/numberRoll/pulse/staggerChildren |
+| `mobile/src/screens/BudgetScreen.tsx` | Monthly budget: income card (goldGlow), 10-category grid, investing CTA (blueGlow), spending DNA pill, AsyncStorage persistence |
+| `mobile/src/screens/BudgetModals.tsx` | Income entry + category amount modals extracted from BudgetScreen |
+| `mobile/src/screens/NetWorthScreen.tsx` | Net worth hero, assets/liabilities cards, monthly snapshots, line chart |
+| `mobile/src/screens/DebtPayoffScreen.tsx` | Screen wrapper for DebtPayoff component |
+| `mobile/src/screens/SubscriptionAuditScreen.tsx` | Screen wrapper for SubscriptionAudit component |
+| `mobile/src/components/budget/RuleAnalyzer.tsx` | 50/30/20 progress bars with gap message |
+| `mobile/src/components/budget/SavingsStreak.tsx` | Flame streak tracker, auto-awards badges at 3/6/12 months |
+| `mobile/src/components/budget/SubscriptionAudit.tsx` | Premium: subscription list, cancel impact, lock overlay |
+| `mobile/src/components/budget/DebtPayoff.tsx` | Premium: Avalanche vs Snowball, debt-free date, bridge CTA, lock overlay |
+| `DESIGN_SYSTEM.md` | Complete dark theme design system spec |
+| `BUDGET_SPEC.md` | Budget Hub feature spec |
+| `RAILWAY_ENV_CHECKLIST.md` | Railway environment variable setup guide |
+
+### Modified files
+
+| File | What changed |
+|------|-------------|
+| `mobile/App.tsx` | Dark mode forced (StatusBar light, bgPrimary cardStyle), Budget/NetWorth/DebtPayoff/SubscriptionAudit screens added |
+| `mobile/src/types.ts` | Added BudgetContext interface, Budget/NetWorth/DebtPayoff/SubscriptionAudit routes, Advisor accepts optional portfolio+budgetContext |
+| `mobile/src/api.ts` | callAdvisor/callAlex accept `OptimizeResponse | null` for budget-mode Alex |
+| `mobile/src/screens/AdvisorScreen.tsx` | Budget context support: budget greeting, BUDGET_SUGGESTED questions, optional portfolio |
+| `mobile/src/services/premiumService.ts` | Added BUDGET_FREE_LIMITS: budgetMonthsHistory:1, netWorthSnapshots:3, etc. |
+| `optimizer.py` | Exponent 1.5→1.8, grade thresholds tightened, HHI 3-component diversification score |
+| `api.py` | Exponent 1.5→1.8, grade thresholds tightened, HHI diversification, startup Gemini log, /health gemini field |
+
+### Budget navigation
+Budget tab accessible via `navigation.navigate('Budget')` from WelcomeScreen (add a 💰 button).
+Budget stack: Budget → NetWorth → DebtPayoff → SubscriptionAudit
+Alex from Budget: `navigation.navigate('Advisor', { budgetContext: { monthlyIncome, totalExpenses, surplus, spendingDNA } })`
+
+### Alex budget context
+When navigating to Advisor from BudgetScreen, pass `budgetContext` param.
+Advisor shows budget-aware greeting and BUDGET_SUGGESTED questions instead of portfolio ones.
+Portfolio param is now optional in Advisor — both budget-mode and portfolio-mode work.
+
+*Last updated: 2026-04-09 — Phases 13+14 complete.*

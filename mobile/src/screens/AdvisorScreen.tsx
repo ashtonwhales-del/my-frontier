@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList, OptimizeResponse } from '../types';
+import { RootStackParamList, OptimizeResponse, BudgetContext } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
 import { STORAGE, FREE_LIMITS } from '../constants';
 import { callAdvisor } from '../api';
@@ -27,24 +27,33 @@ type Props = {
 
 interface ChatMessage { role: 'user' | 'assistant'; content: string; }
 
-const SUGGESTED = [
+const PORTFOLIO_SUGGESTED = [
   'What does my Frontier Score mean?',
   'How can I improve my portfolio?',
   'What is the Efficient Frontier?',
   'Should I be worried about my risk level?',
 ];
 
+const BUDGET_SUGGESTED = [
+  'Am I spending too much on food?',
+  'How do I find more money to invest?',
+  'What is the 50/30/20 rule?',
+  'Should I pay off debt or invest first?',
+];
+
 const HISTORY_KEY = (name: string) => `${STORAGE.ADVISOR_HISTORY}_${name}`;
 
 export default function AdvisorScreen({ navigation, route }: Props) {
-  const { portfolio } = route.params;
+  const { portfolio, budgetContext } = route.params;
+  const SUGGESTED = budgetContext ? BUDGET_SUGGESTED : PORTFOLIO_SUGGESTED;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [remaining, setRemaining] = useState<number>(FREE_LIMITS.alexMessagesPerDay);
   const [premium, setPremium] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
-  const histKey = HISTORY_KEY(portfolio.profile.name);
+  const userName = portfolio?.profile?.name ?? 'there';
+  const histKey = HISTORY_KEY(userName);
 
   useEffect(() => {
     (async () => {
@@ -56,9 +65,14 @@ export default function AdvisorScreen({ navigation, route }: Props) {
       if (storedHistory) {
         try { setMessages(JSON.parse(storedHistory)); } catch {}
       } else {
+        const greetingContent = budgetContext
+          ? `Hi ${userName}! I'm Alex. I can see your budget — you have $${budgetContext.surplus.toFixed(0)} left this month as a ${budgetContext.spendingDNA}. That's $${(budgetContext.surplus / 4.33).toFixed(0)}/week you could invest. What would you like to know?`
+          : portfolio
+            ? `Hi ${userName}! I'm Alex, your personal portfolio guide. I can see your ${portfolio.profile.risk_label} portfolio with a ${portfolio.scores.grade} grade. What would you like to know?`
+            : `Hi! I'm Alex, your personal finance guide. How can I help you today?`;
         const greeting: ChatMessage = {
           role: 'assistant',
-          content: `Hi ${portfolio.profile.name}! I'm Alex, your personal portfolio guide. I can see your ${portfolio.profile.risk_label} portfolio with a ${portfolio.scores.grade} grade. What would you like to know?`,
+          content: greetingContent,
         };
         setMessages([greeting]);
         await AsyncStorage.setItem(histKey, JSON.stringify([greeting]));
@@ -85,7 +99,7 @@ export default function AdvisorScreen({ navigation, route }: Props) {
     }
 
     try {
-      const reply = await callAdvisor(updatedHistory, portfolio);
+      const reply = await callAdvisor(updatedHistory, portfolio ?? null);
       const alexMsg: ChatMessage = { role: 'assistant', content: reply };
       const finalHistory = [...updatedHistory, alexMsg];
       setMessages(finalHistory);

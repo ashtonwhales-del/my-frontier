@@ -1379,25 +1379,39 @@ def run(
     risk_pct = risk_score * 100.0
     swing_amount = float(lump_sum) * risk_score
     # ── Smart Score ───────────────────────────────────────────────────────────
-    # Formula: 10 * (1 - e^(-1.5 * sharpe))
-    # The ×1.5 exponent scales the typical ETF Sharpe range (0.0–1.5) to the
+    # Formula: 10 * (1 - e^(-1.8 * sharpe))
+    # The ×1.8 exponent scales the typical ETF Sharpe range (0.0–1.5) to the
     # full 0–10 display scale so grades are meaningfully distributed:
-    #   A (smart ≥ 7.5) → Sharpe ≥ 0.92  — genuinely excellent
-    #   B (smart ≥ 6.0) → Sharpe ≥ 0.67  — above average
-    #   C (smart ≥ 4.5) → Sharpe ≥ 0.47  — average (ETF benchmark range)
-    #   D (smart ≥ 2.5) → Sharpe ≥ 0.19  — below average
-    #   F (smart < 2.5) → Sharpe < 0.19  — genuinely poor
+    #   A (smart ≥ 9.0) → Sharpe ≥ 1.28  — genuinely excellent
+    #   B (smart ≥ 7.5) → Sharpe ≥ 0.88  — above average
+    #   C (smart ≥ 6.0) → Sharpe ≥ 0.63  — average (ETF benchmark range)
+    #   D (smart ≥ 4.5) → Sharpe ≥ 0.40  — below average
+    #   F (smart < 4.5) → Sharpe < 0.40  — genuinely poor
     # BEFORE (bug): exponent was -1*sharpe, requiring Sharpe ≥ 1.39 for an A —
     # an impossible bar for any capped diversified portfolio, causing C-clustering.
-    smart = max(0.0, min(10.0, 10.0 * (1.0 - math.exp(-1.5 * max(0.0, float(perf.sharpe))))))
+    smart = max(0.0, min(10.0, 10.0 * (1.0 - math.exp(-1.8 * max(0.0, float(perf.sharpe))))))
     smart_emoji = "🌟" if smart >= 7 else ("✅" if smart >= 5.5 else "⚠️")
-    div_eff = 1.0 / float((weights.fillna(0.0) ** 2).sum()) if not weights.empty else 1.0
-    diversification_score = max(0.0, min(10.0, div_eff))
+    # ── Diversification Score — 3-component HHI formula ──────────────────────
+    w = weights.fillna(0.0)
+    # Component 1: holdings count (max 3.5)
+    n = len(w)
+    count_score = min(3.5, 3.5 * (n / 15))
+    # Component 2: HHI concentration (max 4.0)
+    hhi = float((w ** 2).sum())
+    hhi_score = min(4.0, 4.0 * (1.0 - hhi) / 0.9)
+    # Component 3: correlation credit (max 2.5) — use mean pairwise corr of returns
+    port_prices = prices[w.index] if not w.empty else prices
+    ret_corr = port_prices.pct_change().dropna().corr()
+    np_corr = ret_corr.values
+    mask = np.triu(np.ones_like(np_corr, dtype=bool), k=1)
+    mean_corr = float(np_corr[mask].mean()) if mask.any() else 0.5
+    corr_score = min(2.5, 2.5 * (1.0 - max(0.0, mean_corr)))
+    diversification_score = round(min(10.0, count_score + hhi_score + corr_score), 2)
     grade = (
-        "A" if (smart >= 7.5 and diversification_score >= 6.0) else
-        "B" if smart >= 6.0 else
-        "C" if smart >= 4.5 else
-        "D" if smart >= 2.5 else
+        "A" if (smart >= 9.0 and diversification_score >= 6.0) else
+        "B" if smart >= 7.5 else
+        "C" if smart >= 6.0 else
+        "D" if smart >= 4.5 else
         "F"
     )
 
