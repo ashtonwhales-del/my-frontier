@@ -16,6 +16,7 @@ import { STORAGE, FREE_LIMITS } from '../constants';
 import { LESSONS, GAMES, Lesson, Game } from './LearningData';
 import TabShell from '../components/TabShell';
 import { canAccessLesson } from '../services/premiumService';
+import AdBanner from '../components/AdBanner';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Learning'> };
 
@@ -84,8 +85,14 @@ export default function LearningScreen({ navigation }: Props) {
     setOpenLesson(null);
   }
 
-  function handleGamePress(game: Game) {
-    navigation.navigate('Premium');
+  async function handleGamePress(game: Game) {
+    const premium = await canAccessLesson(999); // DEV_MODE or premium unlocks all
+    if (!premium) {
+      navigation.navigate('Premium');
+      return;
+    }
+    // Games are accessible in premium/dev mode - show an alert for now
+    Alert.alert(game.title, game.desc + '\n\nGame coming soon!');
   }
 
   const totalLessons = LESSONS.length;
@@ -123,6 +130,8 @@ export default function LearningScreen({ navigation }: Props) {
             </TouchableOpacity>
           );
         })}
+
+        <AdBanner placement="banner" style={{ marginVertical: spacing.sm }} />
 
         {/* Intermediate */}
         <TierHeader label="📈 Intermediate — Premium" color="#4361EE" />

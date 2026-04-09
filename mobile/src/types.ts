@@ -64,12 +64,19 @@ export interface SavedPortfolio {
   result: OptimizeResponse;
 }
 
+export interface TickerQuote {
+  symbol: string;
+  price: number;
+  change_pct: number;
+}
+
 export interface MarketPulseData {
   spy_change: number;
   qqq_change: number;
   agg_change: number;
   sentiment: 'bullish' | 'bearish' | 'neutral';
   message: string;
+  tickers?: TickerQuote[];
 }
 
 export interface HistoricalPoint {

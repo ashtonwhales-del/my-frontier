@@ -963,3 +963,64 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 - Danger zone: Send Feedback + Reset App Data
 
 *Last updated: 2026-04-09 — Phase 15 complete.*
+
+---
+
+## Phase 16 Changes — Dev Mode, Ticker Tape, Category Funnel, Ads, Help System (2026-04-09)
+
+### DEV_MODE
+- `premiumService.ts`: `DEV_MODE = true` (exported) — all premium checks return true, all limits=Infinity
+- All feature gates (`isPremium`, `canUseFeature`, `canAccessLesson`, `canSendAlexMessage`) check DEV_MODE first
+- `BUDGET_FREE_LIMITS` uses DEV_MODE to set Infinity/true values
+- AdBanner skips rendering when DEV_MODE=true or premium
+- **SET TO FALSE BEFORE APP STORE SUBMISSION**
+
+### New files created
+| File | Purpose |
+|------|---------|
+| `PHASE16_FEATURES.md` | Phase 16 feature spec |
+| `PHASE16_ADS.md` | Ad strategy with unit IDs |
+| `mobile/src/components/MarketTicker.tsx` | Auto-scrolling ticker tape (17 tickers, 36px, Animated.loop) |
+| `mobile/src/components/HelpSystem.tsx` | Floating ? FAB + context-sensitive bottom sheet (6 screen contexts) |
+| `mobile/src/components/categories/StyleSelector.tsx` | Step 1: 4 investment style cards (Safe/Balanced/Aggressive/Custom) |
+| `mobile/src/components/categories/CategoryPicker.tsx` | Step 2: Filtered category chips by style, search for custom |
+| `mobile/src/components/categories/ContributionStep.tsx` | Step 3: Weekly contribution input, budget sync, 30yr projection |
+
+### Modified files
+| File | What changed |
+|------|-------------|
+| `mobile/src/services/premiumService.ts` | DEV_MODE exported, all gates check DEV_MODE first, BUDGET_FREE_LIMITS dynamic |
+| `api.py` | /market-pulse expanded to 17 tickers (SPY/QQQ/DIA/IWM/VTI/AGG/GLD/SLV/USO/BTC-USD/ETH-USD/AAPL/MSFT/NVDA/TSLA/AMZN), 5min cache; /alex trimmed context (grade+return+risk+top3 only), 20s Gemini timeout; /historical 15s yfinance timeout with mock curve fallback |
+| `mobile/src/api.ts` | callAlex: 20s timeout, retry once, fallback message |
+| `mobile/src/types.ts` | Added TickerQuote interface, tickers field on MarketPulseData |
+| `mobile/src/screens/CategoriesScreen.tsx` | Rewritten as 3-step funnel orchestrator (79 lines, down from 458) |
+| `mobile/src/screens/WelcomeScreen.tsx` | MarketTicker + HelpFAB added |
+| `mobile/src/screens/ResultsScreen.tsx` | MarketTicker + HelpFAB added |
+| `mobile/src/screens/BudgetScreen.tsx` | AdBanner + HelpFAB added |
+| `mobile/src/screens/LearningScreen.tsx` | AdBanner between tiers, games functional for premium |
+| `mobile/src/screens/CompareScreen.tsx` | DEV_MODE unlocks all, AdBanner added |
+| `mobile/src/components/AdBanner.tsx` | Skips rendering when DEV_MODE or premium |
+
+### Market Ticker Tape
+- 17 symbols: SPY QQQ DIA IWM VTI AGG GLD SLV USO BTC-USD ETH-USD AAPL MSFT NVDA TSLA AMZN
+- Backend returns price + change_pct per ticker, cached 5 minutes
+- Auto-scrolls left via Animated.loop, 25-second full cycle
+- Appears at top of WelcomeScreen and ResultsScreen
+
+### Category Selector 3-Step Funnel
+1. **StyleSelector**: 4 cards (Play It Safe / Balanced Growth / Aggressive Growth / I Know What I Want)
+2. **CategoryPicker**: Pre-filtered categories by style (12 each), custom shows all 98 with search
+3. **ContributionStep**: Weekly amount input with quick-pick buttons ($25/$50/$100/$250/$500), budget sync (auto-fills from BudgetScreen surplus), live 30yr projection
+
+### Ad Placements
+- BudgetScreen: sticky banner bottom
+- LearningScreen: banner between beginner and intermediate tiers
+- CompareScreen: banner between portfolio cards
+- All ads skip when DEV_MODE=true or premium
+
+### Help System
+- Floating ? FAB (bottom-left, blue circle) on 6 screens: home, results, budget, advisor, learning, compare
+- Context-sensitive bottom sheet with numbered tips
+- One-time tooltip "Tap ? for help" on first visit (AsyncStorage tracked)
+
+*Last updated: 2026-04-09 — Phase 16 complete.*

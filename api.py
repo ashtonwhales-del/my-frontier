@@ -660,19 +660,15 @@ def _build_portfolio_summary(req: AlexRequest) -> str:
     portfolio = req.portfolio
     return json.dumps({
         "name": req.user_name,
-        "risk_label": portfolio.get("profile", {}).get("risk_label", ""),
         "grade": portfolio.get("scores", {}).get("grade", ""),
-        "smart_score": portfolio.get("scores", {}).get("smart_score", 0),
         "expected_return": f"{portfolio.get('performance', {}).get('expected_annual_return', 0) * 100:.1f}%",
-        "top_holdings": [
-            {"ticker": h.get("ticker"), "weight": f"{h.get('weight', 0) * 100:.1f}%"}
-            for h in portfolio.get("holdings", [])[:5]
-        ],
+        "risk": f"{portfolio.get('performance', {}).get('annual_volatility', 0) * 100:.1f}%",
+        "top3": [h.get("ticker") for h in portfolio.get("holdings", [])[:3]],
     })
 
 
 def _call_alex_gemini(system_prompt: str, messages: List[AdvisorMessage]) -> str:
-    """Call Gemini 1.5 Flash for Alex responses (free tier, 15 RPM)."""
+    """Call Gemini 1.5 Flash for Alex responses (free tier, 15 RPM). 20s timeout."""
     try:
         import google.generativeai as genai  # type: ignore
         genai.configure(api_key=GEMINI_API_KEY)
@@ -682,7 +678,10 @@ def _call_alex_gemini(system_prompt: str, messages: List[AdvisorMessage]) -> str
             for m in messages
         )
         full_prompt = f"{system_prompt}\n\nConversation:\n{conversation}\n\nAlex:"
-        response = model.generate_content(full_prompt)
+        response = model.generate_content(
+            full_prompt,
+            request_options={"timeout": 20},
+        )
         return response.text.strip()
     except Exception as exc:
         _logger.error(
@@ -695,7 +694,7 @@ def _call_alex_gemini(system_prompt: str, messages: List[AdvisorMessage]) -> str
 
 
 def _call_alex_anthropic(system_prompt: str, messages: List[AdvisorMessage]) -> str:
-    """Call Claude Haiku for Alex responses (Anthropic fallback)."""
+    """Call Claude Haiku for Alex responses (Anthropic fallback). 20s timeout."""
     response = http_requests.post(
         "https://api.anthropic.com/v1/messages",
         headers={
@@ -709,7 +708,7 @@ def _call_alex_anthropic(system_prompt: str, messages: List[AdvisorMessage]) -> 
             "system": system_prompt,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
         },
-        timeout=30,
+        timeout=20,
     )
     response.raise_for_status()
     data = response.json()
@@ -767,37 +766,50 @@ def alex(req: AlexRequest, request: Request):
 
 # ── Market Pulse ──────────────────────────────────────────────────────────────
 _MARKET_PULSE_CACHE: Dict = {}
+_TICKER_TAPE_SYMBOLS = [
+    "SPY", "QQQ", "DIA", "IWM", "VTI", "AGG", "GLD", "SLV", "USO",
+    "BTC-USD", "ETH-USD", "AAPL", "MSFT", "NVDA", "TSLA", "AMZN",
+]
 
 
-@app.get("/market-pulse", summary="Today's market sentiment (SPY, QQQ, AGG)")
+@app.get("/market-pulse", summary="Market sentiment and ticker tape data (17 tickers)")
 def market_pulse(request: Request):
     ip = _get_client_ip(request)
     wait = _check_rate_limit(ip, "/market-pulse")
     if wait is not None:
         return JSONResponse(status_code=429, content={"error": f"Rate limited. Wait {wait}s."})
 
-    # 4-hour server-side cache
+    # 5-minute server-side cache
     now = time.time()
-    if _MARKET_PULSE_CACHE.get("ts") and now - _MARKET_PULSE_CACHE["ts"] < 14400:
+    if _MARKET_PULSE_CACHE.get("ts") and now - _MARKET_PULSE_CACHE["ts"] < 300:
         return _MARKET_PULSE_CACHE["data"]
 
     try:
         import yfinance as yf
-        def _pct(ticker: str) -> float:
-            hist = yf.Ticker(ticker).history(period="5d")
-            if len(hist) < 2:
-                return 0.0
-            return float((hist["Close"].iloc[-1] - hist["Close"].iloc[-2]) / hist["Close"].iloc[-2] * 100)
 
-        spy_c = _pct("SPY")
-        qqq_c = _pct("QQQ")
-        agg_c = _pct("AGG")
+        def _ticker_data(symbol: str) -> Dict:
+            try:
+                hist = yf.Ticker(symbol).history(period="5d")
+                if len(hist) < 2:
+                    return {"symbol": symbol, "price": 0, "change_pct": 0}
+                price = float(hist["Close"].iloc[-1])
+                prev = float(hist["Close"].iloc[-2])
+                pct = (price - prev) / prev * 100
+                return {"symbol": symbol, "price": round(price, 2), "change_pct": round(pct, 2)}
+            except Exception:
+                return {"symbol": symbol, "price": 0, "change_pct": 0}
+
+        tickers = [_ticker_data(s) for s in _TICKER_TAPE_SYMBOLS]
+
+        spy_c = next((t["change_pct"] for t in tickers if t["symbol"] == "SPY"), 0)
+        qqq_c = next((t["change_pct"] for t in tickers if t["symbol"] == "QQQ"), 0)
+        agg_c = next((t["change_pct"] for t in tickers if t["symbol"] == "AGG"), 0)
 
         sentiment = "bullish" if spy_c > 1 else ("bearish" if spy_c < -1 else "neutral")
         messages = {
-            "bullish": "Markets are up today 📈 — growth portfolios are having a good day",
-            "bearish": "Markets dipped today 📉 — every crash in history has recovered",
-            "neutral": "Markets are steady today — business as usual",
+            "bullish": "Markets are up today. Growth portfolios are having a good day.",
+            "bearish": "Markets dipped today. Every crash in history has recovered.",
+            "neutral": "Markets are steady today. Business as usual.",
         }
         data = {
             "spy_change": round(spy_c, 2),
@@ -805,6 +817,7 @@ def market_pulse(request: Request):
             "agg_change": round(agg_c, 2),
             "sentiment": sentiment,
             "message": messages[sentiment],
+            "tickers": tickers,
         }
         _MARKET_PULSE_CACHE.update({"ts": now, "data": data})
         return data
@@ -827,6 +840,24 @@ def historical(req: HistoricalRequest, request: Request):
     if not (0.95 <= weight_sum <= 1.05):
         raise HTTPException(status_code=422, detail="weights must sum to ~1.0.")
 
+    def _mock_historical(expected_return: float) -> Dict:
+        """Generate estimated performance curve when yfinance times out."""
+        import datetime as dt
+        points = []
+        today = dt.date.today()
+        annual_ret = max(0.04, min(0.15, expected_return))
+        spy_annual = 0.10
+        for month in range(121):  # 10 years monthly
+            date = today - _dt.timedelta(days=(120 - month) * 30)
+            port_val = 10000 * (1 + annual_ret) ** (month / 12)
+            spy_val = 10000 * (1 + spy_annual) ** (month / 12)
+            points.append({
+                "date": str(date),
+                "portfolio": round(port_val, 2),
+                "spy": round(spy_val, 2),
+            })
+        return {"points": points, "start_value": 10000, "estimated": True}
+
     try:
         import yfinance as yf
         import pandas as pd
@@ -835,7 +866,18 @@ def historical(req: HistoricalRequest, request: Request):
         today = dt.date.today()
         start = today - _dt.timedelta(days=365 * 10 + 30)
         tickers = list(req.weights.keys()) + ["SPY"]
-        raw = yf.download(tickers, start=str(start), end=str(today), auto_adjust=True, progress=False)
+
+        # 15s timeout — fall back to mock if yfinance is slow
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(
+                yf.download, tickers, start=str(start), end=str(today), auto_adjust=True, progress=False
+            )
+            try:
+                raw = future.result(timeout=15)
+            except concurrent.futures.TimeoutError:
+                _logger.warning("[historical] yfinance timeout — returning estimated curve")
+                return _mock_historical(sum(req.weights.values()) * 0.08)
+
         if isinstance(raw.columns, pd.MultiIndex):
             prices = raw["Close"]
         else:
@@ -843,11 +885,11 @@ def historical(req: HistoricalRequest, request: Request):
 
         prices = prices.dropna(how="all").fillna(method="ffill").resample("MS").last()
         if prices.empty or "SPY" not in prices.columns:
-            raise HTTPException(status_code=422, detail="Insufficient data for selected tickers.")
+            return _mock_historical(sum(req.weights.values()) * 0.08)
 
         portfolio_col = [t for t in req.weights if t in prices.columns]
         if not portfolio_col:
-            raise HTTPException(status_code=422, detail="No valid tickers with historical data.")
+            return _mock_historical(sum(req.weights.values()) * 0.08)
 
         import numpy as np
         w = np.array([req.weights.get(t, 0.0) for t in portfolio_col])
@@ -872,7 +914,7 @@ def historical(req: HistoricalRequest, request: Request):
         raise
     except Exception as exc:
         _logger.error(f"[historical] error: {exc}")
-        raise HTTPException(status_code=500, detail="Historical calculation failed.")
+        return _mock_historical(0.08)
 
 
 # ── Anonymous Leaderboard ─────────────────────────────────────────────────────

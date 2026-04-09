@@ -6,21 +6,27 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE, FREE_LIMITS } from '../constants';
 
+// ── DEV MODE ──────────────────────────────────────────────────────────────────
+// SET TO FALSE BEFORE APP STORE SUBMISSION
+export const DEV_MODE = true;
+
 // Budget-specific limits (not in FREE_LIMITS to avoid changing the union type used by canUseFeature)
 export const BUDGET_FREE_LIMITS = {
-  budgetMonthsHistory: 1,
-  netWorthSnapshots: 3,
-  debtPayoffPlanner: false,
-  subscriptionAudit: false,
-  savingsStreakHistory: false,
+  budgetMonthsHistory: DEV_MODE ? Infinity : 1,
+  netWorthSnapshots: DEV_MODE ? Infinity : 3,
+  debtPayoffPlanner: DEV_MODE ? true : false,
+  subscriptionAudit: DEV_MODE ? true : false,
+  savingsStreakHistory: DEV_MODE ? true : false,
 };
 
 export { FREE_LIMITS };
 
 // --------------------------------------------------------------------------
-// Check premium status — RevenueCat SDK with graceful fallback
+// Check premium status — DEV_MODE bypasses all checks
 // --------------------------------------------------------------------------
 export async function isPremium(): Promise<boolean> {
+  if (DEV_MODE) return true;
+
   // 1. Try RevenueCat SDK
   try {
     const Purchases = require('react-native-purchases').default;
@@ -42,6 +48,7 @@ export async function canUseFeature(
   feature: 'savedPortfolios' | 'comparisonPortfolios' | 'learningLessons' | 'alexMessagesPerDay',
   currentCount: number,
 ): Promise<boolean> {
+  if (DEV_MODE) return true;
   const premium = await isPremium();
   if (premium) return true;
   return currentCount < FREE_LIMITS[feature];
@@ -65,6 +72,7 @@ export async function canComparePortfolio(existingCount: number): Promise<boolea
 // Learning gate — check before opening a lesson by index (0-based)
 // --------------------------------------------------------------------------
 export async function canAccessLesson(lessonIndex: number): Promise<boolean> {
+  if (DEV_MODE) return true;
   const premium = await isPremium();
   if (premium) return true;
   return lessonIndex < FREE_LIMITS.learningLessons;
@@ -74,6 +82,7 @@ export async function canAccessLesson(lessonIndex: number): Promise<boolean> {
 // Daily Alex message gate — tracks date, resets at midnight
 // --------------------------------------------------------------------------
 export async function canSendAlexMessage(): Promise<{ allowed: boolean; remaining: number }> {
+  if (DEV_MODE) return { allowed: true, remaining: 999 };
   const premium = await isPremium();
   if (premium) return { allowed: true, remaining: 999 as number };
 

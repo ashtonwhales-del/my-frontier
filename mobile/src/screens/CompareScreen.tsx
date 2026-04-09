@@ -12,7 +12,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, SavedPortfolio } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
 import { STORAGE, FREE_LIMITS } from '../constants';
-import { isPremium } from '../services/premiumService';
+import { DEV_MODE, isPremium } from '../services/premiumService';
+import AdBanner from '../components/AdBanner';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Compare'> };
 
@@ -59,10 +60,10 @@ function buildRows(a: SavedPortfolio, b: SavedPortfolio): CompareRow[] {
 export default function CompareScreen({ navigation }: Props) {
   const [portfolios, setPortfolios] = useState<SavedPortfolio[]>([]);
   const [selected, setSelected] = useState<[number | null, number | null]>([null, null]);
-  const [premium, setPremium] = useState(false);
+  const [premium, setPremium] = useState(DEV_MODE);
 
   useEffect(() => {
-    isPremium().then(setPremium);
+    if (!DEV_MODE) isPremium().then(setPremium);
     AsyncStorage.getItem(STORAGE.SAVED_PORTFOLIOS)
       .then(raw => raw ? setPortfolios(JSON.parse(raw)) : null)
       .catch(() => null);
@@ -118,6 +119,8 @@ export default function CompareScreen({ navigation }: Props) {
             </TouchableOpacity>
           );
         })}
+
+        <AdBanner placement="banner" style={{ marginVertical: spacing.sm }} />
 
         {!premium && portfolios.length > FREE_LIMITS.comparisonPortfolios && (
           <TouchableOpacity style={styles.unlockBtn} onPress={() => navigation.navigate('Premium')} activeOpacity={0.85}>

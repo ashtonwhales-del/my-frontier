@@ -34,6 +34,10 @@ import { RootStackParamList, OptimizeResponse, SavedPortfolio, OnboardingData, H
 import { optimizePortfolio } from '../api';
 import { colors, spacing, radius } from '../theme';
 import { checkAndAwardBadges } from '../services/badgeService';
+import MarketTicker from '../components/MarketTicker';
+import HelpFAB from '../components/HelpSystem';
+import { MarketPulseData } from '../types';
+import { fetchMarketPulse } from '../api';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Results'>;
@@ -72,6 +76,9 @@ export default function ResultsScreen({ navigation, route }: Props) {
   const [selectedRisk, setSelectedRisk] = useState<number>(data.riskTolerance);
   const [riskSwitching, setRiskSwitching] = useState(false);
   const [detailHolding, setDetailHolding] = useState<HoldingResult | null>(null);
+  const [pulse, setPulse] = useState<MarketPulseData | null>(null);
+
+  useEffect(() => { fetchMarketPulse().then(setPulse).catch(() => null); }, []);
 
   async function handleRiskChange(newRisk: number) {
     if (newRisk === selectedRisk || riskSwitching) return;
@@ -150,6 +157,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.screenWrapper}>
+      <MarketTicker pulse={pulse} />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.pageHeader}>
           <TouchableOpacity onPress={() => navigation.popToTop()} style={styles.backBtn}>
@@ -224,6 +232,8 @@ export default function ResultsScreen({ navigation, route }: Props) {
       <View style={styles.persistentFooter}>
         <Text style={styles.persistentFooterText}>Not financial advice. For educational purposes only.</Text>
       </View>
+
+      <HelpFAB screen="results" />
 
       {/* ETF Detail Modal */}
       <ETFDetailModal holding={detailHolding} lumpSum={result.profile.lump_sum} onClose={() => setDetailHolding(null)} />

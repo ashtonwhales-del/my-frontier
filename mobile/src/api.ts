@@ -180,25 +180,41 @@ export async function callAlex(
   await assertConnected();
   const url = `${BASE_URL}/alex`;
   console.log('[Alex] calling:', url);
-  const res = await fetchWithTimeout(
-    url,
-    {
-      method: 'POST',
-      headers: AUTH_HEADERS,
-      body: JSON.stringify({
-        messages,
-        portfolio,
-        user_name: portfolio?.profile?.name ?? 'User',
-      }),
-    },
-    TIMEOUT_MS,
-  );
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any)?.detail ?? (err as any)?.error ?? `API error ${res.status}`);
+  const ALEX_TIMEOUT = 20_000;
+
+  async function attempt(): Promise<string> {
+    const res = await fetchWithTimeout(
+      url,
+      {
+        method: 'POST',
+        headers: AUTH_HEADERS,
+        body: JSON.stringify({
+          messages,
+          portfolio,
+          user_name: portfolio?.profile?.name ?? 'User',
+        }),
+      },
+      ALEX_TIMEOUT,
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as any)?.detail ?? (err as any)?.error ?? `API error ${res.status}`);
+    }
+    const data = await res.json();
+    return (data?.reply ?? '').trim();
   }
-  const data = await res.json();
-  return (data?.reply ?? '').trim();
+
+  try {
+    return await attempt();
+  } catch {
+    // Retry once after 2s
+    await new Promise(r => setTimeout(r, 2000));
+    try {
+      return await attempt();
+    } catch {
+      return 'Having trouble connecting. Try again in a moment!';
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
