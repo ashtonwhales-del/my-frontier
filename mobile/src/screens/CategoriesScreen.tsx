@@ -28,7 +28,7 @@ export default function CategoriesScreen({ navigation, route }: Props) {
     setStep(2);
   }
 
-  function handleBuild(weekly: number) {
+  function handleBuild(weekly: number, lumpSum: number = 0) {
     navigation.navigate('RiskTolerance', { name, categories });
   }
 

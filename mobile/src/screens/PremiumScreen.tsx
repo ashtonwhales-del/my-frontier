@@ -52,7 +52,7 @@ export default function PremiumScreen({ navigation }: Props) {
 
         <Text style={styles.supportTitle}>Support the App</Text>
 
-        <TouchableOpacity style={styles.supportBtn} onPress={() => Linking.openURL('https://www.buymeacoffee.com').catch(() => {})} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.supportBtn} onPress={() => Linking.openURL('https://www.buymeacoffee.com/MyFrontier').catch(() => {})} activeOpacity={0.8}>
           <Text style={styles.supportBtnText}>Buy Me a Coffee</Text>
         </TouchableOpacity>
 

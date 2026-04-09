@@ -1225,3 +1225,48 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | Coffee link | `PremiumScreen.tsx` | Buy Me a Coffee now opens `https://www.buymeacoffee.com` with error catch |
 
 *Last updated: 2026-04-09 — Phase 19 fixes applied.*
+
+---
+
+## Phase 20 Changes — Memory Fix, Learning Revamp, Premium Removal (2026-04-09)
+
+### Memory Fix (TASK 0)
+- `api.py`: Added `import gc`; calls `gc.collect()` after optimization and historical data processing
+- `/historical`: Limits to top 5 tickers by weight to reduce memory; explicit `del` of large DataFrames
+- `render.yaml`: `--workers 1 --timeout-keep-alive 60` to prevent multi-worker memory bloat
+- `requirements.txt`: Added `psutil` for memory monitoring
+
+### Lump Sum Field (TASK 2)
+- `ContributionStep.tsx`: Added "One-time investment (optional)" TextInput below weekly amount
+- Projection now calculates: weekly FV + lump sum compounded 30 years at 7%
+- `onBuild` callback now passes `(weekly, lumpSum)` to parent
+
+### Did You Know Tips (TASK 3)
+- `LoadingCalculation.tsx`: Expanded from 6 tips to 30 covering ETF basics, psychology, math, My Frontier
+- Interval changed from 4000ms to 5000ms (5 seconds per tip)
+
+### Historical Chart Fix (TASK 4)
+- Already handled by top-5 ticker limit in TASK 0 — prevents memory issues and timeouts
+
+### Premium Removal (TASK 6)
+- `HistoricalChart.tsx`: Removed premium gate + blur overlay — chart always shows
+- `LearningScreen.tsx`: Removed all lock icons, removed Premium tier labels, all lessons/games directly accessible
+- `HelpSystem.tsx`: Replaced "Premium" text with neutral language
+- `PremiumScreen.tsx`: Updated Buy Me a Coffee URL to `https://www.buymeacoffee.com/MyFrontier`
+- `PREMIUM_TRIGGER_COUNT` in constants.ts is now dead code (never triggers paywall)
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `api.py` | gc.collect(), /historical top-5 limit, stage logging |
+| `requirements.txt` | Added psutil |
+| `render.yaml` | Single worker, 60s keepalive |
+| `mobile/src/components/LoadingCalculation.tsx` | 30 tips at 5s interval |
+| `mobile/src/components/categories/ContributionStep.tsx` | Lump sum input + updated projection |
+| `mobile/src/screens/CategoriesScreen.tsx` | handleBuild accepts lumpSum param |
+| `mobile/src/components/results/HistoricalChart.tsx` | Removed premium gate, always shows |
+| `mobile/src/screens/LearningScreen.tsx` | All lessons/games unlocked, no locks/Premium text |
+| `mobile/src/components/HelpSystem.tsx` | Neutral language replacing "Premium" |
+| `mobile/src/screens/PremiumScreen.tsx` | Coffee URL updated to /MyFrontier |
+
+*Last updated: 2026-04-09 — Phase 20 complete.*

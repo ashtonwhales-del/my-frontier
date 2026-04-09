@@ -51,7 +51,7 @@ const HELP_CONTENT: Record<string, { title: string; tips: string[] }> = {
     title: 'Learning Center',
     tips: [
       'Complete beginner lessons to earn badges.',
-      'Premium unlocks intermediate, advanced lessons, and mini games.',
+      'Watch a short ad to unlock intermediate, advanced, and game lessons.',
       'Your progress is saved automatically.',
     ],
   },
@@ -60,7 +60,7 @@ const HELP_CONTENT: Record<string, { title: string; tips: string[] }> = {
     tips: [
       'Select two portfolios to see a head-to-head comparison.',
       'The winner is determined by who wins more metrics.',
-      'Premium users can compare all saved portfolios.',
+      'You can compare all your saved portfolios.',
     ],
   },
 };

@@ -1,6 +1,7 @@
 import asyncio
 import concurrent.futures
 import datetime as _dt
+import gc
 import json
 import logging
 import logging.handlers
@@ -433,6 +434,7 @@ def optimize(req: OptimizeRequest, request: Request):
             top80 = sharpe_est.nlargest(80).index.tolist()
             prices = prices[top80]
 
+        gc.collect()  # Free memory before optimization
         _logger.info(f"[optimize] After filter+pad: {prices.shape[1]} tickers — starting optimization")
         # Optimization with 60-second timeout (Windows-safe via ThreadPoolExecutor)
         def _run_optimize():
@@ -855,6 +857,12 @@ def historical(req: HistoricalRequest, request: Request):
 
     if not req.weights or len(req.weights) > 60:
         raise HTTPException(status_code=422, detail="weights must have 1–60 tickers.")
+    # Memory optimization: limit to top 5 tickers by weight for historical calc
+    if len(req.weights) > 5:
+        sorted_w = sorted(req.weights.items(), key=lambda x: x[1], reverse=True)[:5]
+        total = sum(w for _, w in sorted_w)
+        req.weights = {t: w / total for t, w in sorted_w}  # renormalize
+        _logger.info(f"[historical] Trimmed to top 5 tickers for memory: {list(req.weights.keys())}")
     weight_sum = sum(req.weights.values())
     if not (0.95 <= weight_sum <= 1.05):
         raise HTTPException(status_code=422, detail="weights must sum to ~1.0.")
@@ -931,11 +939,14 @@ def historical(req: HistoricalRequest, request: Request):
             for idx in port_norm.index
             if idx in spy_norm.index
         ]
+        del prices, port_prices, port_norm, spy_norm
+        gc.collect()
         return {"points": points, "start_value": 10000}
     except HTTPException:
         raise
     except Exception as exc:
         _logger.error(f"[historical] error: {repr(exc)}")
+        gc.collect()
         return _mock_historical(0.08, f"exception_{type(exc).__name__}")
 
 

@@ -12,7 +12,7 @@ import { colors, spacing, radius, shadow } from '../../theme';
 import AdBanner from '../AdBanner';
 
 interface Props {
-  onBuild: (weekly: number) => void;
+  onBuild: (weekly: number, lumpSum: number) => void;
   onBack: () => void;
   lumpSum: number;
 }
@@ -69,8 +69,12 @@ export default function ContributionStep({ onBuild, onBack }: Props) {
     Keyboard.dismiss();
   };
 
+  const [lumpSumVal, setLumpSumVal] = useState(0);
+  const [lumpInput, setLumpInput] = useState('');
   const annual = weeklyAmount * 52;
-  const fv30 = annual * ((Math.pow(1.07, 30) - 1) / 0.07);
+  const weeklyFV = annual * ((Math.pow(1.07, 30) - 1) / 0.07);
+  const lumpFV = lumpSumVal * Math.pow(1.07, 30);
+  const fv30 = weeklyFV + lumpFV;
   const fmt = (n: number) => '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
   return (
@@ -122,14 +126,23 @@ export default function ContributionStep({ onBuild, onBack }: Props) {
           </View>
         </View>
 
+        <Text style={[styles.inputLabel, { marginTop: spacing.md }]}>One-time investment (optional):</Text>
+        <View style={[styles.amountCard, { marginBottom: spacing.md }]}>
+          <View style={styles.inputRow}>
+            <Text style={styles.dollarSign}>$</Text>
+            <TextInput style={[styles.amountInput, { fontSize: 28 }]} value={lumpInput} onChangeText={t => { setLumpInput(t); const n = parseFloat(t); if (!isNaN(n) && n >= 0) setLumpSumVal(n); }} keyboardType="decimal-pad" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} placeholder="0" placeholderTextColor={colors.textMuted} maxLength={8} />
+            <Text style={styles.perWeek}>lump sum</Text>
+          </View>
+        </View>
+
         <View style={styles.projCard}>
           <Text style={styles.projValue}>{fmt(fv30)}</Text>
-          <Text style={styles.projSub}>{fmt(weeklyAmount)}/week invested for 30 years at 7% avg return</Text>
+          <Text style={styles.projSub}>{fmt(weeklyAmount)}/week{lumpSumVal > 0 ? ' + ' + fmt(lumpSumVal) + ' lump sum' : ''} at 7% for 30 years</Text>
         </View>
 
         <AdBanner placement="banner" style={{ marginHorizontal: spacing.lg, marginBottom: spacing.md }} />
 
-        <TouchableOpacity style={styles.buildBtn} onPress={() => onBuild(weeklyAmount)} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.buildBtn} onPress={() => onBuild(weeklyAmount, lumpSumVal)} activeOpacity={0.8}>
           <Text style={styles.buildBtnText}>Build My Portfolio</Text>
         </TouchableOpacity>
         <View style={{ height: 40 }} />

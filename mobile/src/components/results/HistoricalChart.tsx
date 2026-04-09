@@ -16,7 +16,7 @@ import Svg, { Polyline, Line, Text as SvgText, Circle, Rect } from 'react-native
 import { colors, spacing, radius, shadow } from '../../theme';
 import { OptimizeResponse } from '../../types';
 import { fetchHistorical } from '../../api';
-import { isPremium } from '../../services/premiumService';
+// All features are free — no premium gating
 import { HistoricalPoint } from '../../types';
 
 const CHART_W = Dimensions.get('window').width - spacing.lg * 2 - spacing.lg * 2;
@@ -40,17 +40,11 @@ function fmt(n: number): string {
 }
 
 export default function HistoricalChart({ result }: { result: OptimizeResponse }) {
-  const [premium, setPremium] = useState<boolean | null>(null);
   const [points, setPoints] = useState<HistoricalPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    isPremium().then(setPremium);
-  }, []);
-
-  useEffect(() => {
-    if (!premium) return;
     setLoading(true);
     const weights: Record<string, number> = {};
     result.holdings.forEach(h => { weights[h.ticker] = h.weight; });
@@ -58,9 +52,7 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
       .then(setPoints)
       .catch(e => setError(e.message ?? 'Could not load history'))
       .finally(() => setLoading(false));
-  }, [premium]);
-
-  if (premium === null) return null;
+  }, []);
 
   const finalPortfolio = points.length ? points[points.length - 1].portfolio : 0;
   const finalSpy = points.length ? points[points.length - 1].spy : 0;
@@ -74,17 +66,7 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
       <Text style={styles.title}>📈 10-Year Historical Performance</Text>
       <Text style={styles.subtitle}>$10,000 invested 10 years ago</Text>
 
-      {!premium ? (
-        // Blur overlay for free users
-        <View style={styles.lockedWrap}>
-          <View style={styles.blurChart} />
-          <View style={styles.lockOverlay}>
-            <Text style={styles.lockEmoji}>🔒</Text>
-            <Text style={styles.lockTitle}>Premium Feature</Text>
-            <Text style={styles.lockDesc}>Unlock to see your portfolio's 10-year history vs S&P 500</Text>
-          </View>
-        </View>
-      ) : loading ? (
+      {loading ? (
         <View style={styles.loadingBox}>
           <ActivityIndicator color={colors.primary} />
           <Text style={styles.loadingText}>Loading 10 years of data…</Text>

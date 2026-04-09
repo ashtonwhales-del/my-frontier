@@ -13,12 +13,36 @@ try {
 } catch { /* Expo Go — native module not available */ }
 
 const TIPS = [
-  'Did you know? Diversification is the only free lunch in investing.',
+  'Diversification is the only free lunch in investing.',
   'The S&P 500 has recovered from every single crash in history.',
   'Time in the market beats timing the market. Every single time.',
-  'Your portfolio is being optimized using the same math used by institutional investors.',
-  'The best investment you can make is in a diversified portfolio you\'ll actually hold.',
-  'Compound interest is the eighth wonder of the world.',
+  'Your portfolio uses the same math institutional investors rely on.',
+  'Compound interest is the most powerful force in finance.',
+  'A 1% fee difference costs you 25% of your portfolio over 35 years.',
+  'Index funds outperform 80% of actively managed funds over 10 years.',
+  'Starting at 25 vs 35 can double your retirement wealth.',
+  'Dollar cost averaging smooths volatility over time.',
+  'Young investors can afford more risk because they have time to recover.',
+  'The Efficient Frontier maps every optimal risk-return portfolio.',
+  'Harry Markowitz won the Nobel Prize for Modern Portfolio Theory.',
+  'VTI holds over 3,500 US companies in a single ETF.',
+  'Low expense ratios compound into massive savings over decades.',
+  'Rebalancing annually forces you to buy low and sell high.',
+  'Missing the 10 best days in 20 years cuts your returns by half.',
+  'Bonds and stocks often move in opposite directions.',
+  'International diversification protects against single-country risk.',
+  'REITs are required by law to distribute 90% of income as dividends.',
+  'Small-cap stocks have outperformed large-caps historically.',
+  'A 50% drop requires a 100% gain to break even. Manage risk carefully.',
+  'The Sharpe ratio measures return per unit of risk. Higher is better.',
+  'Emergency funds prevent forced selling at the worst time.',
+  'Panic selling during crashes locks in losses permanently.',
+  'Investing $50/week from age 22 to 65 at 8% produces over $1 million.',
+  'The 4% rule lets you withdraw 4% annually in retirement safely.',
+  'Tax-advantaged accounts compound faster because taxes are deferred.',
+  'Automatic investing removes emotion from the equation.',
+  'Your Frontier Score measures how efficiently your portfolio uses risk.',
+  'Checking your portfolio daily increases anxiety without improving returns.',
 ];
 
 type AdPhase = 'idle' | 'prompt' | 'rewarded';
@@ -54,7 +78,7 @@ export default function LoadingCalculation() {
         setTipIndex(i => (i + 1) % TIPS.length);
         Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
       });
-    }, 4000);
+    }, 5000);
     return () => clearInterval(interval);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -248,46 +272,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  dotActive: {
-    backgroundColor: '#4361EE',
-  },
-  // Ad zone styles
-  adZone: {
-    paddingHorizontal: 24,
-    paddingVertical: 18,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-    alignItems: 'center',
-  },
-  adZoneBanner: {
-    paddingBottom: 24,
-    paddingTop: 12,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-  },
-  rewardedPrompt: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.65)',
-    textAlign: 'center',
-    lineHeight: 19,
-  },
-  rewardedThanks: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#06D6A0',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  rewardedSub: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center',
-  },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)' },
+  dotActive: { backgroundColor: '#4361EE' },
+  adZone: { paddingHorizontal: 24, paddingVertical: 18, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)', alignItems: 'center' },
+  adZoneBanner: { paddingBottom: 24, paddingTop: 12, alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
+  rewardedPrompt: { fontSize: 13, color: 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 19 },
+  rewardedThanks: { fontSize: 16, fontWeight: '700', color: '#06D6A0', textAlign: 'center', marginBottom: 4 },
+  rewardedSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)', textAlign: 'center' },
 });

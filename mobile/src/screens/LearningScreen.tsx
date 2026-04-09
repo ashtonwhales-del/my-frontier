@@ -12,9 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
-import { STORAGE, FREE_LIMITS } from '../constants';
+import { STORAGE } from '../constants';
 import { LESSONS, GAMES, Lesson, Game } from './LearningData';
-import { canAccessLesson } from '../services/premiumService';
 import AdBanner from '../components/AdBanner';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Learning'> };
@@ -64,12 +63,7 @@ export default function LearningScreen({ navigation }: Props) {
       .catch(() => null);
   }, []);
 
-  async function handleLessonPress(lesson: Lesson, index: number) {
-    const allowed = await canAccessLesson(index);
-    if (!allowed) {
-      navigation.navigate('Premium');
-      return;
-    }
+  function handleLessonPress(lesson: Lesson) {
     setOpenLesson(lesson);
   }
 
@@ -84,13 +78,7 @@ export default function LearningScreen({ navigation }: Props) {
     setOpenLesson(null);
   }
 
-  async function handleGamePress(game: Game) {
-    const premium = await canAccessLesson(999); // DEV_MODE or premium unlocks all
-    if (!premium) {
-      navigation.navigate('Premium');
-      return;
-    }
-    // Games are accessible in premium/dev mode - show an alert for now
+  function handleGamePress(game: Game) {
     Alert.alert(game.title, game.desc + '\n\nGame coming soon!');
   }
 
@@ -121,7 +109,7 @@ export default function LearningScreen({ navigation }: Props) {
         {LESSONS.filter(l => l.tier === 'beginner').map((lesson, i) => {
           const done = completed.includes(lesson.id);
           return (
-            <TouchableOpacity key={lesson.id} style={[sh.card, done && sh.cardDone]} onPress={() => handleLessonPress(lesson, i)} activeOpacity={0.85}>
+            <TouchableOpacity key={lesson.id} style={[sh.card, done && sh.cardDone]} onPress={() => handleLessonPress(lesson)} activeOpacity={0.85}>
               <Text style={sh.lessonEmoji}>{lesson.emoji}</Text>
               <Text style={sh.lessonTitle}>{lesson.title}</Text>
               {done && <Text style={sh.doneCheck}>✓</Text>}
@@ -132,49 +120,44 @@ export default function LearningScreen({ navigation }: Props) {
         <AdBanner placement="banner" style={{ marginVertical: spacing.sm }} />
 
         {/* Intermediate */}
-        <TierHeader label="📈 Intermediate — Premium" color="#4361EE" />
-        {LESSONS.filter(l => l.tier === 'intermediate').map((lesson, i) => {
-          const globalIdx = FREE_LIMITS.learningLessons + i;
+        <TierHeader label="📈 Intermediate" color="#4361EE" />
+        {LESSONS.filter(l => l.tier === 'intermediate').map(lesson => {
           const done = completed.includes(lesson.id);
           return (
-            <TouchableOpacity key={lesson.id} style={[sh.card, sh.cardLocked]} onPress={() => handleLessonPress(lesson, globalIdx)} activeOpacity={0.85}>
+            <TouchableOpacity key={lesson.id} style={[sh.card, done && sh.cardDone]} onPress={() => handleLessonPress(lesson)} activeOpacity={0.85}>
               <Text style={sh.lessonEmoji}>{lesson.emoji}</Text>
-              <Text style={[sh.lessonTitle, sh.lockedText]}>{lesson.title}</Text>
-              <Text style={sh.lockIcon}>{done ? '✓' : '🔒'}</Text>
+              <Text style={sh.lessonTitle}>{lesson.title}</Text>
+              {done && <Text style={sh.doneCheck}>✓</Text>}
             </TouchableOpacity>
           );
         })}
 
         {/* Advanced */}
-        <TierHeader label="🔬 Advanced — Premium" color="#7209B7" />
-        {LESSONS.filter(l => l.tier === 'advanced').map((lesson, i) => {
-          const globalIdx = FREE_LIMITS.learningLessons + 4 + i;
+        <TierHeader label="🔬 Advanced" color="#7209B7" />
+        {LESSONS.filter(l => l.tier === 'advanced').map(lesson => {
           const done = completed.includes(lesson.id);
           return (
-            <TouchableOpacity key={lesson.id} style={[sh.card, sh.cardLocked]} onPress={() => handleLessonPress(lesson, globalIdx)} activeOpacity={0.85}>
+            <TouchableOpacity key={lesson.id} style={[sh.card, done && sh.cardDone]} onPress={() => handleLessonPress(lesson)} activeOpacity={0.85}>
               <Text style={sh.lessonEmoji}>{lesson.emoji}</Text>
-              <Text style={[sh.lessonTitle, sh.lockedText]}>{lesson.title}</Text>
-              <Text style={sh.lockIcon}>{done ? '✓' : '🔒'}</Text>
+              <Text style={sh.lessonTitle}>{lesson.title}</Text>
+              {done && <Text style={sh.doneCheck}>✓</Text>}
             </TouchableOpacity>
           );
         })}
 
         {/* Games */}
-        <TierHeader label="🎮 Mini Games — Premium" color="#F59E0B" />
+        <TierHeader label="🎮 Mini Games" color="#F59E0B" />
         {GAMES.map(game => (
-          <TouchableOpacity key={game.id} style={[sh.card, sh.cardLocked]} onPress={() => handleGamePress(game)} activeOpacity={0.85}>
+          <TouchableOpacity key={game.id} style={sh.card} onPress={() => handleGamePress(game)} activeOpacity={0.85}>
             <Text style={sh.lessonEmoji}>{game.emoji}</Text>
             <View style={sh.gameInfo}>
-              <Text style={[sh.lessonTitle, sh.lockedText]}>{game.title}</Text>
+              <Text style={sh.lessonTitle}>{game.title}</Text>
               <Text style={sh.gameDesc}>{game.desc}</Text>
             </View>
-            <Text style={sh.lockIcon}>🔒</Text>
           </TouchableOpacity>
         ))}
 
-        <TouchableOpacity style={sh.upgradeBtn} onPress={() => navigation.navigate('Premium')} activeOpacity={0.85}>
-          <Text style={sh.upgradeBtnText}>🚀 Unlock All Lessons & Games</Text>
-        </TouchableOpacity>
+        {/* All lessons and games are free */}
 
         <View style={{ height: spacing.xl }} />
       </ScrollView>
