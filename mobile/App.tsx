@@ -32,6 +32,8 @@ import NetWorthScreen          from './src/screens/NetWorthScreen';
 import DebtPayoffScreen        from './src/screens/DebtPayoffScreen';
 import DebtPlannerScreen       from './src/screens/DebtPlannerScreen';
 import SubscriptionAuditScreen from './src/screens/SubscriptionAuditScreen';
+import MyPortfolioScreen       from './src/screens/MyPortfolioScreen';
+import CommunityScreen         from './src/screens/CommunityScreen';
 import ProfileScreen           from './src/screens/ProfileScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -91,6 +93,8 @@ export default function App() {
             <Stack.Screen name="DebtPayoff"        component={DebtPayoffScreen} />
             <Stack.Screen name="DebtPlanner"       component={DebtPlannerScreen} />
             <Stack.Screen name="SubscriptionAudit" component={SubscriptionAuditScreen} />
+            <Stack.Screen name="MyPortfolio"       component={MyPortfolioScreen} />
+            <Stack.Screen name="Community"         component={CommunityScreen} />
             <Stack.Screen name="Profile"           component={ProfileScreen} />
           </Stack.Navigator>
         </NavigationContainer>

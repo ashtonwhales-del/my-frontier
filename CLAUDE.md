@@ -1136,3 +1136,78 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/src/components/categories/StyleSelector.tsx` | Removed from funnel — users go straight to category picker |
 
 *Last updated: 2026-04-09 — Phase 18 complete.*
+
+---
+
+## Phase 19 Changes — Critical Fixes + Free Model + Foundation (2026-04-09)
+
+### Portfolio Optimizer Fix (TASK 0)
+- Added stage-by-stage logging in `/optimize`: START, universe built, prices fetched, filter+pad count, optimization start
+- Frontend `OPTIMIZE_TIMEOUT_MS` reduced from 120s to 90s for faster feedback
+- Added `/alex-test` GET endpoint for quick AI connectivity check
+
+### 2-Step Funnel (TASK 1)
+- Progress bar now shows 2 steps (Sectors + Amount) instead of 4
+- StyleSelector completely removed — users go straight to grouped category picker
+
+### Category Chips (TASK 2)
+- Categories now render as **pill chips with flexWrap** layout instead of full-width list rows
+- Chips: `borderRadius: full`, selected = brandBlue background + white text + blue glow shadow
+- 4 grouped sections: BROAD MARKET, GROWTH, INCOME, ALTERNATIVE
+- "+ Show N more sectors" expands ungrouped categories with search
+
+### Fully Free Model (TASK 3)
+- `premiumService.ts`: `DEV_MODE` renamed to `ALL_FREE = true` (with legacy `DEV_MODE` alias)
+- Comment: "My Frontier is free forever. Revenue from ads only."
+- `PremiumScreen.tsx`: Completely rewritten as support/free screen — "My Frontier is Free" heading, feature list with checkmarks, Buy Me a Coffee / Share App / Rate Us buttons
+- All premium lock overlays already bypassed by `ALL_FREE = true`
+
+### Debt Planner Polish (TASK 4)
+- Added total debt summary card with blue border at top
+- APR color badges on debt cards: red >15%, amber 5-15%, green <5%
+- Debt balance shown large (20px bold)
+- Strategy cards show actual debt-free date (e.g. "June 2028")
+- Empty state: checkmark icon + "No debts yet" message
+
+### My Portfolio Tracker (TASK 5)
+| File | Purpose |
+|------|---------|
+| `mobile/src/screens/MyPortfolioScreen.tsx` | **Created.** Real holdings tracker: add/delete positions, total value hero card, holdings list with ticker/shares/cost, AsyncStorage persistence |
+
+### Community Screen (TASK 6)
+| File | Purpose |
+|------|---------|
+| `mobile/src/screens/CommunityScreen.tsx` | **Created.** Mock community feed: 8 posts with grades/returns/likes, invite friends card, weekly challenge card, share button |
+- Community tab added to BottomNav (replaces Learn tab)
+- TabShell routes updated: Community -> CommunityScreen
+- LearningScreen: removed TabShell wrapper (accessible from Home, not bottom nav)
+
+### Alex AI Fix (TASK 7)
+- `/alex-test` GET endpoint: tests Gemini connectivity, returns `{ok, response, model, key_prefix}`
+- AdvisorScreen: calls `/alex-test` on mount, shows amber banner if Alex is having trouble
+- `checkAlexStatus()` function added to `api.ts`
+
+### New Files
+| File | Lines | Purpose |
+|------|-------|---------|
+| `mobile/src/screens/MyPortfolioScreen.tsx` | 224 | Real holdings tracker |
+| `mobile/src/screens/CommunityScreen.tsx` | 113 | Community feed + challenges |
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `api.py` | `/optimize` stage logging, `/alex-test` endpoint |
+| `mobile/src/api.ts` | 90s optimize timeout, `checkAlexStatus()`, `warmupServer()` already added |
+| `mobile/App.tsx` | MyPortfolioScreen + CommunityScreen registered |
+| `mobile/src/types.ts` | Added MyPortfolio + Community routes |
+| `mobile/src/components/ui/BottomNav.tsx` | Community tab replaces Learn tab |
+| `mobile/src/components/TabShell.tsx` | Community route mapping |
+| `mobile/src/screens/CategoriesScreen.tsx` | 2-step progress bar |
+| `mobile/src/components/categories/CategoryPicker.tsx` | Chip pills with flexWrap, grouped sections |
+| `mobile/src/services/premiumService.ts` | ALL_FREE model, legacy DEV_MODE alias |
+| `mobile/src/screens/PremiumScreen.tsx` | Free support screen |
+| `mobile/src/screens/DebtPlannerScreen.tsx` | APR badges, summary card, debt-free dates, empty state |
+| `mobile/src/screens/AdvisorScreen.tsx` | Alex status check on mount, amber banner |
+| `mobile/src/screens/LearningScreen.tsx` | Removed TabShell wrapper |
+
+*Last updated: 2026-04-09 — Phase 19 complete.*

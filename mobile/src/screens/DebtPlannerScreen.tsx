@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal,
-  TextInput, FlatList, Alert, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, FlatList, Alert, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -53,6 +52,18 @@ function simulate(debts: Debt[], extraMonthly: number, strategy: 'avalanche' | '
 
 function fmt(n: number): string {
   return n >= 1000 ? `$${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : `$${n.toLocaleString()}`;
+}
+
+function aprColor(apr: number): string {
+  if (apr > 15) return '#EF4444';
+  if (apr >= 5) return '#F59E0B';
+  return '#10B981';
+}
+
+function debtFreeDate(months: number): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() + months);
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
 export default function DebtPlannerScreen() {
@@ -110,13 +121,20 @@ export default function DebtPlannerScreen() {
     ? monthlyAfter * ((Math.pow(1 + 0.08 / 12, investYears * 12) - 1) / (0.08 / 12))
     : 0;
 
+  const totalDebt = debts.reduce((sum, d) => sum + d.balance, 0);
+  const bestMonths = Math.min(avalanche.months, snowball.months);
+
   const renderDebt = ({ item }: { item: Debt }) => (
     <View style={s.debtCard}>
       <View style={{ flex: 1 }}>
-        <Text style={s.debtName}>{item.name}</Text>
-        <Text style={s.debtDetail}>
-          ${item.balance.toLocaleString()} at {item.apr}% APR, ${item.minPayment}/mo min
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <Text style={s.debtName}>{item.name}</Text>
+          <View style={[s.aprBadge, { backgroundColor: aprColor(item.apr) + '22', borderColor: aprColor(item.apr) }]}>
+            <Text style={[s.aprText, { color: aprColor(item.apr) }]}>{item.apr}%</Text>
+          </View>
+        </View>
+        <Text style={s.debtBalance}>${item.balance.toLocaleString()}</Text>
+        <Text style={s.debtDetail}>${item.minPayment}/mo minimum</Text>
       </View>
       <TouchableOpacity onPress={() => remove(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
         <Text style={s.deleteBtn}>X</Text>
@@ -135,6 +153,20 @@ export default function DebtPlannerScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        {debts.length === 0 ? (
+          <View style={s.emptyState}>
+            <Text style={{ fontSize: 48, textAlign: 'center', marginBottom: spacing.md }}>{'✅'}</Text>
+            <Text style={s.emptyTitle}>No debts yet</Text>
+            <Text style={s.emptyText}>Add your first debt to see your payoff plan</Text>
+          </View>
+        ) : (
+          <View style={[s.card, { borderColor: colors.primary, borderWidth: 1 }]}>
+            <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.8 }}>TOTAL DEBT</Text>
+            <Text style={{ fontSize: 28, fontWeight: '900', color: '#EF4444', marginTop: 4 }}>${totalDebt.toLocaleString()}</Text>
+            {bestMonths > 0 && <Text style={{ fontSize: 13, color: '#F59E0B', fontWeight: '700', marginTop: 4 }}>Debt-free: {debtFreeDate(bestMonths)}</Text>}
+          </View>
+        )}
+
         <TouchableOpacity style={s.addBtn} onPress={() => setModalVisible(true)}>
           <Text style={s.addBtnText}>+ Add Debt</Text>
         </TouchableOpacity>
@@ -174,7 +206,7 @@ export default function DebtPlannerScreen() {
                     <Text style={s.stratNum}>{fmt(r.totalInterest)}</Text>
                     <Text style={s.stratLabel}>total interest</Text>
                     <Text style={s.stratNum}>{r.months} mo</Text>
-                    <Text style={s.stratLabel}>to debt-free</Text>
+                    <Text style={s.stratLabel}>{r.months > 0 ? debtFreeDate(r.months) : 'N/A'}</Text>
                   </View>
                 );
               })}
@@ -225,38 +257,35 @@ export default function DebtPlannerScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: Platform.OS === 'ios' ? 56 : 16, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: Platform.OS === 'ios' ? 56 : 16, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
   backText: { color: colors.primary, fontSize: 22, fontWeight: '700' },
   title: { color: colors.textPrimary, fontSize: 18, fontWeight: '700' },
   scroll: { padding: spacing.lg, paddingBottom: 40 },
-  addBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 14,
-    alignItems: 'center', marginBottom: spacing.lg },
+  addBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 14, alignItems: 'center', marginBottom: spacing.lg },
   addBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  debtCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card,
-    borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md,
-    marginBottom: spacing.sm },
-  debtName: { color: colors.textPrimary, fontSize: 15, fontWeight: '600' },
-  debtDetail: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+  debtCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, marginBottom: spacing.sm },
+  debtName: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' },
+  aprBadge: { borderWidth: 1, borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 2 },
+  aprText: { fontSize: 11, fontWeight: '700' },
+  debtBalance: { color: colors.textPrimary, fontSize: 20, fontWeight: '900' },
+  debtDetail: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
+  emptyState: { alignItems: 'center', paddingVertical: spacing.xl },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
+  emptyText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
   deleteBtn: { color: colors.danger, fontSize: 16, fontWeight: '700', paddingHorizontal: 8 },
-  card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1,
-    borderColor: colors.border, padding: spacing.lg, ...shadow.sm },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, ...shadow.sm },
   cardTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  sectionLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600',
-    marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  sectionLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
   pickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: spacing.lg },
-  pick: { backgroundColor: colors.card, borderRadius: radius.sm, borderWidth: 1,
-    borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 14 },
+  pick: { backgroundColor: colors.card, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 14 },
   pickActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   pickText: { color: colors.textSecondary, fontSize: 14, fontWeight: '600' },
   pickTextActive: { color: '#fff' },
   stratRow: { flexDirection: 'row', gap: 10 },
-  stratCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1,
-    borderColor: colors.border, padding: spacing.md, alignItems: 'center' },
+  stratCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, alignItems: 'center' },
   stratWinner: { borderColor: colors.success, ...shadow.sm },
-  winnerBadge: { color: colors.success, fontSize: 11, fontWeight: '700', textTransform: 'uppercase',
-    marginBottom: 4, letterSpacing: 0.5 },
+  winnerBadge: { color: colors.success, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
   stratTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' },
   stratSub: { color: colors.textSecondary, fontSize: 12, marginBottom: 8 },
   stratNum: { color: colors.textPrimary, fontSize: 20, fontWeight: '700', marginTop: 4 },
@@ -268,6 +297,5 @@ const s = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: spacing.lg },
   modalContent: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl },
   modalTitle: { color: colors.textPrimary, fontSize: 18, fontWeight: '700', marginBottom: spacing.lg, textAlign: 'center' },
-  input: { backgroundColor: colors.bg, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border,
-    color: colors.textPrimary, fontSize: 15, padding: 12, marginBottom: spacing.sm },
+  input: { backgroundColor: colors.bg, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, padding: 12, marginBottom: spacing.sm },
 });

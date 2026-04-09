@@ -15,7 +15,7 @@ import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, OptimizeResponse, BudgetContext } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
 import { STORAGE, FREE_LIMITS } from '../constants';
-import { callAdvisor } from '../api';
+import { callAdvisor, checkAlexStatus } from '../api';
 import { canSendAlexMessage, decrementAlexMessages, isPremium } from '../services/premiumService';
 import { showRewardedAd } from '../components/ads/RewardedAd';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -51,12 +51,15 @@ export default function AdvisorScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(false);
   const [remaining, setRemaining] = useState<number>(FREE_LIMITS.alexMessagesPerDay);
   const [premium, setPremium] = useState(false);
+  const [alexOk, setAlexOk] = useState<boolean | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const userName = portfolio?.profile?.name ?? 'there';
   const histKey = HISTORY_KEY(userName);
 
   useEffect(() => {
     (async () => {
+      // Check Alex connectivity silently
+      checkAlexStatus().then(ok => { setAlexOk(ok); console.log('[Alex] status:', ok); });
       const [prem, { remaining: rem }] = await Promise.all([isPremium(), canSendAlexMessage()]);
       setPremium(prem);
       setRemaining(prem ? 999 : rem);
@@ -153,6 +156,12 @@ export default function AdvisorScreen({ navigation, route }: Props) {
           </TouchableOpacity>
         )}
       </View>
+
+      {alexOk === false && (
+        <View style={{ backgroundColor: '#F59E0B22', paddingVertical: 8, paddingHorizontal: spacing.md, borderBottomWidth: 1, borderBottomColor: '#F59E0B' }}>
+          <Text style={{ color: '#F59E0B', fontSize: 12, fontWeight: '600', textAlign: 'center' }}>Alex is having trouble connecting. Responses may be slow.</Text>
+        </View>
+      )}
 
       {/* Messages */}
       <ScrollView ref={scrollRef} style={styles.messageList} contentContainerStyle={styles.messageListContent} showsVerticalScrollIndicator={false} onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}>

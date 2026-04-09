@@ -80,7 +80,7 @@ export default function CategoryPicker({ onConfirm, onBack }: Props) {
           <Text style={styles.badgeText}>{selCount} selected</Text>
         </View>
       )}
-      <ScrollView contentContainerStyle={styles.chips} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {GROUPS.map(group => {
           const visible = group.cats.filter(c => allCategories.includes(c) && (!search || c.toLowerCase().includes(search.toLowerCase())));
           if (!visible.length) return null;
@@ -88,11 +88,13 @@ export default function CategoryPicker({ onConfirm, onBack }: Props) {
             <View key={group.label}>
               <Text style={styles.sectionLabel}>{group.label}</Text>
               <Text style={styles.sectionHint}>{group.hint}</Text>
-              {visible.map(cat => (
-                <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
-                  <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
-                </TouchableOpacity>
-              ))}
+              <View style={styles.chipWrap}>
+                {visible.map(cat => (
+                  <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
+                    <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           );
         })}
@@ -103,11 +105,13 @@ export default function CategoryPicker({ onConfirm, onBack }: Props) {
         ) : ungrouped.length > 0 ? (
           <View>
             <Text style={styles.sectionLabel}>ALL OTHER SECTORS</Text>
-            {ungrouped.map(cat => (
-              <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
-                <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
-              </TouchableOpacity>
-            ))}
+            <View style={styles.chipWrap}>
+              {ungrouped.map(cat => (
+                <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
+                  <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         ) : null}
         <View style={{ height: 80 }} />
@@ -141,18 +145,18 @@ const styles = StyleSheet.create({
   sectionHint: { fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm },
   badge: { alignSelf: 'flex-start', marginHorizontal: spacing.lg, marginBottom: spacing.sm, backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 4 },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  chips: { paddingHorizontal: spacing.lg, gap: spacing.xs },
-  addMoreBtn: { marginTop: spacing.md, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.lg, borderStyle: 'dashed' as any, paddingVertical: 14, alignItems: 'center' as const },
+  scrollContent: { paddingHorizontal: spacing.lg },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm },
+  addMoreBtn: { marginTop: spacing.sm, marginBottom: spacing.md, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.lg, borderStyle: 'dashed' as any, paddingVertical: 14, alignItems: 'center' as const },
   addMoreText: { fontSize: 14, fontWeight: '600', color: colors.primary },
   chip: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: colors.card, borderRadius: radius.lg,
+    backgroundColor: colors.card, borderRadius: radius.full,
     borderWidth: 1.5, borderColor: colors.border,
-    paddingHorizontal: spacing.md, paddingVertical: 12,
+    paddingHorizontal: 16, paddingVertical: 10,
   },
-  chipSelected: { backgroundColor: '#3B82F622', borderColor: colors.primary },
-  chipLabel: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.textPrimary },
-  chipLabelSel: { color: colors.primary },
+  chipSelected: { backgroundColor: colors.primary, borderColor: colors.primary, shadowColor: colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 },
+  chipLabel: { fontSize: 13, fontWeight: '600', color: colors.textPrimary },
+  chipLabelSel: { color: '#FFFFFF' },
   footer: { padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
   continueBtn: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 16, alignItems: 'center', ...shadow.md },
   btnDisabled: { opacity: 0.4 },

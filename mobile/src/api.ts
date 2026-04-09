@@ -12,7 +12,7 @@ import NetInfo from '@react-native-community/netinfo';
 // Fallback is the Render URL so the app works even if .env is missing.
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://my-frontier-api.onrender.com';
 const TIMEOUT_MS = 35_000; // 35s — gives Render free tier cold starts (~30s) time to wake
-const OPTIMIZE_TIMEOUT_MS = 120_000; // portfolio calc can take up to 2 minutes
+const OPTIMIZE_TIMEOUT_MS = 90_000; // 90s — server has 60s solver + Render cold start
 
 // ---------------------------------------------------------------------------
 // Auth header — sent with every request as a lightweight scraping deterrent
@@ -104,6 +104,21 @@ export async function checkHealth(): Promise<boolean> {
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/health`);
     return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// checkAlexStatus — quick test to verify AI is working
+// ---------------------------------------------------------------------------
+export async function checkAlexStatus(): Promise<boolean> {
+  try {
+    const res = await fetchWithTimeout(`${BASE_URL}/alex-test`, { headers: AUTH_HEADERS }, 10_000);
+    if (!res.ok) return false;
+    const data = await res.json();
+    console.log('[alex-test]', data);
+    return data?.ok === true;
   } catch {
     return false;
   }

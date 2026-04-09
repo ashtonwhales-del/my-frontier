@@ -19,7 +19,7 @@ const TAB_ROUTES: Record<NavTab, string> = {
   Home:      'Welcome',
   Budget:    'Budget',
   Portfolio: 'WealthTracker',
-  Learn:     'Learning',
+  Community: 'Community',
   Profile:   'Profile',
 };
 

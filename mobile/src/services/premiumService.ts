@@ -1,14 +1,17 @@
 /**
  * premiumService.ts
- * Free vs Premium gating. Checks RevenueCat status first, then falls back
- * to local AsyncStorage override (useful for testing before SDK is installed).
+ * My Frontier is free forever. Revenue from ads only.
+ * ALL_FREE = true means every feature is unlocked for every user.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE, FREE_LIMITS } from '../constants';
 
-// ── DEV MODE ──────────────────────────────────────────────────────────────────
-// SET TO FALSE BEFORE APP STORE SUBMISSION
-export const DEV_MODE = true;
+// ── FREE MODEL ───────────────────────────────────────────────────────────────
+// My Frontier is free forever. Revenue from ads only.
+export const ALL_FREE = true;
+
+// Legacy alias so existing imports keep working
+export const DEV_MODE = ALL_FREE;
 
 // Budget-specific limits (not in FREE_LIMITS to avoid changing the union type used by canUseFeature)
 export const BUDGET_FREE_LIMITS = {

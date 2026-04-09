@@ -118,5 +118,7 @@ export type RootStackParamList = {
   DebtPayoff:        undefined;
   DebtPlanner:       undefined;
   SubscriptionAudit: undefined;
+  MyPortfolio:       undefined;
+  Community:         undefined;
   Profile:           undefined;
 };

@@ -14,7 +14,6 @@ import { RootStackParamList } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
 import { STORAGE, FREE_LIMITS } from '../constants';
 import { LESSONS, GAMES, Lesson, Game } from './LearningData';
-import TabShell from '../components/TabShell';
 import { canAccessLesson } from '../services/premiumService';
 import AdBanner from '../components/AdBanner';
 
@@ -99,7 +98,6 @@ export default function LearningScreen({ navigation }: Props) {
   const doneCount = completed.length;
 
   return (
-    <TabShell active="Learn" navigation={navigation}>
     <View style={sh.screen}>
       {/* Header */}
       <View style={sh.header}>
@@ -183,7 +181,6 @@ export default function LearningScreen({ navigation }: Props) {
 
       {openLesson && <LessonModal lesson={openLesson} onClose={handleLessonClose} />}
     </View>
-    </TabShell>
   );
 }
 

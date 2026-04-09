@@ -37,8 +37,8 @@ export default function CategoriesScreen({ navigation, route }: Props) {
       <View style={styles.header}>
         <StepProgressBar
           currentStep={step}
-          totalSteps={4}
-          labels={['Sectors', 'Amount', 'Risk', 'Results']}
+          totalSteps={2}
+          labels={['Sectors', 'Amount']}
         />
       </View>
 

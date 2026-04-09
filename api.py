@@ -353,6 +353,25 @@ def health():
     }
 
 
+@app.get("/alex-test", summary="Quick test to verify Gemini/Anthropic connectivity")
+def alex_test():
+    """Returns OK if Alex AI can respond. Used by mobile app to show status banner."""
+    try:
+        if GEMINI_API_KEY:
+            import google.generativeai as genai  # type: ignore
+            genai.configure(api_key=GEMINI_API_KEY)
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            resp = model.generate_content("Say exactly: Alex is working")
+            return {"ok": True, "response": resp.text.strip()[:50], "model": "gemini", "key_prefix": GEMINI_API_KEY[:8] + "..."}
+        elif ANTHROPIC_API_KEY:
+            return {"ok": True, "response": "Anthropic available", "model": "anthropic", "key_prefix": ANTHROPIC_API_KEY[:8] + "..."}
+        else:
+            return {"ok": False, "error": "No AI keys configured", "key_present": False}
+    except Exception as e:
+        _logger.error(f"[alex-test] {repr(e)}")
+        return {"ok": False, "error": str(e)[:200], "key_present": bool(GEMINI_API_KEY)}
+
+
 @app.get("/categories", response_model=List[str], summary="List available ETF categories")
 def get_categories(request: Request):
     ip = _get_client_ip(request)
@@ -368,6 +387,7 @@ def get_categories(request: Request):
 
 @app.post("/optimize", response_model=OptimizeResponse, summary="Run portfolio optimization")
 def optimize(req: OptimizeRequest, request: Request):
+    _logger.info(f"[optimize] START — categories={len(req.categories)}, risk={req.risk_tolerance}, lump={req.lump_sum}")
     ip = _get_client_ip(request)
     wait = _check_rate_limit(ip, "/optimize")
     if wait is not None:
@@ -388,6 +408,7 @@ def optimize(req: OptimizeRequest, request: Request):
 
     try:
         universe = opt.remove_leveraged_etfs(opt.build_universe(req.categories))
+        _logger.info(f"[optimize] Universe built: {len(universe)} tickers")
         if not universe:
             raise HTTPException(status_code=422, detail="No non-leveraged ETFs available for the selected categories.")
 
@@ -409,7 +430,9 @@ def optimize(req: OptimizeRequest, request: Request):
         start_date = today - _dt.timedelta(days=365 * 10)
         min_observations = 252 * 3
 
+        _logger.info(f"[optimize] Downloading prices for {len(universe)} tickers...")
         prices = opt.download_10y_prices(universe, start_date, today, min_observations=min_observations)
+        _logger.info(f"[optimize] Prices fetched: {prices.shape[1]} tickers, {prices.shape[0]} rows")
         if prices.empty or prices.shape[1] == 0:
             raise HTTPException(status_code=422, detail="No tickers had enough historical data. Try different categories.")
 
@@ -429,6 +452,7 @@ def optimize(req: OptimizeRequest, request: Request):
             top80 = sharpe_est.nlargest(80).index.tolist()
             prices = prices[top80]
 
+        _logger.info(f"[optimize] After filter+pad: {prices.shape[1]} tickers — starting optimization")
         # Optimization with 60-second timeout (Windows-safe via ThreadPoolExecutor)
         def _run_optimize():
             # Risk-free rate calibrated to current ~4.5% 3-month T-bill yield.
