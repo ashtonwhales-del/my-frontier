@@ -134,21 +134,23 @@ python -m uvicorn api:app --host 0.0.0.0 --port 8000
 
 ---
 
-## Network / IP Configuration ⚠️
+## Network / Backend Configuration ⚠️
 
-The mobile app talks to the backend over the local Wi-Fi network.
+**Production backend:** Render free tier — `https://my-frontier-api.onrender.com`
+**Local development:** Wi-Fi LAN — `http://192.168.1.60:8000`
 
-**When IP changes, update only `mobile/.env` — nowhere else.**
+`mobile/src/api.ts` reads `process.env.EXPO_PUBLIC_API_URL` with a hardcoded fallback of
+`https://my-frontier-api.onrender.com`. To use local backend during dev, set `.env`:
 
 ```
-W:\MyFrontier\mobile\.env  →  EXPO_PUBLIC_API_URL=http://<IP>:8000
+W:\MyFrontier\mobile\.env  →  EXPO_PUBLIC_API_URL=http://<local-IP>:8000
 ```
-
-`mobile/src/api.ts` reads `process.env.EXPO_PUBLIC_API_URL` at startup with a hardcoded
-fallback of `192.168.1.60:8000`. You never need to touch `api.ts` for IP changes.
 
 **Current machine IP:** `192.168.1.60`
-**Current `.env` value:** `EXPO_PUBLIC_API_URL=http://192.168.1.60:8000`
+**Production URL:** `https://my-frontier-api.onrender.com` (Render free, migrated from Railway 2026-04-09)
+
+⚠️ Render free tier spins down after 15 min of inactivity — first request after cold start takes ~30s.
+The app's `withRetry` wrapper handles this automatically.
 
 ### How to find your current IP (after a router reboot / DHCP reassignment)
 
@@ -898,3 +900,20 @@ Advisor shows budget-aware greeting and BUDGET_SUGGESTED questions instead of po
 Portfolio param is now optional in Advisor — both budget-mode and portfolio-mode work.
 
 *Last updated: 2026-04-09 — Phases 13+14 complete.*
+
+---
+
+## Backend Migration — Railway → Render (2026-04-09)
+
+| Item | Detail |
+|------|--------|
+| Old URL | `https://web-production-3f67e.up.railway.app` (Railway — cancel to stop charges) |
+| New URL | `https://my-frontier-api.onrender.com` (Render free tier) |
+| `mobile/src/api.ts` fallback | Updated to Render URL |
+| `render.yaml` | Created — Render deploy config (auto-detected by Render) |
+| `RENDER_SETUP.md` | Step-by-step Render deploy guide |
+
+**Render free tier caveat:** spins down after 15 min idle → ~30s cold start on first request.
+The existing `withRetry` in `api.ts` handles this gracefully — no code changes needed.
+
+*Last updated: 2026-04-09 — Backend migrated to Render.*
