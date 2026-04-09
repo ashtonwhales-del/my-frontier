@@ -20,7 +20,7 @@ const TAB_ROUTES: Record<NavTab, string> = {
   Budget:    'Budget',
   Portfolio: 'WealthTracker',
   Learn:     'Learning',
-  Profile:   'Premium',
+  Profile:   'Profile',
 };
 
 interface TabShellProps {

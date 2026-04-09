@@ -10,26 +10,27 @@ import { RootStackParamList } from './src/types';
 import { STORAGE } from './src/constants';
 import { Colors } from './src/theme/colors';
 import { initializePurchases } from './src/services/purchaseService';
-import ErrorBoundary        from './src/components/ErrorBoundary';
-import DisclaimerScreen     from './src/screens/DisclaimerScreen';
-import OnboardingScreen     from './src/screens/OnboardingScreen';
-import WelcomeScreen        from './src/screens/WelcomeScreen';
-import CategoriesScreen     from './src/screens/CategoriesScreen';
-import RiskToleranceScreen  from './src/screens/RiskToleranceScreen';
-import InvestmentScreen     from './src/screens/InvestmentScreen';
-import ResultsScreen        from './src/screens/ResultsScreen';
-import AdvisorScreen        from './src/screens/AdvisorScreen';
-import WealthTrackerScreen  from './src/screens/WealthTrackerScreen';
-import PremiumScreen        from './src/screens/PremiumScreen';
-import PrivacyPolicyScreen  from './src/screens/PrivacyPolicyScreen';
-import TermsScreen          from './src/screens/TermsScreen';
-import AboutScreen          from './src/screens/AboutScreen';
-import LearningScreen       from './src/screens/LearningScreen';
-import CompareScreen        from './src/screens/CompareScreen';
+import ErrorBoundary           from './src/components/ErrorBoundary';
+import DisclaimerScreen        from './src/screens/DisclaimerScreen';
+import OnboardingScreen        from './src/screens/OnboardingScreen';
+import WelcomeScreen           from './src/screens/WelcomeScreen';
+import CategoriesScreen        from './src/screens/CategoriesScreen';
+import RiskToleranceScreen     from './src/screens/RiskToleranceScreen';
+import InvestmentScreen        from './src/screens/InvestmentScreen';
+import ResultsScreen           from './src/screens/ResultsScreen';
+import AdvisorScreen           from './src/screens/AdvisorScreen';
+import WealthTrackerScreen     from './src/screens/WealthTrackerScreen';
+import PremiumScreen           from './src/screens/PremiumScreen';
+import PrivacyPolicyScreen     from './src/screens/PrivacyPolicyScreen';
+import TermsScreen             from './src/screens/TermsScreen';
+import AboutScreen             from './src/screens/AboutScreen';
+import LearningScreen          from './src/screens/LearningScreen';
+import CompareScreen           from './src/screens/CompareScreen';
 import BudgetScreen            from './src/screens/BudgetScreen';
 import NetWorthScreen          from './src/screens/NetWorthScreen';
 import DebtPayoffScreen        from './src/screens/DebtPayoffScreen';
 import SubscriptionAuditScreen from './src/screens/SubscriptionAuditScreen';
+import ProfileScreen           from './src/screens/ProfileScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -37,7 +38,6 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList | null>(null);
 
   useEffect(() => {
-    // Initialize RevenueCat as early as possible (safe no-op until SDK is installed)
     initializePurchases();
 
     (async () => {
@@ -87,6 +87,7 @@ export default function App() {
             <Stack.Screen name="NetWorth"          component={NetWorthScreen} />
             <Stack.Screen name="DebtPayoff"        component={DebtPayoffScreen} />
             <Stack.Screen name="SubscriptionAudit" component={SubscriptionAuditScreen} />
+            <Stack.Screen name="Profile"           component={ProfileScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </GestureHandlerRootView>

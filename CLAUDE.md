@@ -917,3 +917,49 @@ Portfolio param is now optional in Advisor — both budget-mode and portfolio-mo
 The existing `withRetry` in `api.ts` handles this gracefully — no code changes needed.
 
 *Last updated: 2026-04-09 — Backend migrated to Render.*
+
+---
+
+## Phase 15 Changes — Home Dashboard Redesign + Profile + Alex Fix (2026-04-09)
+
+### Alex fix
+- Root cause: `mobile/.env` still pointed to Railway URL (`web-production-3f67e.up.railway.app`)
+- Fix: Updated to `https://my-frontier-api.onrender.com`
+- api.py: detailed Gemini error logging (type, message, key prefix) for faster debugging
+- api.py: improved /alex error message includes actual Gemini error reason, not a generic 503
+
+### New files
+| File | Purpose |
+|------|---------|
+| `mobile/src/screens/WelcomeScreen.tsx` | Rewritten as financial dashboard (167 lines, down from 478) |
+| `mobile/src/components/home/HomeWidgets.tsx` | HomeMarketPulse + DashboardGrid + RecentPortfolios split out |
+| `mobile/src/screens/ProfileScreen.tsx` | New account screen: avatar, stats, settings, premium, danger zone |
+
+### Modified files
+| File | What changed |
+|------|-------------|
+| `mobile/src/components/ui/BottomNav.tsx` | Full redesign: Ionicons (26px), active tab shows label + 3px blue top line, inactive shows icon only |
+| `mobile/.env` | Fixed URL: Railway → Render |
+| `mobile/src/types.ts` | Added `Profile` route to RootStackParamList |
+| `mobile/src/components/TabShell.tsx` | Profile tab routes to `Profile` screen (was `Premium`) |
+| `mobile/App.tsx` | Added ProfileScreen to stack navigator |
+| `api.py` | Better Gemini error logging; improved /alex 503 error detail |
+| Various tsx/ts | Removed all UI-visible em-dashes, replaced with proper sentences |
+
+### Home dashboard layout (new WelcomeScreen)
+1. Header: "MY FRONTIER" gold small-caps + notification bell
+2. Time-aware greeting: "Good morning, Pdawg"
+3. Market Pulse card: SPY/QQQ/AGG rows with colored StatBadge %, clean sentiment sentence
+4. Dashboard 2x2 grid: Portfolio, Budget, Learn, Achievements (all tappable)
+5. "Build New Portfolio →" blue gradient button
+6. Recent portfolio horizontal scroll strip
+7. Disclaimer footer
+
+### Profile screen layout
+- Avatar circle (initials, 72px blue) + username + PRO badge if premium
+- Stats row: Portfolios Built, Best Grade, Badges Earned (gold numbers)
+- Account card: Risk Preference, Display Name, Privacy Policy, Terms, About
+- Premium card: upgrade CTA (or Pro confirmation if premium)
+- Danger zone: Send Feedback + Reset App Data
+
+*Last updated: 2026-04-09 — Phase 15 complete.*

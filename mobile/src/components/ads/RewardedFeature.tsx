@@ -49,7 +49,7 @@ export default function RewardedFeature({ holdings }: Props) {
         <Text style={styles.body}>
           {unlocked
             ? 'Your stress test is unlocked. See exactly how your specific portfolio would have held up during the three crashes that ended most beginners\' investing journeys.'
-            : 'Watch a short video to unlock: See how YOUR specific portfolio would have performed during the 2008 banking collapse, the 2020 COVID freefall, and the 2022 rate shock — with your actual ETF weights, not generic averages.'}
+            : 'Watch a short video to unlock. See how your specific portfolio would have performed during the 2008 banking collapse, the 2020 COVID freefall, and the 2022 rate shock, with your actual ETF weights.'}
         </Text>
 
         <TouchableOpacity

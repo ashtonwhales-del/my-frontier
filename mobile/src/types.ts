@@ -110,4 +110,5 @@ export type RootStackParamList = {
   NetWorth:          undefined;
   DebtPayoff:        undefined;
   SubscriptionAudit: undefined;
+  Profile:           undefined;
 };

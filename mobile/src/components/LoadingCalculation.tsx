@@ -15,7 +15,7 @@ try {
 const TIPS = [
   'Did you know? Diversification is the only free lunch in investing.',
   'The S&P 500 has recovered from every single crash in history.',
-  'Time in the market beats timing the market — every time.',
+  'Time in the market beats timing the market. Every single time.',
   'Your portfolio is being optimized using the same math used by institutional investors.',
   'The best investment you can make is in a diversified portfolio you\'ll actually hold.',
   'Compound interest is the eighth wonder of the world.',
@@ -141,7 +141,7 @@ function AdZone({ phase, hasNative }: { phase: AdPhase; hasNative: boolean }) {
     return (
       <View style={styles.adZone}>
         <Text style={styles.rewardedPrompt}>
-          📺 Watch a short video to support My Frontier — it keeps the app free!
+          📺 Watch a short video to support My Frontier. It keeps the app free for everyone!
         </Text>
       </View>
     );

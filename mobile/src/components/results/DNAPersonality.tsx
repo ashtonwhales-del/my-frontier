@@ -20,7 +20,7 @@ function getPersonality(result: OptimizeResponse): Personality {
     return { name: 'The Market Beater', desc: 'Built to outperform. The math is on your side.', color: '#fff', bg: '#06D6A0' };
   }
   if (grade === 'A' && diversification_score >= 7) {
-    return { name: 'The Frontier Explorer', desc: "You've cracked the code — maximum return for minimum risk.", color: '#fff', bg: '#4361EE' };
+    return { name: 'The Frontier Explorer', desc: "You've cracked the code. Maximum return for minimum risk.", color: '#fff', bg: '#4361EE' };
   }
   if (ret > 0.11 && vol > 0.15) {
     return { name: 'The Growth Chaser', desc: 'Swinging for the fences. High potential, wild ride.', color: '#fff', bg: '#7209B7' };
@@ -32,7 +32,7 @@ function getPersonality(result: OptimizeResponse): Personality {
     return { name: 'The Steady Builder', desc: 'Playing the long game. Slow, consistent growth compounds.', color: '#fff', bg: '#2D9CDB' };
   }
   // Default: balanced
-  return { name: 'The Balanced Strategist', desc: 'Goldilocks portfolio — not too risky, not too safe.', color: '#fff', bg: '#F59E0B' };
+  return { name: 'The Balanced Strategist', desc: 'Goldilocks portfolio. Not too risky, not too safe.', color: '#fff', bg: '#F59E0B' };
 }
 
 export default function DNAPersonality({ result }: { result: OptimizeResponse }) {

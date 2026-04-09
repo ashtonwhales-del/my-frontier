@@ -72,7 +72,7 @@ const BADGES = [
     key: 'explorer',
     icon: '🏔️',
     label: 'Frontier Explorer',
-    description: 'Your Frontier Score exceeds 75 — you\'re in elite territory.',
+    description: 'Your Frontier Score exceeds 75. You\'re in elite territory.',
     unlocked: (r: OptimizeResponse) => calcFrontierScore(r) > 75,
   },
 ];

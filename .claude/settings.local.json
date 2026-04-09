@@ -27,7 +27,11 @@
       "Bash(wc -l W:/MyFrontier/mobile/src/screens/BudgetScreen.tsx W:/MyFrontier/mobile/src/screens/NetWorthScreen.tsx W:/MyFrontier/mobile/src/components/budget/*.tsx)",
       "Bash(head -10 echo \"---\" ls W:/MyFrontier/mobile/src/screens/Budget* W:/MyFrontier/mobile/src/components/ui/BottomNav*)",
       "Bash(grep -E \"bottom-tabs|navigation\" echo \"---\" ls W:/MyFrontier/mobile/src/screens/NetWorthScreen.tsx)",
-      "Bash(grep -n \"^  \\);\\\\|^    \\);\\\\|^  }$\" W:/MyFrontier/mobile/src/screens/WelcomeScreen.tsx)"
+      "Bash(grep -n \"^  \\);\\\\|^    \\);\\\\|^  }$\" W:/MyFrontier/mobile/src/screens/WelcomeScreen.tsx)",
+      "Read(//w/MyFrontier/**)",
+      "Bash(node -e \"require\\('W:/MyFrontier/mobile/node_modules/@expo/vector-icons'\\)\")",
+      "Bash(node -e \"console.log\\(require.resolve\\('@expo/vector-icons/build/Ionicons', {paths: ['W:/MyFrontier/mobile/node_modules']}\\)\\)\")",
+      "Bash(grep -v \"//\")"
     ]
   }
 }

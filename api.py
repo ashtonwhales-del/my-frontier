@@ -685,7 +685,12 @@ def _call_alex_gemini(system_prompt: str, messages: List[AdvisorMessage]) -> str
         response = model.generate_content(full_prompt)
         return response.text.strip()
     except Exception as exc:
-        _logger.warning(f"[alex] Gemini failed: {exc} — falling back to Anthropic")
+        _logger.error(
+            f"[alex] Gemini failed — type={type(exc).__name__}, "
+            f"message={str(exc)[:300]}, "
+            f"key_present={'YES' if GEMINI_API_KEY else 'NO'}, "
+            f"key_prefix={GEMINI_API_KEY[:8] + '...' if GEMINI_API_KEY else 'EMPTY'}"
+        )
         raise
 
 
@@ -734,17 +739,21 @@ def alex(req: AlexRequest, request: Request):
     system_prompt = f"{_ALEX_SYSTEM}\n\nUser's portfolio context: {portfolio_summary}"
 
     # Try Gemini first (free), fall back to Anthropic
+    gemini_error: str = ""
     try:
         if GEMINI_API_KEY:
             reply = _call_alex_gemini(system_prompt, req.messages)
             return {"reply": reply, "model": "gemini-1.5-flash"}
-    except Exception:
-        pass
+        else:
+            gemini_error = "GEMINI_API_KEY not set in environment"
+    except Exception as exc:
+        gemini_error = f"{type(exc).__name__}: {str(exc)[:200]}"
 
     if not ANTHROPIC_API_KEY:
+        _logger.error(f"[alex] Both AI providers unavailable. Gemini error: {gemini_error}")
         raise HTTPException(
             status_code=503,
-            detail="GEMINI_API_KEY not configured. Add it to Render environment variables (render.com → your service → Environment). See GEMINI_SETUP.md for instructions."
+            detail=f"Alex AI unavailable. Gemini error: {gemini_error}. Add GEMINI_API_KEY to Render environment (render.com > your service > Environment tab)."
         )
 
     try:
