@@ -3,14 +3,14 @@
  * PREMIUM only — free users see a blur overlay with upgrade prompt.
  * Uses react-native-svg (already installed via WealthTrackerScreen).
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  PanResponder,
   ActivityIndicator,
-  TouchableOpacity,
+  TouchableWithoutFeedback,
+  GestureResponderEvent,
   Dimensions,
 } from 'react-native';
 import Svg, { Polyline, Line, Text as SvgText, Circle, Rect } from 'react-native-svg';
@@ -45,17 +45,13 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scrubIdx, setScrubIdx] = useState<number | null>(null);
+  const [chartW, setChartW] = useState(CHART_W);
 
-  const updateScrub = (x: number) => { if (points.length) setScrubIdx(Math.min(Math.max(0, Math.floor((x / CHART_W) * points.length)), points.length - 1)); };
-  const panResponder = useRef(PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onStartShouldSetPanResponderCapture: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponderCapture: () => true,
-    onPanResponderGrant: (e) => updateScrub(e.nativeEvent.locationX),
-    onPanResponderMove: (e) => updateScrub(e.nativeEvent.locationX),
-    onPanResponderRelease: () => setScrubIdx(null),
-  })).current;
+  const handleTouch = (evt: GestureResponderEvent) => {
+    const x = evt.nativeEvent.locationX;
+    if (!points.length || chartW === 0) return;
+    setScrubIdx(Math.min(Math.max(0, Math.floor((x / chartW) * points.length)), points.length - 1));
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -88,7 +84,8 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
         <Text style={styles.errorText}>{error}</Text>
       ) : (
         <>
-          <View style={{ position: 'relative' }}>
+          <TouchableWithoutFeedback onPressIn={handleTouch} onPressOut={() => setScrubIdx(null)}>
+          <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)}>
           {scrubIdx !== null && points[scrubIdx] && (
             <View style={styles.scrubCard}>
               <Text style={styles.scrubDate}>{points[scrubIdx].date}</Text>
@@ -116,8 +113,8 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
             {/* Portfolio line (blue) */}
             <Polyline points={toPoints(points, 'portfolio', minV, maxV)} fill="none" stroke={colors.primary} strokeWidth={2.5} />
           </Svg>
-          <View style={StyleSheet.absoluteFill} {...panResponder.panHandlers} pointerEvents="box-only" />
           </View>
+          </TouchableWithoutFeedback>
 
           {/* Legend */}
           <View style={styles.legend}>

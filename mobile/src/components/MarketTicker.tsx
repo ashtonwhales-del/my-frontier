@@ -4,7 +4,7 @@
  * Height 36px, dark bg, auto-scrolls left in a continuous loop.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Animated, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Animated, StyleSheet, Dimensions, Easing } from 'react-native';
 import { TickerQuote, MarketPulseData } from '../types';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -37,8 +37,9 @@ export default function MarketTicker({ pulse }: { pulse: MarketPulseData | null 
     const animation = Animated.loop(
       Animated.timing(scrollX, {
         toValue: -contentWidth,
-        duration: LOOP_DURATION,
+        duration: 30000, // 30s for full loop — slow and smooth
         useNativeDriver: true,
+        easing: Easing.linear, // CRITICAL: linear, not default ease-in-out
       }),
     );
     animation.start();

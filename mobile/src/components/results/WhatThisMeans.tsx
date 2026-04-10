@@ -155,6 +155,8 @@ const wtmStyles = StyleSheet.create({
     color: colors.textPrimary,
     lineHeight: 23,
     marginBottom: 6,
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   tradeoff: {
     fontSize: 14,

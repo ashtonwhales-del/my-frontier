@@ -1533,3 +1533,43 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/src/screens/CompareScreen.tsx` | Full rewrite: unlimited multi-select comparison |
 
 *Last updated: 2026-04-09 — Phase 26 complete.*
+
+---
+
+## Phase 27 Changes — Content, Performance + Polish (2026-04-09)
+
+### Portfolio Naming Fix (TASK 0)
+- Risk tolerance now derived from category selections: >50% aggressive sectors → 5 (Aggressive), >50% safe sectors → 1 (Conservative), otherwise → 3 (Moderate)
+- Portfolios save with correct risk label instead of always "Moderate"
+
+### Builder Pill Removed (TASK 1)
+- Replaced colored DNA pill with plain text spending insight (e.g. "Housing costs are above 35% of income.")
+
+### What This Means Text (TASK 2)
+- Added flexShrink and flexWrap to hook text style — prevents truncation
+
+### Ticker Speed (TASK 3)
+- Added `Easing.linear` to MarketTicker animation — stops acceleration. Fixed 30s loop duration.
+
+### Chart Scrubber (TASK 4)
+- Replaced PanResponder with `TouchableWithoutFeedback` + `onPressIn`/`onPressOut` for Expo Go compatibility
+- Added `onLayout` measurement for accurate touch-to-data mapping
+
+### Wealth Journey (TASK 5)
+- Removed `.slice(0, 2)` limit on default selection — all portfolios selected by default
+- Removed `max 3` toggle limit — unlimited portfolio comparison on chart
+
+### Learning Tier Gates (TASK 6)
+- Intermediate and Advanced tiers show lock icon until "Watch Ad" is tapped
+- 1.5s simulated ad delay, then unlocks tier in AsyncStorage
+- Lock hint text below locked tiers
+
+### Mini Games (TASK 7)
+| File | Purpose |
+|------|---------|
+| `mobile/src/screens/games/ETFMatcherGame.tsx` | Memory card flip game: match 8 ETF tickers to descriptions |
+| `mobile/src/screens/games/RiskQuizGame.tsx` | 5-question risk tolerance quiz with profile result |
+- Both registered in App.tsx and types.ts
+- LearningScreen game section navigates to actual games (etf_matcher → ETFMatcherGame, risk_quiz → RiskQuizGame)
+
+*Last updated: 2026-04-09 — Phase 27 complete.*

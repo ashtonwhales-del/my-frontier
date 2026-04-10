@@ -167,12 +167,16 @@ export default function BudgetScreen() {
           <Text style={{ fontSize: 15, fontWeight: '600', color: Colors.textSecondary }}>Debt Repayment Planner</Text>
         </TouchableOpacity>
 
-        {/* Spending DNA */}
+        {/* Spending insight */}
         {dna && (
           <View style={styles.dnaRow}>
-            <View style={[styles.dnaPill, { backgroundColor: `${dna.color}22`, borderColor: dna.color }]}>
-              <Text style={[styles.dnaText, { color: dna.color }]}>{dna.emoji} {dna.label}</Text>
-            </View>
+            <Text style={styles.dnaInsight}>
+              {dna.label === 'Saver' ? 'You spend less than 70% of your income. Great saving habits!' :
+               dna.label === 'Builder' ? 'Housing costs are above 35% of income. Look for ways to reduce fixed expenses.' :
+               dna.label === 'Optimizer' ? 'Subscriptions are over 15% of income. Review which ones you truly use.' :
+               dna.label === 'Spender' ? 'Spending is above 95% of income. Finding even small cuts could fund investing.' :
+               'Your spending is balanced across categories.'}
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -235,9 +239,8 @@ const styles = StyleSheet.create({
   opportunityBody:  { ...BodyScale.md, color: Colors.textSecondary, lineHeight: 22 },
   ctaBtn:           {},
 
-  dnaRow:   { alignItems: 'center', marginBottom: Spacing.lg },
-  dnaPill:  { borderRadius: Radius.full, borderWidth: 1, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm },
-  dnaText:  { ...BodyScale.md, fontWeight: '700' },
+  dnaRow:   { marginBottom: Spacing.lg },
+  dnaInsight: { ...BodyScale.sm, color: Colors.textTertiary, textAlign: 'center', lineHeight: 18 },
 
   summaryBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,

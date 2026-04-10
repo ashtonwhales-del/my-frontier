@@ -29,15 +29,22 @@ export default function CategoriesScreen({ navigation, route }: Props) {
   }
 
   function handleBuild(weekly: number, lumpSum: number = 0) {
-    // Go straight to Results — skip RiskTolerance and InvestmentScreen
+    // Derive risk from category selections
+    const aggressive = ['AI & Technology', 'Robotics & Innovation', 'Crypto & Blockchain', 'Healthcare & Biotech', 'Emerging & International Markets', 'Clean Energy & Environment', 'Quantum Computing'];
+    const safe = ['Bonds & Fixed Income', 'Dividends & Income', 'Real Estate', 'Consumer & Retail', 'Money Market / Cash-like', 'Municipal Bonds', 'Preferred Stock'];
+    const aggCount = categories.filter(c => aggressive.includes(c)).length;
+    const safeCount = categories.filter(c => safe.includes(c)).length;
+    const total = categories.length || 1;
+    const riskTolerance = aggCount / total > 0.5 ? 5 : safeCount / total > 0.5 ? 1 : 3;
+
     navigation.navigate('Results', {
       data: {
         name,
         categories,
-        riskTolerance: 3,       // default moderate
+        riskTolerance,
         lumpSum,
         weeklyContribution: weekly,
-        age: 30,                // default, can be refined later
+        age: 30,
       },
     });
   }

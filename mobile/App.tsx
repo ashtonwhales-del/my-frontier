@@ -35,6 +35,8 @@ import SubscriptionAuditScreen from './src/screens/SubscriptionAuditScreen';
 import MyPortfolioScreen       from './src/screens/MyPortfolioScreen';
 import CommunityScreen         from './src/screens/CommunityScreen';
 import LessonReaderScreen      from './src/screens/LessonReaderScreen';
+import ETFMatcherGame          from './src/screens/games/ETFMatcherGame';
+import RiskQuizGame            from './src/screens/games/RiskQuizGame';
 import ProfileScreen           from './src/screens/ProfileScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -97,6 +99,8 @@ export default function App() {
             <Stack.Screen name="MyPortfolio"       component={MyPortfolioScreen} />
             <Stack.Screen name="Community"         component={CommunityScreen} />
             <Stack.Screen name="LessonReader"      component={LessonReaderScreen} />
+            <Stack.Screen name="ETFMatcherGame"    component={ETFMatcherGame} />
+            <Stack.Screen name="RiskQuizGame"      component={RiskQuizGame} />
             <Stack.Screen name="Profile"           component={ProfileScreen} />
           </Stack.Navigator>
         </NavigationContainer>

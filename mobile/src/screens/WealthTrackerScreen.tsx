@@ -343,7 +343,7 @@ export default function WealthTrackerScreen({ navigation }: Props) {
         const sorted = saved.sort((a, b) => b.createdAt - a.createdAt);
         setPortfolios(sorted);
         // Auto-select the 2 most recent for comparison
-        setSelectedIds(sorted.slice(0, 2).map(p => p.id));
+        setSelectedIds(sorted.map(p => p.id)); // select all by default
       } catch {}
     }
   }
@@ -353,7 +353,7 @@ export default function WealthTrackerScreen({ navigation }: Props) {
   function toggleSelect(id: string) {
     setSelectedIds(prev => {
       if (prev.includes(id)) return prev.filter(x => x !== id);
-      if (prev.length >= 3) return [...prev.slice(1), id]; // max 3
+      // No limit — show all selected portfolios
       return [...prev, id];
     });
   }

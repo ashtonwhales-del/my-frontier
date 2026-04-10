@@ -56,12 +56,31 @@ function TierHeader({ label, color }: { label: string; color: string }) {
 export default function LearningScreen({ navigation }: Props) {
   const [completed, setCompleted] = useState<string[]>([]);
   const [openLesson, setOpenLesson] = useState<Lesson | null>(null);
+  const [intUnlocked, setIntUnlocked] = useState(false);
+  const [advUnlocked, setAdvUnlocked] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE.LESSONS_COMPLETE)
       .then(raw => raw ? setCompleted(JSON.parse(raw)) : null)
       .catch(() => null);
+    AsyncStorage.getItem('learning_intermediate_unlocked').then(v => setIntUnlocked(v === 'true'));
+    AsyncStorage.getItem('learning_advanced_unlocked').then(v => setAdvUnlocked(v === 'true'));
   }, []);
+
+  function unlockTier(tier: 'intermediate' | 'advanced') {
+    Alert.alert('Watch an Ad', `Watch a short ad to unlock ${tier} lessons`, [
+      { text: 'Cancel' },
+      { text: 'Watch Ad', onPress: () => {
+        setTimeout(() => {
+          const key = `learning_${tier}_unlocked`;
+          AsyncStorage.setItem(key, 'true');
+          if (tier === 'intermediate') setIntUnlocked(true);
+          else setAdvUnlocked(true);
+          Alert.alert('Unlocked!', `${tier} lessons are now available.`);
+        }, 1500);
+      }},
+    ]);
+  }
 
   function handleLessonPress(lesson: Lesson) {
     const pages = lesson.content.split('\n\n').filter(p => p.trim().length > 0);
@@ -87,7 +106,9 @@ export default function LearningScreen({ navigation }: Props) {
   }
 
   function handleGamePress(game: Game) {
-    Alert.alert(game.title, game.desc + '\n\nGame coming soon!');
+    if (game.id === 'etf_matcher') navigation.navigate('ETFMatcherGame' as any);
+    else if (game.id === 'risk_quiz') navigation.navigate('RiskQuizGame' as any);
+    else Alert.alert(game.title, game.desc);
   }
 
   const totalLessons = LESSONS.length;
@@ -128,8 +149,10 @@ export default function LearningScreen({ navigation }: Props) {
         <AdBanner placement="banner" style={{ marginVertical: spacing.sm }} />
 
         {/* Intermediate */}
-        <TierHeader label="📈 Intermediate" color="#4361EE" />
-        {LESSONS.filter(l => l.tier === 'intermediate').map(lesson => {
+        <TouchableOpacity onPress={() => !intUnlocked && unlockTier('intermediate')}>
+          <TierHeader label={intUnlocked ? "📈 Intermediate ✓" : "📈 Intermediate 🔒"} color="#4361EE" />
+        </TouchableOpacity>
+        {intUnlocked && LESSONS.filter(l => l.tier === 'intermediate').map(lesson => {
           const done = completed.includes(lesson.id);
           return (
             <TouchableOpacity key={lesson.id} style={[sh.card, done && sh.cardDone]} onPress={() => handleLessonPress(lesson)} activeOpacity={0.85}>
@@ -139,10 +162,13 @@ export default function LearningScreen({ navigation }: Props) {
             </TouchableOpacity>
           );
         })}
+        {!intUnlocked && <Text style={sh.lockHint}>Tap above to unlock with a short ad</Text>}
 
         {/* Advanced */}
-        <TierHeader label="🔬 Advanced" color="#7209B7" />
-        {LESSONS.filter(l => l.tier === 'advanced').map(lesson => {
+        <TouchableOpacity onPress={() => !advUnlocked && unlockTier('advanced')}>
+          <TierHeader label={advUnlocked ? "🔬 Advanced ✓" : "🔬 Advanced 🔒"} color="#7209B7" />
+        </TouchableOpacity>
+        {advUnlocked && LESSONS.filter(l => l.tier === 'advanced').map(lesson => {
           const done = completed.includes(lesson.id);
           return (
             <TouchableOpacity key={lesson.id} style={[sh.card, done && sh.cardDone]} onPress={() => handleLessonPress(lesson)} activeOpacity={0.85}>
@@ -195,6 +221,7 @@ const sh = StyleSheet.create({
   lessonTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   lockedText: { color: colors.textSecondary },
   doneCheck: { fontSize: 18, color: '#06D6A0', fontWeight: '900' },
+  lockHint: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginVertical: spacing.sm },
   lockIcon: { fontSize: 16 },
   gameInfo: { flex: 1 },
   gameDesc: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
