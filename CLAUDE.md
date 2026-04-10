@@ -1496,3 +1496,40 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/App.tsx` | Registered LessonReaderScreen |
 
 *Last updated: 2026-04-09 — Phase 25 complete.*
+
+---
+
+## Phase 26 Changes — Fix Remaining + Unlimited Compare (2026-04-09)
+
+### Wealth Journey Legend (TASK 2)
+- Legend now shows expected return % next to each portfolio name: "Moderate Portfolio (16.8%)"
+- Makes it clear which line belongs to which portfolio even when projections overlap
+
+### Learning Reader Fix (TASK 3)
+- Added console.log confirmation of page count before navigation
+- Ensured pages array is always non-empty (falls back to full content as single page)
+
+### Chart Scrubber Fix (TASK 4)
+- Added `onStartShouldSetPanResponderCapture` and `onMoveShouldSetPanResponderCapture` for reliable touch capture
+- Replaced SVG wrapper with absolute overlay `pointerEvents="box-only"` to avoid SVG touch conflicts
+- Scrubber data card renders above chart area
+
+### Unlimited Compare (TASK 5)
+- **Complete rewrite of CompareScreen.tsx** (141 lines, was 203)
+- Multi-select checkboxes instead of A/B slot picker — select any number of portfolios
+- Horizontal scroll comparison table: fixed metric labels on left, portfolio columns scroll right
+- 7 metrics: Grade, Score, Return, Risk, Sharpe, Diversification, ETFs
+- Per-row winner highlighting in green for best value
+- "Best" badge on portfolio with highest overall score
+- No portfolio limit — compare 2, 5, or 10 simultaneously
+- Removed all Premium/free-tier gating
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `mobile/src/screens/WealthTrackerScreen.tsx` | Return % in legend labels |
+| `mobile/src/screens/LearningScreen.tsx` | Console log + page array fallback |
+| `mobile/src/components/results/HistoricalChart.tsx` | PanResponder capture + absolute overlay |
+| `mobile/src/screens/CompareScreen.tsx` | Full rewrite: unlimited multi-select comparison |
+
+*Last updated: 2026-04-09 — Phase 26 complete.*

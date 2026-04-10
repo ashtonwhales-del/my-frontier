@@ -64,12 +64,13 @@ export default function LearningScreen({ navigation }: Props) {
   }, []);
 
   function handleLessonPress(lesson: Lesson) {
-    // Split content into pages for the book reader
     const pages = lesson.content.split('\n\n').filter(p => p.trim().length > 0);
+    const finalPages = pages.length > 0 ? pages : [lesson.content];
+    console.log('[LessonReader] navigating with', finalPages.length, 'pages');
     navigation.navigate('LessonReader' as any, {
       lessonId: lesson.id,
       title: lesson.title,
-      pages: pages.length > 0 ? pages : [lesson.content],
+      pages: finalPages,
       tier: lesson.tier,
     });
   }

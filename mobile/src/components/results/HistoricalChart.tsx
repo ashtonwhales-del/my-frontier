@@ -46,11 +46,14 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
   const [error, setError] = useState<string | null>(null);
   const [scrubIdx, setScrubIdx] = useState<number | null>(null);
 
+  const updateScrub = (x: number) => { if (points.length) setScrubIdx(Math.min(Math.max(0, Math.floor((x / CHART_W) * points.length)), points.length - 1)); };
   const panResponder = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponderCapture: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (e) => { const x = e.nativeEvent.locationX; if (points.length) setScrubIdx(Math.min(Math.max(0, Math.floor((x / CHART_W) * points.length)), points.length - 1)); },
-    onPanResponderMove: (e) => { const x = e.nativeEvent.locationX; if (points.length) setScrubIdx(Math.min(Math.max(0, Math.floor((x / CHART_W) * points.length)), points.length - 1)); },
+    onMoveShouldSetPanResponderCapture: () => true,
+    onPanResponderGrant: (e) => updateScrub(e.nativeEvent.locationX),
+    onPanResponderMove: (e) => updateScrub(e.nativeEvent.locationX),
     onPanResponderRelease: () => setScrubIdx(null),
   })).current;
 
@@ -85,7 +88,7 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
         <Text style={styles.errorText}>{error}</Text>
       ) : (
         <>
-          <View {...panResponder.panHandlers}>
+          <View style={{ position: 'relative' }}>
           {scrubIdx !== null && points[scrubIdx] && (
             <View style={styles.scrubCard}>
               <Text style={styles.scrubDate}>{points[scrubIdx].date}</Text>
@@ -113,6 +116,7 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
             {/* Portfolio line (blue) */}
             <Polyline points={toPoints(points, 'portfolio', minV, maxV)} fill="none" stroke={colors.primary} strokeWidth={2.5} />
           </Svg>
+          <View style={StyleSheet.absoluteFill} {...panResponder.panHandlers} pointerEvents="box-only" />
           </View>
 
           {/* Legend */}

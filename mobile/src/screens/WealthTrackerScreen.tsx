@@ -150,7 +150,9 @@ function ProjectionChart({ portfolios, selectedIds }: ProjectionChartProps) {
           const nameCount: Record<string, number> = {};
           return selected.map((p, idx) => {
             nameCount[p.name] = (nameCount[p.name] || 0) + 1;
-            const label = nameCount[p.name] > 1 ? `${p.name} #${nameCount[p.name]}` : p.name;
+            const suffix = nameCount[p.name] > 1 ? ` #${nameCount[p.name]}` : '';
+            const retPct = (p.result.performance.expected_annual_return * 100).toFixed(1);
+            const label = `${p.name}${suffix} (${retPct}%)`;
             return (
               <View key={p.id} style={chartStyles.legendItem}>
                 <View style={[chartStyles.legendDot, { backgroundColor: LINE_COLORS[idx % LINE_COLORS.length] }]} />
