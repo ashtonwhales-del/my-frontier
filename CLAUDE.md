@@ -1367,3 +1367,37 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/src/components/TabShell.tsx` | Updated comment |
 
 *Last updated: 2026-04-09 — Phase 22 complete.*
+
+---
+
+## Phase 23 Changes — Debt Strategy + Alex Q&A + Community Chat (2026-04-09)
+
+### Debt Planner: Selectable Strategies (TASK 1)
+- Added `selectedStrategy` state defaulting to 'avalanche'
+- Strategy cards now tappable — selected gets green border + "SELECTED ✓" badge
+- Added "YOUR PAYOFF ORDER" section showing debts sorted by selected strategy (APR desc for avalanche, balance asc for snowball) with estimated payoff dates
+
+### Alex: Curated Q&A (TASK 2)
+- **Complete rewrite of AdvisorScreen.tsx** (127 lines, was 273)
+- Removed all API calls, text input, message history, premium checks
+- 5 category chips: My Portfolio / Investing Basics / The Math / Planning / About My Frontier
+- 23 hardcoded Q&A pairs covering scores, diversification, ETFs, Sharpe ratio, compound interest, Modern Portfolio Theory, retirement planning, and more
+- Tap question → shows answer with Alex avatar and "Ask another" button
+- Portfolio context card shows grade + return % + risk % when available
+- Instant, free, never fails
+
+### Community: Feed + Chat (TASK 3)
+- **Complete rewrite of CommunityScreen.tsx** (173 lines, was 126)
+- Two tabs: Feed and Chat with underline selector
+- Feed: "Share My Portfolio" button loads from AsyncStorage, shows picker alert; 8 mock posts with likes
+- Chat: pre-populated with 5 starter messages; text input + send; user messages blue (right-aligned), others dark (left-aligned); auto-generated username stored in AsyncStorage; auto-scroll on send
+- Removed all navigation to Categories/portfolio builder
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `mobile/src/screens/DebtPlannerScreen.tsx` | Selectable strategy cards + payoff order section |
+| `mobile/src/screens/AdvisorScreen.tsx` | Full rewrite: curated Q&A, no API, 23 questions |
+| `mobile/src/screens/CommunityScreen.tsx` | Full rewrite: Feed+Chat tabs, portfolio sharing, local chat |
+
+*Last updated: 2026-04-09 — Phase 23 complete.*

@@ -1,273 +1,127 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+/**
+ * AdvisorScreen.tsx — Curated Q&A with Alex
+ * No API calls. All answers hardcoded locally. Instant, free, never fails.
+ */
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, OptimizeResponse, BudgetContext } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
-import { STORAGE, FREE_LIMITS } from '../constants';
-import { callAdvisor, checkAlexStatus } from '../api';
-import { canSendAlexMessage, decrementAlexMessages, isPremium } from '../services/premiumService';
-import { showRewardedAd } from '../components/ads/RewardedAd';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Advisor'>;
   route: RouteProp<RootStackParamList, 'Advisor'>;
 };
 
-interface ChatMessage { role: 'user' | 'assistant'; content: string; }
+interface QA { q: string; a: string; cat: string }
 
-const PORTFOLIO_SUGGESTED = [
-  'What does my Frontier Score mean?',
-  'How can I improve my portfolio?',
-  'What is the Efficient Frontier?',
-  'Should I be worried about my risk level?',
+const CATEGORIES = ['My Portfolio', 'Investing Basics', 'The Math', 'Planning', 'About My Frontier'] as const;
+
+const QA_DATA: QA[] = [
+  { cat: 'My Portfolio', q: 'What does my Frontier Score mean?', a: 'Your Frontier Score measures how efficiently your portfolio converts risk into return on a scale of 0-10. Higher is better. It uses the Sharpe ratio. A score above 7.5 means excellent risk-adjusted performance.' },
+  { cat: 'My Portfolio', q: 'How can I improve my portfolio?', a: 'Add more uncorrelated assets like bonds and international ETFs. Reduce concentration by ensuring no single ETF holds more than 15%. More sectors means a better diversification score.' },
+  { cat: 'My Portfolio', q: 'Why is my risk score this high?', a: 'Risk score shows expected annual volatility. Higher risk often comes with higher expected returns. To reduce it, add bonds (AGG, BND) or dividend ETFs which tend to be more stable.' },
+  { cat: 'My Portfolio', q: 'What does my diversification score mean?', a: 'Diversification score (0-10) measures how uncorrelated your ETFs are. Above 7 means genuinely well-spread holdings. Low correlation means when one ETF drops, others hold steady or rise.' },
+  { cat: 'My Portfolio', q: 'What is my expected return based on?', a: 'Expected return is based on historical performance of each ETF, annualized and weighted by your allocation. Past performance helps estimate trends but never guarantees future results.' },
+  { cat: 'My Portfolio', q: 'How were my ETFs chosen?', a: 'The Efficient Frontier algorithm selects ETF weights that maximize the Sharpe ratio, giving you the best possible return for your chosen risk level. Core holdings like VTI, SPY, QQQ always form the foundation.' },
+  { cat: 'Investing Basics', q: 'What is an ETF?', a: 'An ETF (Exchange-Traded Fund) is a basket of stocks or bonds that trades like a single stock. Instead of buying Apple individually, QQQ gives you the top 100 tech companies at once with instant diversification.' },
+  { cat: 'Investing Basics', q: 'What is diversification?', a: 'Diversification means spreading investments across different assets so they do not all move together. It is the only "free lunch" in investing, reducing risk without reducing expected return.' },
+  { cat: 'Investing Basics', q: 'What is the Sharpe ratio?', a: 'The Sharpe ratio measures return per unit of risk. A ratio of 1.0 means you earn 1% extra return for each 1% of volatility. Higher is always better as it shows the quality of your returns.' },
+  { cat: 'Investing Basics', q: 'Why do expense ratios matter?', a: 'Expense ratios are annual fees charged by ETFs. A 0.5% difference costs tens of thousands over 30 years due to compounding. My Frontier prioritizes low-cost ETFs in every portfolio.' },
+  { cat: 'Investing Basics', q: 'What is dollar cost averaging?', a: 'Investing the same amount regularly regardless of price. When prices drop you buy more shares, when prices rise you buy fewer. Over time this removes the risk of bad timing.' },
+  { cat: 'Investing Basics', q: 'Should I invest during a crash?', a: 'Historically, yes. Every crash in history has recovered. Investors who kept buying during 2008 and 2020 saw massive gains in the years that followed. Time in the market beats timing.' },
+  { cat: 'The Math', q: 'What is the Efficient Frontier?', a: 'A Nobel Prize-winning concept showing every portfolio that maximizes return for each level of risk. Your portfolio is optimized to sit on or near this curve for maximum efficiency.' },
+  { cat: 'The Math', q: 'How does compound interest work?', a: 'Your returns earn returns. $100 at 8% becomes $1,006 in 30 years, not $340. The longer you invest, the more powerful compounding becomes. Starting early is the single biggest advantage.' },
+  { cat: 'The Math', q: 'What is Modern Portfolio Theory?', a: 'Created by Harry Markowitz in 1952 (Nobel Prize 1990). The key insight: combining uncorrelated assets reduces portfolio risk below the risk of any individual asset. This is the math behind My Frontier.' },
+  { cat: 'The Math', q: 'How is the Frontier Score calculated?', a: 'Frontier Score = 10 x (1 - e^(-1.8 x Sharpe)). This maps the Sharpe ratio to a 0-10 scale where 7.5+ requires genuinely excellent risk-adjusted returns with a Sharpe above 0.93.' },
+  { cat: 'The Math', q: 'What does correlation mean?', a: 'Correlation (-1 to +1) measures how much two assets move together. Low correlation (below 0.5) between your ETFs means better diversification, the mathematical key to the Efficient Frontier.' },
+  { cat: 'Planning', q: 'How much should I invest per week?', a: '20% of take-home pay is a solid starting point. Use the Budget tab to find your actual surplus. Even $25/week grows to over $100,000 in 30 years at 7% average return.' },
+  { cat: 'Planning', q: 'Should I pay off debt or invest?', a: 'High interest debt (above 7% APR): pay it off first. The guaranteed return from eliminating that interest beats most investments. Low interest debt: invest simultaneously.' },
+  { cat: 'Planning', q: 'What is the 4% retirement rule?', a: 'Withdraw 4% of your portfolio annually in retirement with very low risk of running out. A $1 million portfolio equals $40,000 per year. Work backwards from your target income to set your goal.' },
+  { cat: 'About My Frontier', q: 'How does My Frontier work?', a: 'Select sectors, set your weekly contribution, and the Efficient Frontier algorithm optimizes ETF weights to maximize your Sharpe ratio. Same math used by institutional investors, free for everyone.' },
+  { cat: 'About My Frontier', q: 'Is this financial advice?', a: 'No. My Frontier is an educational tool only. It uses real math and real data, but you should always consult a licensed financial advisor before making investment decisions with real money.' },
+  { cat: 'About My Frontier', q: 'How often should I rebuild?', a: 'Every 90 days or after major life changes like a new job, marriage, or inheritance. Market conditions shift and reoptimizing keeps your portfolio aligned with current data.' },
 ];
 
-const BUDGET_SUGGESTED = [
-  'Am I spending too much on food?',
-  'How do I find more money to invest?',
-  'What is the 50/30/20 rule?',
-  'Should I pay off debt or invest first?',
-];
-
-const HISTORY_KEY = (name: string) => `${STORAGE.ADVISOR_HISTORY}_${name}`;
+function gradeColor(g: string) { return g === 'A' ? '#10B981' : g === 'B' ? '#3B82F6' : g === 'C' ? '#F59E0B' : '#EF4444'; }
 
 export default function AdvisorScreen({ navigation, route }: Props) {
-  const { portfolio, budgetContext } = route.params;
-  const SUGGESTED = budgetContext ? BUDGET_SUGGESTED : PORTFOLIO_SUGGESTED;
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [remaining, setRemaining] = useState<number>(FREE_LIMITS.alexMessagesPerDay);
-  const [premium, setPremium] = useState(false);
-  const [alexOk, setAlexOk] = useState<boolean | null>(null);
-  const scrollRef = useRef<ScrollView>(null);
-  const userName = portfolio?.profile?.name ?? 'there';
-  const histKey = HISTORY_KEY(userName);
-
-  useEffect(() => {
-    (async () => {
-      // Check Alex connectivity silently
-      checkAlexStatus().then(ok => { setAlexOk(ok); console.log('[Alex] status:', ok); });
-      const [prem, { remaining: rem }] = await Promise.all([isPremium(), canSendAlexMessage()]);
-      setPremium(prem);
-      setRemaining(prem ? 999 : rem);
-
-      const storedHistory = await AsyncStorage.getItem(histKey);
-      if (storedHistory) {
-        try { setMessages(JSON.parse(storedHistory)); } catch {}
-      } else {
-        const greetingContent = budgetContext
-          ? `Hi ${userName}! I'm Alex. I can see your budget — you have $${budgetContext.surplus.toFixed(0)} left this month as a ${budgetContext.spendingDNA}. That's $${(budgetContext.surplus / 4.33).toFixed(0)}/week you could invest. What would you like to know?`
-          : portfolio
-            ? `Hi ${userName}! I'm Alex, your personal portfolio guide. I can see your ${portfolio.profile.risk_label} portfolio with a ${portfolio.scores.grade} grade. What would you like to know?`
-            : `Hi! I'm Alex, your personal finance guide. How can I help you today?`;
-        const greeting: ChatMessage = {
-          role: 'assistant',
-          content: greetingContent,
-        };
-        setMessages([greeting]);
-        await AsyncStorage.setItem(histKey, JSON.stringify([greeting]));
-      }
-    })();
-  }, []);
-
-  async function handleSend(text?: string) {
-    const msg = (text ?? input).trim();
-    if (!msg || loading) return;
-
-    const { allowed, remaining: rem } = await canSendAlexMessage();
-    if (!allowed && !premium) { setRemaining(0); return; }
-
-    const userMsg: ChatMessage = { role: 'user', content: msg };
-    const updatedHistory = [...messages, userMsg];
-    setMessages(updatedHistory);
-    setInput('');
-    setLoading(true);
-
-    if (!premium) {
-      const newRem = await decrementAlexMessages();
-      setRemaining(newRem);
-    }
-
-    try {
-      const reply = await callAdvisor(updatedHistory, portfolio ?? null);
-      const alexMsg: ChatMessage = { role: 'assistant', content: reply };
-      const finalHistory = [...updatedHistory, alexMsg];
-      setMessages(finalHistory);
-      await AsyncStorage.setItem(histKey, JSON.stringify(finalHistory));
-    } catch (e: any) {
-      const detail = e?.message ?? '';
-      const content = detail.includes('503')
-        ? "Alex isn't available — add GEMINI_API_KEY or ANTHROPIC_API_KEY to the server .env."
-        : detail.includes('429')
-        ? "You've sent messages too quickly. Please wait a moment and try again."
-        : detail.includes('No internet')
-        ? "No internet connection. Please check your network."
-        : `Sorry, I couldn't respond. ${detail ? `(${detail})` : 'Check the server is running.'}`;
-      setMessages([...updatedHistory, { role: 'assistant', content }]);
-    } finally {
-      setLoading(false);
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-    }
-  }
-
-  function handleUnlockAd() {
-    showRewardedAd(async () => {
-      const newRem = remaining + 10;
-      setRemaining(newRem);
-      await AsyncStorage.setItem(STORAGE.ADVISOR_MSGS_REMAINING, String(newRem));
-    });
-  }
-
-  const showInput = premium || remaining > 0;
-  const limitLabel = premium
-    ? 'Unlimited messages'
-    : `${remaining} free message${remaining !== 1 ? 's' : ''} today — upgrade for unlimited`;
+  const { portfolio } = route.params;
+  const [activeCat, setActiveCat] = useState<string>(CATEGORIES[0]);
+  const [selectedQA, setSelectedQA] = useState<QA | null>(null);
+  const filtered = QA_DATA.filter(qa => qa.cat === activeCat);
 
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>←</Text>
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerAvatar}>🤖</Text>
-          <View>
-            <Text style={styles.headerTitle}>Alex</Text>
-            <Text style={styles.headerSub}>Portfolio Educator</Text>
-          </View>
-        </View>
+    <View style={s.root}>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}><Text style={s.backText}>{'<'}</Text></TouchableOpacity>
+        <Text style={s.title}>Ask Alex</Text>
+        <Text style={{ fontSize: 24 }}>🤖</Text>
       </View>
 
-      {alexOk === false && (
-        <View style={{ backgroundColor: '#F59E0B22', paddingVertical: 8, paddingHorizontal: spacing.md, borderBottomWidth: 1, borderBottomColor: '#F59E0B' }}>
-          <Text style={{ color: '#F59E0B', fontSize: 12, fontWeight: '600', textAlign: 'center' }}>Alex is having trouble connecting. Responses may be slow.</Text>
+      {portfolio && (
+        <View style={s.portfolioCard}>
+          <Text style={[s.grade, { color: gradeColor(portfolio.scores.grade) }]}>{portfolio.scores.grade}</Text>
+          <View>
+            <Text style={s.portfolioStat}>{(portfolio.performance.expected_annual_return * 100).toFixed(1)}% return</Text>
+            <Text style={s.portfolioStat}>{(portfolio.performance.annual_volatility * 100).toFixed(1)}% risk</Text>
+          </View>
         </View>
       )}
 
-      {/* Messages */}
-      <ScrollView ref={scrollRef} style={styles.messageList} contentContainerStyle={styles.messageListContent} showsVerticalScrollIndicator={false} onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}>
-        {messages.map((msg, i) => (
-          <View key={i} style={[styles.bubbleRow, msg.role === 'user' ? styles.bubbleRowUser : styles.bubbleRowAlex]}>
-            {msg.role === 'assistant' && <View style={styles.avatarCircle}><Text style={styles.avatarEmoji}>🤖</Text></View>}
-            <View style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAlex]}>
-              <Text style={[styles.bubbleText, msg.role === 'user' && styles.bubbleTextUser]}>{msg.content}</Text>
-            </View>
-          </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.catScroll} contentContainerStyle={s.catRow}>
+        {CATEGORIES.map(cat => (
+          <TouchableOpacity key={cat} style={[s.catChip, activeCat === cat && s.catChipActive]} onPress={() => { setActiveCat(cat); setSelectedQA(null); }}>
+            <Text style={[s.catText, activeCat === cat && s.catTextActive]}>{cat}</Text>
+          </TouchableOpacity>
         ))}
-        {loading && (
-          <View style={[styles.bubbleRow, styles.bubbleRowAlex]}>
-            <View style={styles.avatarCircle}><Text style={styles.avatarEmoji}>🤖</Text></View>
-            <View style={[styles.bubble, styles.bubbleAlex, styles.bubbleTyping]}>
-              <ActivityIndicator size="small" color={colors.textMuted} />
-              <Text style={styles.typingText}>Alex is thinking…</Text>
-            </View>
-          </View>
-        )}
       </ScrollView>
 
-      {/* Input or unlock */}
-      {showInput ? (
-        <View style={styles.inputBar}>
-          <Text style={styles.limitLabel}>{limitLabel}</Text>
-          {/* Suggested questions (only if no conversation yet) */}
-          {messages.length <= 1 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestRow} contentContainerStyle={styles.suggestContent}>
-              {SUGGESTED.map(q => (
-                <TouchableOpacity key={q} style={styles.suggestChip} onPress={() => handleSend(q)} activeOpacity={0.75}>
-                  <Text style={styles.suggestText}>{q}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.input}
-              placeholder="Ask Alex anything about your portfolio…"
-              placeholderTextColor={colors.textMuted}
-              value={input}
-              onChangeText={setInput}
-              multiline
-              maxLength={300}
-              returnKeyType="send"
-              blurOnSubmit
-              onSubmitEditing={() => handleSend()}
-            />
-            <TouchableOpacity style={[styles.sendBtn, (!input.trim() || loading) && styles.sendBtnDisabled]} onPress={() => handleSend()} disabled={!input.trim() || loading} activeOpacity={0.8}>
-              <Text style={styles.sendBtnText}>↑</Text>
-            </TouchableOpacity>
+      <ScrollView style={s.body} contentContainerStyle={s.bodyContent} showsVerticalScrollIndicator={false}>
+        {selectedQA ? (
+          <View style={s.answerCard}>
+            <View style={s.alexRow}><View style={s.alexCircle}><Text style={{ fontSize: 20 }}>🤖</Text></View><Text style={s.alexName}>Alex</Text></View>
+            <Text style={s.questionText}>{selectedQA.q}</Text>
+            <Text style={s.answerText}>{selectedQA.a}</Text>
+            <Text style={s.disclaimer}>For education only, not financial advice.</Text>
+            <TouchableOpacity style={s.anotherBtn} onPress={() => setSelectedQA(null)}><Text style={s.anotherText}>Ask another question</Text></TouchableOpacity>
           </View>
-        </View>
-      ) : (
-        <View style={styles.unlockBar}>
-          <Text style={styles.unlockTitle}>Daily messages refreshing</Text>
-          <Text style={styles.unlockSub}>Resets at midnight. Watch an ad for more right now.</Text>
-          <View style={styles.unlockBtns}>
-            <TouchableOpacity style={styles.unlockAdBtn} onPress={handleUnlockAd} activeOpacity={0.8}>
-              <Text style={styles.unlockAdBtnText}>Watch Ad (+10 messages)</Text>
+        ) : (
+          filtered.map((qa, i) => (
+            <TouchableOpacity key={i} style={s.qCard} onPress={() => setSelectedQA(qa)} activeOpacity={0.8}>
+              <Text style={s.qText}>{qa.q}</Text>
+              <Text style={s.qArrow}>→</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-      )}
-    </KeyboardAvoidingView>
+          ))
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border, gap: spacing.sm },
-  backBtn: { padding: spacing.sm },
-  backText: { fontSize: 22, color: colors.primary, fontWeight: '700' },
-  headerCenter: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  headerAvatar: { fontSize: 28 },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: colors.textPrimary },
-  headerSub: { fontSize: 11, color: colors.textSecondary },
-  upgradeChip: { backgroundColor: '#F59E0B', borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
-  upgradeChipText: { color: '#000', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
-  messageList: { flex: 1 },
-  messageListContent: { padding: spacing.md, gap: spacing.md },
-  bubbleRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm },
-  bubbleRowUser: { justifyContent: 'flex-end' },
-  bubbleRowAlex: { justifyContent: 'flex-start' },
-  avatarCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  avatarEmoji: { fontSize: 18 },
-  bubble: { maxWidth: '75%', borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 10, ...shadow.sm },
-  bubbleUser: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
-  bubbleAlex: { backgroundColor: colors.card, borderBottomLeftRadius: 4 },
-  bubbleTyping: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 12 },
-  bubbleText: { fontSize: 14, color: colors.textPrimary, lineHeight: 20 },
-  bubbleTextUser: { color: '#fff' },
-  typingText: { fontSize: 13, color: colors.textMuted },
-  inputBar: { backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border, padding: spacing.md, paddingBottom: Platform.OS === 'ios' ? 32 : spacing.md },
-  limitLabel: { fontSize: 11, color: colors.textMuted, textAlign: 'center', marginBottom: spacing.xs },
-  suggestRow: { marginBottom: spacing.sm },
-  suggestContent: { gap: spacing.sm, paddingRight: spacing.sm },
-  suggestChip: { backgroundColor: colors.bg, borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 6 },
-  suggestText: { fontSize: 12, color: colors.primary, fontWeight: '600' },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm },
-  input: { flex: 1, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 10, fontSize: 14, color: colors.textPrimary, maxHeight: 120, backgroundColor: colors.bg },
-  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', ...shadow.md },
-  sendBtnDisabled: { opacity: 0.4 },
-  sendBtnText: { color: '#fff', fontSize: 20, fontWeight: '700' },
-  unlockBar: { backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border, padding: spacing.lg, paddingBottom: Platform.OS === 'ios' ? 40 : spacing.lg, alignItems: 'center', gap: spacing.sm },
-  unlockTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
-  unlockSub: { fontSize: 13, color: colors.textSecondary, textAlign: 'center' },
-  unlockBtns: { width: '100%', gap: spacing.sm, marginTop: spacing.xs },
-  unlockAdBtn: { backgroundColor: '#7209B7', borderRadius: radius.md, paddingVertical: 13, alignItems: 'center', ...shadow.md },
-  unlockAdBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  upgradeBigBtn: { backgroundColor: '#F59E0B', borderRadius: radius.md, paddingVertical: 13, alignItems: 'center', ...shadow.md },
-  upgradeBigBtnText: { color: '#000', fontSize: 14, fontWeight: '800' },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.bg },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' }, backText: { color: colors.primary, fontSize: 22, fontWeight: '700' },
+  title: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
+  portfolioCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, margin: spacing.lg, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md },
+  grade: { fontSize: 36, fontWeight: '900' }, portfolioStat: { fontSize: 13, color: colors.textSecondary },
+  catScroll: { maxHeight: 48, borderBottomWidth: 1, borderBottomColor: colors.border },
+  catRow: { paddingHorizontal: spacing.lg, gap: spacing.sm, alignItems: 'center' },
+  catChip: { backgroundColor: colors.card, borderRadius: radius.full, paddingHorizontal: 16, paddingVertical: 8, borderWidth: 1, borderColor: colors.border },
+  catChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  catText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary }, catTextActive: { color: '#fff' },
+  body: { flex: 1 }, bodyContent: { padding: spacing.lg, gap: spacing.sm },
+  qCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md },
+  qText: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.textPrimary }, qArrow: { fontSize: 18, color: colors.textMuted, marginLeft: 8 },
+  answerCard: { backgroundColor: colors.card, borderRadius: radius.lg, borderLeftWidth: 4, borderLeftColor: colors.primary, padding: spacing.lg },
+  alexRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
+  alexCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center' },
+  alexName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  questionText: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.md },
+  answerText: { fontSize: 15, color: colors.textSecondary, lineHeight: 24, marginBottom: spacing.md },
+  disclaimer: { fontSize: 11, color: colors.textMuted, marginBottom: spacing.md },
+  anotherBtn: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 12, alignItems: 'center' },
+  anotherText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 });

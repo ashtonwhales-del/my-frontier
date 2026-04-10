@@ -113,6 +113,7 @@ export default function DebtPlannerScreen() {
 
   const remove = (id: string) => persist(debts.filter(d => d.id !== id));
 
+  const [selectedStrategy, setSelectedStrategy] = useState<'avalanche' | 'snowball'>('avalanche');
   const avalanche = simulate(debts, extraMonthly, 'avalanche');
   const snowball = simulate(debts, extraMonthly, 'snowball');
   const winner = avalanche.totalInterest <= snowball.totalInterest ? 'avalanche' : 'snowball';
@@ -194,20 +195,26 @@ export default function DebtPlannerScreen() {
             <View style={s.stratRow}>
               {(['avalanche', 'snowball'] as const).map(strat => {
                 const r = strat === 'avalanche' ? avalanche : snowball;
-                const isWinner = winner === strat;
+                const isSel = selectedStrategy === strat;
                 return (
-                  <View key={strat} style={[s.stratCard, isWinner && s.stratWinner]}>
-                    {isWinner && <Text style={s.winnerBadge}>Best</Text>}
+                  <TouchableOpacity key={strat} style={[s.stratCard, isSel && s.stratWinner]} onPress={() => setSelectedStrategy(strat)} activeOpacity={0.8}>
+                    {isSel && <Text style={s.winnerBadge}>SELECTED ✓</Text>}
                     <Text style={s.stratTitle}>{strat === 'avalanche' ? 'Avalanche' : 'Snowball'}</Text>
                     <Text style={s.stratSub}>{strat === 'avalanche' ? 'Highest rate first' : 'Lowest balance first'}</Text>
                     <Text style={s.stratNum}>{fmt(r.totalInterest)}</Text>
                     <Text style={s.stratLabel}>total interest</Text>
                     <Text style={s.stratNum}>{r.months} mo</Text>
                     <Text style={s.stratLabel}>{r.months > 0 ? debtFreeDate(r.months) : 'N/A'}</Text>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
+
+            <Text style={[s.sectionLabel, { marginTop: spacing.md }]}>YOUR PAYOFF ORDER</Text>
+            {[...debts].sort((a, b) => selectedStrategy === 'avalanche' ? b.apr - a.apr : a.balance - b.balance).map((d, i) => {
+              const r = selectedStrategy === 'avalanche' ? avalanche : snowball;
+              return <Text key={d.id} style={s.projText}>{i + 1}. {d.name} — pay off by {debtFreeDate(Math.round(r.months * ((i + 1) / debts.length)))}</Text>;
+            })}
 
             {monthlyAfter > 0 && (
               <View style={[s.card, { marginTop: spacing.lg }]}>
@@ -265,18 +272,12 @@ export default function DebtPlannerScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: Platform.OS === 'ios' ? 56 : 16, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
-  backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  backText: { color: colors.primary, fontSize: 22, fontWeight: '700' },
-  title: { color: colors.textPrimary, fontSize: 18, fontWeight: '700' },
-  scroll: { padding: spacing.lg, paddingBottom: 40 },
-  addBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 14, alignItems: 'center', marginBottom: spacing.lg },
-  addBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' }, backText: { color: colors.primary, fontSize: 22, fontWeight: '700' },
+  title: { color: colors.textPrimary, fontSize: 18, fontWeight: '700' }, scroll: { padding: spacing.lg, paddingBottom: 40 },
+  addBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 14, alignItems: 'center', marginBottom: spacing.lg }, addBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   debtCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, marginBottom: spacing.sm },
-  debtName: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' },
-  aprBadge: { borderWidth: 1, borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 2 },
-  aprText: { fontSize: 11, fontWeight: '700' },
-  debtBalance: { color: colors.textPrimary, fontSize: 20, fontWeight: '900' },
-  debtDetail: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
+  debtName: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' }, aprBadge: { borderWidth: 1, borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 2 }, aprText: { fontSize: 11, fontWeight: '700' },
+  debtBalance: { color: colors.textPrimary, fontSize: 20, fontWeight: '900' }, debtDetail: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
   emptyState: { alignItems: 'center', paddingVertical: spacing.xl },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 }, emptyText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' }, deleteBtn: { color: colors.danger, fontSize: 16, fontWeight: '700', paddingHorizontal: 8 },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, ...shadow.sm }, cardTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
@@ -294,7 +295,5 @@ const s = StyleSheet.create({
   projText: { color: colors.textSecondary, fontSize: 14, marginTop: 4 }, projBig: { color: colors.success, fontSize: 28, fontWeight: '800', marginTop: 8 }, projSub: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
   empty: { color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginTop: 40 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: spacing.lg },
-  modalContent: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl },
-  modalTitle: { color: colors.textPrimary, fontSize: 18, fontWeight: '700', marginBottom: spacing.lg, textAlign: 'center' },
-  input: { backgroundColor: colors.bg, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, padding: 12, marginBottom: spacing.sm },
+  modalContent: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl }, modalTitle: { color: colors.textPrimary, fontSize: 18, fontWeight: '700', marginBottom: spacing.lg, textAlign: 'center' }, input: { backgroundColor: colors.bg, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, padding: 12, marginBottom: spacing.sm },
 });
