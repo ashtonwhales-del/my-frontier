@@ -124,5 +124,6 @@ export type RootStackParamList = {
   LessonReader:      { lessonId: string; title: string; pages: string[]; tier: string };
   ETFMatcherGame:    undefined;
   RiskQuizGame:      undefined;
+  FinancialHealth:   undefined;
   Profile:           undefined;
 };

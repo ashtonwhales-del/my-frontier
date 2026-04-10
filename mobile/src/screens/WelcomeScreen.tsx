@@ -23,6 +23,7 @@ import TabShell from '../components/TabShell';
 import MarketTicker from '../components/MarketTicker';
 import AdBanner from '../components/AdBanner';
 import { PortfolioSnapshot, WeeklyInsight, DailyChallenge, QuickStats, LearningProgress } from '../components/home/HomeWidgets';
+import FinancialHealthScore from '../components/FinancialHealthScore';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Welcome'> };
 
@@ -103,6 +104,9 @@ export default function WelcomeScreen({ navigation }: Props) {
           {/* Greeting */}
           <Text style={styles.greeting}>{getGreeting()},</Text>
           <Text style={styles.userName}>{savedName}</Text>
+
+          {/* Financial Health Score — hero metric */}
+          <FinancialHealthScore navigation={navigation} />
 
           {/* Portfolio Snapshot */}
           <PortfolioSnapshot portfolios={portfolios} navigation={navigation} />
