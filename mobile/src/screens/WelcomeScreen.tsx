@@ -147,6 +147,11 @@ export default function WelcomeScreen({ navigation }: Props) {
             <Text style={styles.budgetText}>Open Budget</Text>
           </TouchableOpacity>
 
+          {/* Quick links */}
+          <TouchableOpacity onPress={() => navigation.navigate('NetWorthTimeline')} activeOpacity={0.8} style={styles.budgetBtn}>
+            <Text style={styles.budgetText}>Net Worth Timeline</Text>
+          </TouchableOpacity>
+
           {/* Learning Progress */}
           <LearningProgress completed={lessonsComplete} total={12} navigation={navigation} />
 

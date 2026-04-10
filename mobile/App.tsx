@@ -39,6 +39,7 @@ import LessonReaderScreen      from './src/screens/LessonReaderScreen';
 import ETFMatcherGame          from './src/screens/games/ETFMatcherGame';
 import RiskQuizGame            from './src/screens/games/RiskQuizGame';
 import FinancialHealthScreen   from './src/screens/FinancialHealthScreen';
+import NetWorthTimelineScreen  from './src/screens/NetWorthTimelineScreen';
 import ProfileScreen           from './src/screens/ProfileScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -105,6 +106,7 @@ export default function App() {
             <Stack.Screen name="ETFMatcherGame"    component={ETFMatcherGame} />
             <Stack.Screen name="RiskQuizGame"      component={RiskQuizGame} />
             <Stack.Screen name="FinancialHealth"   component={FinancialHealthScreen} />
+            <Stack.Screen name="NetWorthTimeline"  component={NetWorthTimelineScreen} />
             <Stack.Screen name="Profile"           component={ProfileScreen} />
           </Stack.Navigator>
         </NavigationContainer>

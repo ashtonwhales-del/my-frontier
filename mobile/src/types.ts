@@ -125,5 +125,6 @@ export type RootStackParamList = {
   ETFMatcherGame:    undefined;
   RiskQuizGame:      undefined;
   FinancialHealth:   undefined;
+  NetWorthTimeline:  undefined;
   Profile:           undefined;
 };
