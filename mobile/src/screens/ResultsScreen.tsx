@@ -44,9 +44,18 @@ async function savePortfolioToStorage(data: OnboardingData, result: OptimizeResp
   try {
     const raw = await AsyncStorage.getItem(STORAGE.SAVED_PORTFOLIOS);
     const existing: SavedPortfolio[] = raw ? JSON.parse(raw) : [];
+    // Auto-increment duplicate names: "Moderate Portfolio", "Moderate Portfolio #2", etc.
+    let baseName = `${result.profile.risk_label} Portfolio`;
+    const existingNames = existing.map(p => p.name);
+    let finalName = baseName;
+    let counter = 1;
+    while (existingNames.includes(finalName)) {
+      counter++;
+      finalName = `${baseName} #${counter}`;
+    }
     const newEntry: SavedPortfolio = {
       id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      name: `${result.profile.risk_label} Portfolio`,
+      name: finalName,
       createdAt: Date.now(),
       data,
       result,
