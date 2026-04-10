@@ -53,7 +53,7 @@ function spendingDNA(income: number, amounts: CategoryAmounts) {
 
   if (pctSpent < 0.70)    return { label: 'Saver',     emoji: '🌱', color: Colors.positive };
   if (subs > 0.15)        return { label: 'Optimizer',  emoji: '📱', color: Colors.brandGold };
-  if (housing > 0.35)     return { label: 'Builder',    emoji: '🏠', color: '#F59E0B' };
+  if (housing > 0.35)     return { label: 'Housing-heavy', emoji: '🏠', color: '#F59E0B' };
   if (pctSpent > 0.95)    return { label: 'Spender',    emoji: '💸', color: Colors.negative };
   if (pctSpent <= 0.85)   return { label: 'Balancer',   emoji: '⚖️', color: Colors.brandBlue };
   return { label: 'Balancer', emoji: '⚖️', color: Colors.brandBlue };
@@ -172,7 +172,7 @@ export default function BudgetScreen() {
           <View style={styles.dnaRow}>
             <Text style={styles.dnaInsight}>
               {dna.label === 'Saver' ? 'You spend less than 70% of your income. Great saving habits!' :
-               dna.label === 'Builder' ? 'Housing costs are above 35% of income. Look for ways to reduce fixed expenses.' :
+               dna.label === 'Housing-heavy' ? 'Housing costs are above 35% of income. Look for ways to reduce fixed expenses.' :
                dna.label === 'Optimizer' ? 'Subscriptions are over 15% of income. Review which ones you truly use.' :
                dna.label === 'Spender' ? 'Spending is above 95% of income. Finding even small cuts could fund investing.' :
                'Your spending is balanced across categories.'}

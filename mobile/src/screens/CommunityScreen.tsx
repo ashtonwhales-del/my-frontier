@@ -66,7 +66,15 @@ export default function CommunityScreen() {
     if (!portfolios.length) { Alert.alert('No Portfolios', 'Build a portfolio first to share it.'); return; }
     const buttons = portfolios.slice(0, 5).map((p: any) => ({
       text: `${p.name} (${p.result?.scores?.grade ?? '?'})`,
-      onPress: () => Alert.alert('Shared!', `${p.name} posted to the community feed.`),
+      onPress: () => {
+        const grade = p.result?.scores?.grade ?? '?';
+        const ret = ((p.result?.performance?.expected_annual_return ?? 0) * 100).toFixed(1);
+        const chatMsg: ChatMsg = { user: myName, text: `Shared: ${p.name} | Grade ${grade} | ${ret}% return`, isMe: true };
+        const next = [...msgs, chatMsg];
+        setMsgs(next);
+        AsyncStorage.setItem('communityChat', JSON.stringify(next));
+        Alert.alert('Shared!', `${p.name} posted to feed and chat.`);
+      },
     }));
     buttons.push({ text: 'Cancel', onPress: () => {} });
     Alert.alert('Share a Portfolio', 'Pick one to share:', buttons as any);

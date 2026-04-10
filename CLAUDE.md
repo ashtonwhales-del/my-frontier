@@ -1573,3 +1573,57 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 - LearningScreen game section navigates to actual games (etf_matcher → ETFMatcherGame, risk_quiz → RiskQuizGame)
 
 *Last updated: 2026-04-09 — Phase 27 complete.*
+
+---
+
+## Phase 28 Changes — Compare Fix, Price Cache, Home Redesign, Portfolio Tracker (2026-04-10)
+
+### Compare Screen Fixed Column Alignment (Step 1)
+- Metric labels now in a fixed 110px-wide left column that never scrolls
+- Portfolio data columns scroll horizontally together as one unit
+- Winner cells get gold background (#F59E0B20) + gold text
+- Single horizontal ScrollView instead of per-row scrollviews
+
+### Builder Badge Removed from Budget (Step 2)
+- Renamed 'Builder' to 'Housing-heavy' in spendingDNA function and insight text
+
+### Startup Price Cache (Step 3)
+- `api.py`: Module-level `_PRICE_CACHE` dict pre-fetches 30 core tickers on first use
+- 4-hour refresh interval via `_refresh_price_cache()`
+- New `/prices` GET endpoint returns cached prices for comma-separated tickers
+- Core tickers: VTI, SPY, QQQ, AGG, BND, GLD, VWO, VNQ, ARKK, XLK, XLF, XLE, XLV, XLI, SCHD, DGRO, VB, IJR, SCHA, VEA, VXUS, TLT, IEF, SHY, GDX, USO, XLY, XLP, XLU, XLRE
+
+### Home Screen Redesign (Step 4)
+- Added `DailyChallenge` component: 20 rotating challenges (seeded by day of year), gold-bordered card
+- `QuickStats` now shows "Day Streak" instead of "Badges" — tracks consecutive days user opened app via AsyncStorage
+- Daily challenge navigates to portfolio builder on accept
+
+### Current Portfolio Tracker (Step 5)
+| File | Purpose |
+|------|---------|
+| `mobile/src/screens/CurrentPortfolioScreen.tsx` | **Created.** Real holdings tracker: total value hero card, holdings list with ticker/shares/cost, add/delete positions, AsyncStorage persistence under 'myHoldings' |
+
+### Community Portfolio Sharing in Chat (Step 6)
+- When user shares a portfolio, it now posts as a chat message too: "Shared: [name] | Grade [X] | [Y]% return"
+- Appears in both Feed tab picker and Chat tab message list
+
+### New Files
+| File | Lines | Purpose |
+|------|-------|---------|
+| `PHASE28_SPEC.md` | 51 | Phase 28 feature spec |
+| `PHASE28_CONTENT.md` | 194 | Rich lesson content for 12 lessons |
+| `mobile/src/screens/CurrentPortfolioScreen.tsx` | 281 | Real holdings portfolio tracker |
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `api.py` | Price cache, /prices endpoint, _refresh_price_cache() |
+| `mobile/src/screens/CompareScreen.tsx` | Fixed column alignment with single horizontal scroll |
+| `mobile/src/screens/BudgetScreen.tsx` | Builder renamed to Housing-heavy |
+| `mobile/src/components/home/HomeWidgets.tsx` | DailyChallenge component, 20 challenges, streak-based QuickStats |
+| `mobile/src/screens/WelcomeScreen.tsx` | DailyChallenge added, streak tracking via AsyncStorage |
+| `mobile/src/screens/CommunityScreen.tsx` | Portfolio shares post to Chat tab |
+| `mobile/src/types.ts` | Added CurrentPortfolio route |
+| `mobile/App.tsx` | Registered CurrentPortfolioScreen |
+
+*Last updated: 2026-04-10 — Phase 28 complete.*

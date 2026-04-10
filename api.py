@@ -129,6 +129,37 @@ async def lifespan(app: FastAPI):
 
 import optimizer as opt
 
+# ── Startup price cache — pre-fetch common tickers every 4 hours ─────────────
+_PRICE_CACHE: Dict = {}  # {ticker: pd.Series}
+_PRICE_CACHE_TS: float = 0.0
+_CORE_TICKERS = [
+    "VTI", "SPY", "QQQ", "AGG", "BND", "GLD", "VWO", "VNQ", "ARKK", "XLK",
+    "XLF", "XLE", "XLV", "XLI", "SCHD", "DGRO", "VB", "IJR", "SCHA", "VEA",
+    "VXUS", "TLT", "IEF", "SHY", "GDX", "USO", "XLY", "XLP", "XLU", "XLRE",
+]
+
+
+def _refresh_price_cache() -> None:
+    global _PRICE_CACHE, _PRICE_CACHE_TS
+    if time.time() - _PRICE_CACHE_TS < 14400:  # 4 hours
+        return
+    try:
+        import yfinance as yf
+        _logger.info(f"[cache] Refreshing price cache for {len(_CORE_TICKERS)} tickers...")
+        data = yf.download(_CORE_TICKERS, period="6mo", auto_adjust=True, progress=False)
+        if hasattr(data, 'columns') and hasattr(data.columns, 'levels'):
+            close = data["Close"]
+        else:
+            close = data
+        for t in _CORE_TICKERS:
+            if t in close.columns:
+                _PRICE_CACHE[t] = close[t].dropna()
+        _PRICE_CACHE_TS = time.time()
+        _logger.info(f"[cache] Cached {len(_PRICE_CACHE)} tickers")
+        gc.collect()
+    except Exception as e:
+        _logger.error(f"[cache] Price cache refresh failed: {e}")
+
 app = FastAPI(title="FrontierFi API", description="ETF portfolio optimization API", lifespan=lifespan)
 
 # ── CORS ───────────────────────────────────────────────────────────────────────
@@ -342,6 +373,18 @@ def health():
         "gemini": "configured" if GEMINI_API_KEY else "MISSING — add GEMINI_API_KEY to Render environment variables",
         "timestamp": _dt.datetime.utcnow().isoformat() + "Z",
     }
+
+
+@app.get("/prices", summary="Get current prices for tickers (uses cache)")
+def get_prices(tickers: str = ""):
+    """Returns latest close prices for comma-separated tickers."""
+    _refresh_price_cache()
+    requested = [t.strip().upper() for t in tickers.split(",") if t.strip()][:20]
+    result: Dict = {}
+    for t in requested:
+        if t in _PRICE_CACHE and len(_PRICE_CACHE[t]) > 0:
+            result[t] = round(float(_PRICE_CACHE[t].iloc[-1]), 2)
+    return {"prices": result, "cached": True}
 
 
 @app.get("/alex-test", summary="Quick check — is an AI key configured?")

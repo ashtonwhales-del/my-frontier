@@ -22,7 +22,7 @@ import { fetchMarketPulse } from '../api';
 import TabShell from '../components/TabShell';
 import MarketTicker from '../components/MarketTicker';
 import AdBanner from '../components/AdBanner';
-import { PortfolioSnapshot, WeeklyInsight, QuickStats, LearningProgress } from '../components/home/HomeWidgets';
+import { PortfolioSnapshot, WeeklyInsight, DailyChallenge, QuickStats, LearningProgress } from '../components/home/HomeWidgets';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Welcome'> };
 
@@ -38,16 +38,16 @@ export default function WelcomeScreen({ navigation }: Props) {
   const [portfolios, setPortfolios]     = useState<SavedPortfolio[]>([]);
   const [pulse, setPulse]               = useState<MarketPulseData | null>(null);
   const [lessonsComplete, setLessons]   = useState(0);
-  const [badgeCount, setBadgeCount]     = useState(0);
+  const [streak, setStreak]             = useState(0);
 
   // Reload data every time screen is focused
   useFocusEffect(useCallback(() => {
     (async () => {
-      const [name, portfoliosRaw, lessonsRaw, badgesRaw] = await Promise.all([
+      const [name, portfoliosRaw, lessonsRaw, streakRaw] = await Promise.all([
         AsyncStorage.getItem(STORAGE.SAVED_NAME),
         AsyncStorage.getItem(STORAGE.SAVED_PORTFOLIOS),
         AsyncStorage.getItem(STORAGE.LESSONS_COMPLETE),
-        AsyncStorage.getItem(STORAGE.BADGES_EARNED),
+        AsyncStorage.getItem('appStreak'),
       ]);
       if (name) setSavedName(name);
       if (portfoliosRaw) {
@@ -59,8 +59,16 @@ export default function WelcomeScreen({ navigation }: Props) {
       if (lessonsRaw) {
         try { setLessons(JSON.parse(lessonsRaw).length); } catch {}
       }
-      if (badgesRaw) {
-        try { setBadgeCount(JSON.parse(badgesRaw).length); } catch {}
+      // Streak tracking
+      const today = new Date().toISOString().slice(0, 10);
+      const streakData = streakRaw ? JSON.parse(streakRaw) : { lastDate: '', count: 0 };
+      if (streakData.lastDate === today) {
+        setStreak(streakData.count);
+      } else {
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        const newCount = streakData.lastDate === yesterday ? streakData.count + 1 : 1;
+        setStreak(newCount);
+        await AsyncStorage.setItem('appStreak', JSON.stringify({ lastDate: today, count: newCount }));
       }
     })();
   }, []));
@@ -102,11 +110,14 @@ export default function WelcomeScreen({ navigation }: Props) {
           {/* Ad banner (free users) */}
           <AdBanner placement="banner" />
 
+          {/* Daily Challenge */}
+          <DailyChallenge navigation={navigation} />
+
           {/* Weekly Insight */}
           <WeeklyInsight navigation={navigation} />
 
           {/* Quick Stats Row */}
-          <QuickStats portfolioCount={portfolios.length} bestScore={bestScore} badgeCount={badgeCount} />
+          <QuickStats portfolioCount={portfolios.length} bestScore={bestScore} streak={streak} />
 
           {/* Action Buttons */}
           <TouchableOpacity

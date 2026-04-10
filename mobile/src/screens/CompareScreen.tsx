@@ -73,36 +73,39 @@ export default function CompareScreen({ navigation }: Props) {
 
         {comparing && (
           <View style={s.tableWrap}>
-            <View style={s.tableHeader}>
-              <View style={s.metricCol}><Text style={s.metricLabel}>Metric</Text></View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.valScroll}>
-                {sel.map((p, i) => (
-                  <View key={p.id} style={s.valCol}>
-                    <Text style={[s.colName, { color: gc(p.result.scores.grade) }]}>{p.name.split(' ')[0]}</Text>
-                    {i === bestIdx && <Text style={s.crownBadge}>Best</Text>}
+            <View style={{ flexDirection: 'row' }}>
+              {/* Fixed metric labels column */}
+              <View style={s.fixedCol}>
+                <View style={s.fixedHeader}><Text style={s.metricLabel}>Metric</Text></View>
+                {METRICS.map(m => <View key={m.label} style={s.fixedRow}><Text style={s.metricText}>{m.label}</Text></View>)}
+              </View>
+              {/* Scrollable portfolio columns */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+                <View>
+                  <View style={{ flexDirection: 'row' }}>
+                    {sel.map((p, i) => (
+                      <View key={p.id} style={s.valCol}>
+                        <Text style={[s.colName, { color: gc(p.result.scores.grade) }]}>{p.name.split(' ')[0]}</Text>
+                        {i === bestIdx && <Text style={s.crownBadge}>Best</Text>}
+                      </View>
+                    ))}
                   </View>
-                ))}
+                  {METRICS.map(metric => {
+                    const values = sel.map(p => metric.getValue(p));
+                    const best = metric.higherBetter ? Math.max(...values) : Math.min(...values);
+                    return (
+                      <View key={metric.label} style={{ flexDirection: 'row' }}>
+                        {sel.map((p, i) => (
+                          <View key={p.id} style={[s.valCol, s.valCell, values[i] === best && sel.length > 1 && s.valCellWin]}>
+                            <Text style={[s.valText, values[i] === best && sel.length > 1 && s.valWinner]}>{metric.format(p)}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    );
+                  })}
+                </View>
               </ScrollView>
             </View>
-            {METRICS.map(metric => {
-              const values = sel.map(p => metric.getValue(p));
-              const bestVal = metric.higherBetter ? Math.max(...values) : Math.min(...values);
-              return (
-                <View key={metric.label} style={s.tableRow}>
-                  <View style={s.metricCol}><Text style={s.metricText}>{metric.label}</Text></View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.valScroll}>
-                    {sel.map((p, i) => {
-                      const isWinner = values[i] === bestVal && sel.length > 1;
-                      return (
-                        <View key={p.id} style={s.valCol}>
-                          <Text style={[s.valText, isWinner && s.valWinner]}>{metric.format(p)}</Text>
-                        </View>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-              );
-            })}
           </View>
         )}
         <View style={{ height: 60 }} />
@@ -126,14 +129,15 @@ const s = StyleSheet.create({
   pickName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   pickMeta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   pickGrade: { fontSize: 24, fontWeight: '900' },
-  tableWrap: { backgroundColor: colors.card, borderRadius: radius.xl, padding: spacing.sm, marginTop: spacing.md, ...shadow.sm },
-  tableHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border, paddingBottom: spacing.sm },
-  tableRow: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
-  metricCol: { width: 100 },
+  tableWrap: { backgroundColor: colors.card, borderRadius: radius.xl, padding: spacing.sm, marginTop: spacing.md, ...shadow.sm, overflow: 'hidden' },
+  fixedCol: { width: 110 },
+  fixedHeader: { height: 44, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: colors.border },
+  fixedRow: { height: 40, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: colors.border },
   metricLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase' },
   metricText: { fontSize: 13, color: colors.textSecondary },
-  valScroll: { flex: 1 },
-  valCol: { width: 90, alignItems: 'center' },
+  valCol: { width: 120, alignItems: 'center', justifyContent: 'center' },
+  valCell: { height: 40, borderBottomWidth: 1, borderBottomColor: colors.border },
+  valCellWin: { backgroundColor: '#F59E0B20', borderRadius: 4 },
   colName: { fontSize: 12, fontWeight: '800' },
   crownBadge: { fontSize: 9, fontWeight: '700', color: '#F59E0B', textTransform: 'uppercase' },
   valText: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },

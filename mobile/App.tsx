@@ -33,6 +33,7 @@ import DebtPayoffScreen        from './src/screens/DebtPayoffScreen';
 import DebtPlannerScreen       from './src/screens/DebtPlannerScreen';
 import SubscriptionAuditScreen from './src/screens/SubscriptionAuditScreen';
 import MyPortfolioScreen       from './src/screens/MyPortfolioScreen';
+import CurrentPortfolioScreen  from './src/screens/CurrentPortfolioScreen';
 import CommunityScreen         from './src/screens/CommunityScreen';
 import LessonReaderScreen      from './src/screens/LessonReaderScreen';
 import ETFMatcherGame          from './src/screens/games/ETFMatcherGame';
@@ -97,6 +98,7 @@ export default function App() {
             <Stack.Screen name="DebtPlanner"       component={DebtPlannerScreen} />
             <Stack.Screen name="SubscriptionAudit" component={SubscriptionAuditScreen} />
             <Stack.Screen name="MyPortfolio"       component={MyPortfolioScreen} />
+            <Stack.Screen name="CurrentPortfolio"  component={CurrentPortfolioScreen} />
             <Stack.Screen name="Community"         component={CommunityScreen} />
             <Stack.Screen name="LessonReader"      component={LessonReaderScreen} />
             <Stack.Screen name="ETFMatcherGame"    component={ETFMatcherGame} />

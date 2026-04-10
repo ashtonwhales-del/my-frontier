@@ -119,6 +119,7 @@ export type RootStackParamList = {
   DebtPlanner:       undefined;
   SubscriptionAudit: undefined;
   MyPortfolio:       undefined;
+  CurrentPortfolio:  undefined;
   Community:         undefined;
   LessonReader:      { lessonId: string; title: string; pages: string[]; tier: string };
   ETFMatcherGame:    undefined;

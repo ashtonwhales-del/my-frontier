@@ -128,14 +128,50 @@ export function WeeklyInsight({ navigation }: { navigation: any }) {
   );
 }
 
-// ── QuickStats ──────────────────────────────────────────────────────────────
-interface StatsProps { portfolioCount: number; bestScore: number | null; badgeCount: number }
+// ── DailyChallenge ─────────────────────────────────────────────────────────
+const CHALLENGES = [
+  'Build a portfolio with Sharpe ratio above 1.2',
+  'Add an international ETF to your allocation',
+  'Check if your portfolio survived the 2008 crash test',
+  'Build a Conservative portfolio with grade B or better',
+  'Create a portfolio with 10+ ETFs for maximum diversification',
+  'Build a portfolio that beats the S&P 500 expected return',
+  'Try adding bonds to see how it affects your risk score',
+  'Build your most aggressive portfolio yet',
+  'Create a portfolio focused on dividends and income',
+  'Compare two portfolios to find the more efficient one',
+  'Build a portfolio with diversification score above 8',
+  'Try clean energy sectors in your next portfolio',
+  'Build a portfolio with less than 10% volatility',
+  'Add emerging markets and see how it changes your return',
+  'Build a portfolio that holds through the COVID crash test',
+  'Create a balanced portfolio with grade B',
+  'Try adding real estate ETFs for extra diversification',
+  'Build your lowest-risk portfolio possible',
+  'Create a portfolio with expected return above 15%',
+  'Compare your best portfolio against your newest one',
+];
 
-export function QuickStats({ portfolioCount, bestScore, badgeCount }: StatsProps) {
+export function DailyChallenge({ navigation }: { navigation: any }) {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  const challenge = CHALLENGES[dayOfYear % CHALLENGES.length];
+  return (
+    <TouchableOpacity style={dc.card} onPress={() => navigation.navigate('Categories', { name: 'Investor' })} activeOpacity={0.8}>
+      <Text style={dc.label}>DAILY CHALLENGE</Text>
+      <Text style={dc.text}>{challenge}</Text>
+      <Text style={dc.cta}>Accept Challenge  ›</Text>
+    </TouchableOpacity>
+  );
+}
+
+// ── QuickStats ──────────────────────────────────────────────────────────────
+interface StatsProps { portfolioCount: number; bestScore: number | null; streak: number }
+
+export function QuickStats({ portfolioCount, bestScore, streak }: StatsProps) {
   const stats = [
     { label: 'Portfolios', value: String(portfolioCount) },
     { label: 'Best Score', value: bestScore ? bestScore.toFixed(1) : '---' },
-    { label: 'Badges', value: String(badgeCount) },
+    { label: 'Day Streak', value: String(streak) },
   ];
 
   return (
@@ -188,6 +224,13 @@ const wi = StyleSheet.create({
   icon:  { fontSize: 22, marginBottom: Spacing.sm },
   text:  { ...BodyScale.md, color: Colors.textSecondary, lineHeight: 22, marginBottom: Spacing.sm },
   link:  { ...BodyScale.sm, color: Colors.brandBlue, fontWeight: '600' },
+});
+
+const dc = StyleSheet.create({
+  card: { backgroundColor: '#F59E0B12', borderRadius: Radius.lg, borderWidth: 1, borderColor: '#F59E0B', padding: Spacing.lg, marginBottom: Spacing.lg },
+  label: { fontSize: 10, fontWeight: '700', color: '#F59E0B', letterSpacing: 1.2, marginBottom: Spacing.sm },
+  text: { ...BodyScale.md, color: Colors.textPrimary, fontWeight: '600', lineHeight: 22, marginBottom: Spacing.sm },
+  cta: { ...BodyScale.sm, color: '#F59E0B', fontWeight: '600' },
 });
 
 const qs = StyleSheet.create({
