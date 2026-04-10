@@ -126,5 +126,6 @@ export type RootStackParamList = {
   RiskQuizGame:      undefined;
   FinancialHealth:   undefined;
   NetWorthTimeline:  undefined;
+  GoalBuckets:       undefined;
   Profile:           undefined;
 };

@@ -40,6 +40,7 @@ export default function WelcomeScreen({ navigation }: Props) {
   const [pulse, setPulse]               = useState<MarketPulseData | null>(null);
   const [lessonsComplete, setLessons]   = useState(0);
   const [streak, setStreak]             = useState(0);
+  const [goals, setGoals]               = useState<any[]>([]);
 
   // Reload data every time screen is focused
   useFocusEffect(useCallback(() => {
@@ -60,6 +61,8 @@ export default function WelcomeScreen({ navigation }: Props) {
       if (lessonsRaw) {
         try { setLessons(JSON.parse(lessonsRaw).length); } catch {}
       }
+      const goalsRaw = await AsyncStorage.getItem('goalBuckets');
+      if (goalsRaw) { try { setGoals(JSON.parse(goalsRaw)); } catch {} }
       // Streak tracking
       const today = new Date().toISOString().slice(0, 10);
       const streakData = streakRaw ? JSON.parse(streakRaw) : { lastDate: '', count: 0 };
@@ -108,6 +111,26 @@ export default function WelcomeScreen({ navigation }: Props) {
           {/* Financial Health Score — hero metric */}
           <FinancialHealthScore navigation={navigation} />
 
+          {/* Goal Progress */}
+          {goals.length > 0 && (
+            <View style={styles.goalSection}>
+              {goals.slice(0, 2).map((g: any) => {
+                const pct = g.targetAmount > 0 ? Math.min(100, (g.currentSaved / g.targetAmount) * 100) : 0;
+                return (
+                  <View key={g.id} style={styles.goalCard}>
+                    <Text style={{ fontSize: 22 }}>{g.icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.goalName}>{g.name}</Text>
+                      <View style={styles.goalBar}><View style={[styles.goalBarFill, { width: `${pct}%` }]} /></View>
+                    </View>
+                    <Text style={styles.goalPct}>{Math.round(pct)}%</Text>
+                  </View>
+                );
+              })}
+              <TouchableOpacity onPress={() => navigation.navigate('GoalBuckets')}><Text style={styles.goalLink}>View All Goals  ›</Text></TouchableOpacity>
+            </View>
+          )}
+
           {/* Portfolio Snapshot */}
           <PortfolioSnapshot portfolios={portfolios} navigation={navigation} />
 
@@ -148,6 +171,9 @@ export default function WelcomeScreen({ navigation }: Props) {
           </TouchableOpacity>
 
           {/* Quick links */}
+          <TouchableOpacity onPress={() => navigation.navigate('GoalBuckets')} activeOpacity={0.8} style={styles.budgetBtn}>
+            <Text style={styles.budgetText}>My Goals</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('NetWorthTimeline')} activeOpacity={0.8} style={styles.budgetBtn}>
             <Text style={styles.budgetText}>Net Worth Timeline</Text>
           </TouchableOpacity>
@@ -193,6 +219,14 @@ const styles = StyleSheet.create({
 
   budgetBtn: { borderWidth: 1.5, borderColor: Colors.borderSubtle, borderRadius: Radius.xl, paddingVertical: 14, alignItems: 'center', marginBottom: Spacing.lg },
   budgetText: { fontSize: 15, fontWeight: '600', color: Colors.textSecondary },
+
+  goalSection: { marginBottom: Spacing.lg },
+  goalCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.bgCard, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.borderSubtle, padding: Spacing.md, marginBottom: Spacing.xs },
+  goalName: { fontSize: 14, fontWeight: '700', color: Colors.textPrimary, marginBottom: 4 },
+  goalBar: { height: 4, backgroundColor: Colors.borderSubtle, borderRadius: 2 },
+  goalBarFill: { height: 4, backgroundColor: Colors.brandBlue, borderRadius: 2 },
+  goalPct: { fontSize: 14, fontWeight: '700', color: Colors.brandGold },
+  goalLink: { fontSize: 13, color: Colors.brandBlue, fontWeight: '600', textAlign: 'right', marginTop: 4 },
 
   disclaimer: { ...BodyScale.sm, color: Colors.textTertiary, textAlign: 'center', marginTop: Spacing.md },
 });
