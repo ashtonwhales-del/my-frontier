@@ -3,11 +3,12 @@
  * PREMIUM only — free users see a blur overlay with upgrade prompt.
  * Uses react-native-svg (already installed via WealthTrackerScreen).
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  PanResponder,
   ActivityIndicator,
   TouchableOpacity,
   Dimensions,
@@ -43,6 +44,15 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
   const [points, setPoints] = useState<HistoricalPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scrubIdx, setScrubIdx] = useState<number | null>(null);
+
+  const panResponder = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (e) => { const x = e.nativeEvent.locationX; if (points.length) setScrubIdx(Math.min(Math.max(0, Math.floor((x / CHART_W) * points.length)), points.length - 1)); },
+    onPanResponderMove: (e) => { const x = e.nativeEvent.locationX; if (points.length) setScrubIdx(Math.min(Math.max(0, Math.floor((x / CHART_W) * points.length)), points.length - 1)); },
+    onPanResponderRelease: () => setScrubIdx(null),
+  })).current;
 
   useEffect(() => {
     setLoading(true);
@@ -75,6 +85,17 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
         <Text style={styles.errorText}>{error}</Text>
       ) : (
         <>
+          <View {...panResponder.panHandlers}>
+          {scrubIdx !== null && points[scrubIdx] && (
+            <View style={styles.scrubCard}>
+              <Text style={styles.scrubDate}>{points[scrubIdx].date}</Text>
+              <Text style={styles.scrubVal}>Portfolio: {fmt(points[scrubIdx].portfolio)}</Text>
+              <Text style={styles.scrubVal}>S&P 500: {fmt(points[scrubIdx].spy)}</Text>
+              <Text style={[styles.scrubVal, { color: points[scrubIdx].portfolio >= points[scrubIdx].spy ? '#10B981' : '#EF4444' }]}>
+                Diff: {fmt(points[scrubIdx].portfolio - points[scrubIdx].spy)}
+              </Text>
+            </View>
+          )}
           <Svg width={CHART_W} height={CHART_H}>
             {/* Grid lines */}
             {[0, 0.25, 0.5, 0.75, 1].map(r => {
@@ -92,6 +113,7 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
             {/* Portfolio line (blue) */}
             <Polyline points={toPoints(points, 'portfolio', minV, maxV)} fill="none" stroke={colors.primary} strokeWidth={2.5} />
           </Svg>
+          </View>
 
           {/* Legend */}
           <View style={styles.legend}>
@@ -136,4 +158,7 @@ const styles = StyleSheet.create({
   perfBadge: { borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
   perfBadgeText: { fontSize: 12, fontWeight: '700' },
   note: { fontSize: 11, color: colors.textMuted, lineHeight: 15 },
+  scrubCard: { position: 'absolute', top: -8, right: 0, backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: 8, zIndex: 10 },
+  scrubDate: { fontSize: 11, fontWeight: '700', color: colors.textPrimary, marginBottom: 2 },
+  scrubVal: { fontSize: 11, color: colors.textSecondary },
 });

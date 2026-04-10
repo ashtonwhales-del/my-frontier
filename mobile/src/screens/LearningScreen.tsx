@@ -64,7 +64,14 @@ export default function LearningScreen({ navigation }: Props) {
   }, []);
 
   function handleLessonPress(lesson: Lesson) {
-    setOpenLesson(lesson);
+    // Split content into pages for the book reader
+    const pages = lesson.content.split('\n\n').filter(p => p.trim().length > 0);
+    navigation.navigate('LessonReader' as any, {
+      lessonId: lesson.id,
+      title: lesson.title,
+      pages: pages.length > 0 ? pages : [lesson.content],
+      tier: lesson.tier,
+    });
   }
 
   async function handleLessonClose() {

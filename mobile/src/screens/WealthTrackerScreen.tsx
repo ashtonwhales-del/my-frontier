@@ -32,7 +32,7 @@ const PAD_R = 16;
 const PLOT_W = CHART_W - PAD_L - PAD_R;
 const PLOT_H = CHART_H - PAD_T - PAD_B;
 
-const LINE_COLORS = ['#4361EE', '#06D6A0', '#FFB703', '#EF233C', '#7209B7'];
+const LINE_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#F97316', '#14B8A6', '#EF4444', '#EC4899'];
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
@@ -146,12 +146,19 @@ function ProjectionChart({ portfolios, selectedIds }: ProjectionChartProps) {
       </Svg>
       {/* Legend */}
       <View style={chartStyles.legend}>
-        {selected.map((p, idx) => (
-          <View key={p.id} style={chartStyles.legendItem}>
-            <View style={[chartStyles.legendDot, { backgroundColor: LINE_COLORS[idx % LINE_COLORS.length] }]} />
-            <Text style={chartStyles.legendLabel}>{p.name}</Text>
-          </View>
-        ))}
+        {(() => {
+          const nameCount: Record<string, number> = {};
+          return selected.map((p, idx) => {
+            nameCount[p.name] = (nameCount[p.name] || 0) + 1;
+            const label = nameCount[p.name] > 1 ? `${p.name} #${nameCount[p.name]}` : p.name;
+            return (
+              <View key={p.id} style={chartStyles.legendItem}>
+                <View style={[chartStyles.legendDot, { backgroundColor: LINE_COLORS[idx % LINE_COLORS.length] }]} />
+                <Text style={chartStyles.legendLabel}>{label}</Text>
+              </View>
+            );
+          });
+        })()}
       </View>
     </View>
   );

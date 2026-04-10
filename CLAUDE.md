@@ -1445,3 +1445,54 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/src/components/StressTestModal.tsx` | 15 scenarios with generalized drawdown calc |
 
 *Last updated: 2026-04-09 — Phase 24 complete.*
+
+---
+
+## Phase 25 Changes — Finish Skipped Tasks (2026-04-09)
+
+### Home Debt Card Styling (TASK 1)
+- Debt Repayment Planner button in BudgetScreen: added amber left border `borderLeftColor: '#F59E0B'`, removed house emoji prefix
+
+### Badge Logic Fix (TASK 2)
+- Renamed badges: Smart Diversifier -> Diversification Expert, Frontier Explorer -> Top Performer
+- First Portfolio badge: only awards when `portfolioCount === 1` (truly first save)
+- Market Beater threshold raised from 10% to 12%
+- Added new badges: High Growth Seeker (>15%), Conservative Investor (<8% risk), Balanced Pro (grade B + low risk)
+- DNAPersonality names updated to match: Market Beater, Top Performer, High Growth Seeker, Conservative Investor, Consistent Investor, Balanced Pro
+- PortfolioScoreCard badges updated: Diversification Expert (div>=8), Top Performer (grade A), Market Beater (return>12%)
+
+### Wealth Journey Multi-Line (TASK 3)
+- Extended LINE_COLORS palette to 8 colors
+- Legend now appends " #2", " #3" etc for portfolios with duplicate names
+- Each portfolio renders its own line regardless of name similarity
+
+### Learning Book Reader (TASK 4)
+- Created `LessonReaderScreen.tsx` (89 lines): full-screen book reader with progress bar, page dots, prev/next navigation, Complete button on last page
+- Registered in App.tsx and types.ts as `LessonReader` route
+- LearningScreen now navigates to LessonReader instead of showing inline modal — splits lesson content into pages on `\n\n` boundaries
+
+### Historical Chart Scrubber (TASK 5)
+- Added PanResponder touch tracking to the chart SVG area
+- Dragging horizontally shows floating card with: date, portfolio value, S&P 500 value, difference
+- Card disappears on finger lift
+- Makes individual month comparisons visible
+
+### New Files
+| File | Purpose |
+|------|---------|
+| `mobile/src/screens/LessonReaderScreen.tsx` | Book-style lesson reader with page navigation |
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `mobile/src/screens/BudgetScreen.tsx` | Debt card amber left border |
+| `mobile/src/services/badgeService.ts` | Renamed badges, new conditions, new badge types |
+| `mobile/src/components/PortfolioScoreCard.tsx` | Updated badge display names and conditions |
+| `mobile/src/components/results/DNAPersonality.tsx` | Updated personality type names |
+| `mobile/src/screens/WealthTrackerScreen.tsx` | 8-color palette, duplicate name disambiguation |
+| `mobile/src/components/results/HistoricalChart.tsx` | PanResponder scrubber with floating data card |
+| `mobile/src/screens/LearningScreen.tsx` | Navigates to LessonReader instead of inline modal |
+| `mobile/src/types.ts` | Added LessonReader route |
+| `mobile/App.tsx` | Registered LessonReaderScreen |
+
+*Last updated: 2026-04-09 — Phase 25 complete.*

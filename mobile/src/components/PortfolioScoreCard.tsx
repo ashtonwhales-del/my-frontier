@@ -55,25 +55,25 @@ function topPercent(score: number): number {
 
 const BADGES = [
   {
-    key: 'first',
-    icon: '🌱',
-    label: 'First Portfolio',
-    description: 'You built your first personalized ETF portfolio!',
-    unlocked: () => true,
-  },
-  {
     key: 'diversifier',
-    icon: '📈',
-    label: 'Smart Diversifier',
+    icon: '🌍',
+    label: 'Diversification Expert',
     description: 'Your portfolio has excellent diversification across asset classes.',
-    unlocked: (r: OptimizeResponse) => r.scores.diversification_score > 6.0,
+    unlocked: (r: OptimizeResponse) => r.scores.diversification_score >= 8.0,
   },
   {
     key: 'explorer',
-    icon: '🏔️',
-    label: 'Frontier Explorer',
-    description: 'Your Frontier Score exceeds 75. You\'re in elite territory.',
-    unlocked: (r: OptimizeResponse) => calcFrontierScore(r) > 75,
+    icon: '🏆',
+    label: 'Top Performer',
+    description: 'Your portfolio achieved an A grade. Elite performance.',
+    unlocked: (r: OptimizeResponse) => r.scores.grade === 'A',
+  },
+  {
+    key: 'beater',
+    icon: '📈',
+    label: 'Market Beater',
+    description: 'Your expected return exceeds 12% annually.',
+    unlocked: (r: OptimizeResponse) => r.performance.expected_annual_return > 0.12,
   },
 ];
 

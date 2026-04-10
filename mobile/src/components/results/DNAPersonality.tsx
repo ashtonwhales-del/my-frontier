@@ -17,22 +17,21 @@ function getPersonality(result: OptimizeResponse): Personality {
   const { grade, diversification_score, smart_score } = scores;
 
   if (grade === 'A' && ret > 0.12) {
-    return { name: 'The Market Beater', desc: 'Built to outperform. The math is on your side.', color: '#fff', bg: '#06D6A0' };
+    return { name: 'Market Beater', desc: 'Built to outperform. The math is on your side.', color: '#fff', bg: '#06D6A0' };
   }
   if (grade === 'A' && diversification_score >= 7) {
-    return { name: 'The Frontier Explorer', desc: "You've cracked the code. Maximum return for minimum risk.", color: '#fff', bg: '#4361EE' };
+    return { name: 'Top Performer', desc: 'Maximum return for minimum risk. Elite territory.', color: '#fff', bg: '#4361EE' };
   }
   if (ret > 0.11 && vol > 0.15) {
-    return { name: 'The Growth Chaser', desc: 'Swinging for the fences. High potential, wild ride.', color: '#fff', bg: '#7209B7' };
+    return { name: 'High Growth Seeker', desc: 'Swinging for the fences. High potential, wild ride.', color: '#fff', bg: '#7209B7' };
   }
   if (vol < 0.07 && ret < 0.06) {
-    return { name: 'The Safety Seeker', desc: 'Security first. A stable foundation while you learn.', color: '#1e293b', bg: '#94A3B8' };
+    return { name: 'Conservative Investor', desc: 'Security first. A stable foundation while you learn.', color: '#1e293b', bg: '#94A3B8' };
   }
   if (vol < 0.10 && (grade === 'B' || grade === 'C') && ret >= 0.06 && ret <= 0.09) {
-    return { name: 'The Steady Builder', desc: 'Playing the long game. Slow, consistent growth compounds.', color: '#fff', bg: '#2D9CDB' };
+    return { name: 'Consistent Investor', desc: 'Playing the long game. Slow, consistent growth compounds.', color: '#fff', bg: '#2D9CDB' };
   }
-  // Default: balanced
-  return { name: 'The Balanced Strategist', desc: 'Goldilocks portfolio. Not too risky, not too safe.', color: '#fff', bg: '#F59E0B' };
+  return { name: 'Balanced Pro', desc: 'Goldilocks portfolio. Not too risky, not too safe.', color: '#fff', bg: '#F59E0B' };
 }
 
 export default function DNAPersonality({ result }: { result: OptimizeResponse }) {

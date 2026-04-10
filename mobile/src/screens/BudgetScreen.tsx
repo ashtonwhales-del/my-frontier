@@ -160,11 +160,10 @@ export default function BudgetScreen() {
 
         {/* Debt Planner link */}
         <TouchableOpacity
-          style={{ marginBottom: Spacing.lg, borderWidth: 1.5, borderColor: Colors.borderSubtle, borderRadius: Radius.lg, paddingVertical: 14, alignItems: 'center' as const, flexDirection: 'row' as const, justifyContent: 'center' as const, gap: 8 }}
+          style={{ marginBottom: Spacing.lg, borderWidth: 1.5, borderColor: Colors.borderSubtle, borderLeftWidth: 4, borderLeftColor: '#F59E0B', borderRadius: Radius.lg, paddingVertical: 14, paddingHorizontal: Spacing.lg }}
           onPress={() => navigation.navigate('DebtPlanner' as any)}
           activeOpacity={0.8}
         >
-          <Text style={{ fontSize: 18 }}>💳</Text>
           <Text style={{ fontSize: 15, fontWeight: '600', color: Colors.textSecondary }}>Debt Repayment Planner</Text>
         </TouchableOpacity>
 

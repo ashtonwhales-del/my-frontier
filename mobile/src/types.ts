@@ -120,5 +120,6 @@ export type RootStackParamList = {
   SubscriptionAudit: undefined;
   MyPortfolio:       undefined;
   Community:         undefined;
+  LessonReader:      { lessonId: string; title: string; pages: string[]; tier: string };
   Profile:           undefined;
 };
