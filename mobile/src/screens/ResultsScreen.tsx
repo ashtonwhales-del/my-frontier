@@ -13,7 +13,7 @@ import * as Sharing from 'expo-sharing';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 
-import AdBanner from '../components/AdBanner';
+import AdBanner from '../components/ads/SmartBanner';
 import LoadingAd from '../components/LoadingAd';
 import LoadingCalculation from '../components/LoadingCalculation';
 import NativeAdCard from '../components/ads/NativeAdCard';

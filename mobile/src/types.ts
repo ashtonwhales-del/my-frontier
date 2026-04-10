@@ -127,5 +127,6 @@ export type RootStackParamList = {
   FinancialHealth:   undefined;
   NetWorthTimeline:  undefined;
   GoalBuckets:       undefined;
+  BillNegotiation:   undefined;
   Profile:           undefined;
 };

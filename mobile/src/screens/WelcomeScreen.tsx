@@ -21,7 +21,7 @@ import { BodyScale } from '../theme/typography';
 import { fetchMarketPulse } from '../api';
 import TabShell from '../components/TabShell';
 import MarketTicker from '../components/MarketTicker';
-import AdBanner from '../components/AdBanner';
+import AdBanner from '../components/ads/SmartBanner';
 import { PortfolioSnapshot, WeeklyInsight, DailyChallenge, QuickStats, LearningProgress } from '../components/home/HomeWidgets';
 import FinancialHealthScore from '../components/FinancialHealthScore';
 
@@ -173,6 +173,9 @@ export default function WelcomeScreen({ navigation }: Props) {
           {/* Quick links */}
           <TouchableOpacity onPress={() => navigation.navigate('GoalBuckets')} activeOpacity={0.8} style={styles.budgetBtn}>
             <Text style={styles.budgetText}>My Goals</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('BillNegotiation')} activeOpacity={0.8} style={styles.budgetBtn}>
+            <Text style={styles.budgetText}>Bill Negotiator</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('NetWorthTimeline')} activeOpacity={0.8} style={styles.budgetBtn}>
             <Text style={styles.budgetText}>Net Worth Timeline</Text>

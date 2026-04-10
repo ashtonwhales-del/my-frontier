@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { showRewardedAd } from './ads/RewardedAd';
-import AdBanner from './AdBanner';
+import AdBanner from './ads/SmartBanner';
 
 let _hasNativeModule = false;
 try {

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, spacing, radius, shadow } from '../../theme';
-import AdBanner from '../AdBanner';
+import AdBanner from '../ads/SmartBanner';
 
 interface Props {
   onBuild: (weekly: number, lumpSum: number) => void;

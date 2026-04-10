@@ -6,7 +6,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AD_DEV_MODE } from '../../constants/AdConfig';
 
-interface Props { style?: object }
+interface Props { style?: object; placement?: string }
 
 export function SmartBanner({ style }: Props) {
   return (
@@ -15,6 +15,9 @@ export function SmartBanner({ style }: Props) {
     </View>
   );
 }
+
+// Default export so existing `import AdBanner from ...` still works
+export default SmartBanner;
 
 const s = StyleSheet.create({
   box: { height: 50, borderWidth: 1, borderStyle: 'dashed', borderColor: '#F59E0B', alignItems: 'center', justifyContent: 'center', marginVertical: 8, borderRadius: 4 },

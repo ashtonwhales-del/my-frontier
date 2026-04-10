@@ -14,7 +14,7 @@ import { RootStackParamList } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
 import { STORAGE } from '../constants';
 import { LESSONS, GAMES, Lesson, Game } from './LearningData';
-import AdBanner from '../components/AdBanner';
+import AdBanner from '../components/ads/SmartBanner';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Learning'> };
 

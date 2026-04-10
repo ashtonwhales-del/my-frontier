@@ -17,7 +17,7 @@ import Card from '../components/ui/Card';
 import GradientButton from '../components/ui/GradientButton';
 import TabShell from '../components/TabShell';
 import { IncomeModal, CategoryModal } from './BudgetModals';
-import AdBanner from '../components/AdBanner';
+import AdBanner from '../components/ads/SmartBanner';
 
 // ---------- constants ----------
 type NavProp = StackNavigationProp<RootStackParamList, 'Budget'>;
@@ -151,8 +151,13 @@ export default function BudgetScreen() {
           <Text style={{ fontSize: 15, fontWeight: '600', color: Colors.textSecondary }}>Debt Repayment Planner</Text>
         </TouchableOpacity>
 
-        {/* Spending insight */}
-        {/* DNA personality section removed */}
+        {/* Bill Negotiator link */}
+        <TouchableOpacity
+          style={{ marginBottom: Spacing.lg, borderWidth: 1.5, borderColor: Colors.borderSubtle, borderLeftWidth: 4, borderLeftColor: '#F59E0B', borderRadius: Radius.lg, paddingVertical: 14, paddingHorizontal: Spacing.lg }}
+          onPress={() => navigation.navigate('BillNegotiation' as any)} activeOpacity={0.8}
+        >
+          <Text style={{ fontSize: 15, fontWeight: '600', color: Colors.textSecondary }}>Bill Negotiator</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Sticky ad banner */}

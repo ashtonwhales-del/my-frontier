@@ -18,7 +18,7 @@ import { Colors } from '../theme/colors';
 import { Spacing, Radius } from '../theme/spacing';
 import { HeadingScale, BodyScale, LabelStyle, NumberScale } from '../theme/typography';
 import { isPremium } from '../services/premiumService';
-import AdBanner from '../components/AdBanner';
+import AdBanner from '../components/ads/SmartBanner';
 import TabShell from '../components/TabShell';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Profile'> };
