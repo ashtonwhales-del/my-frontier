@@ -27,34 +27,30 @@ type Scenario = {
   description: string;
 };
 
-function calcDrawdown(holdings: HoldingResult[]): { crisis2008: number; covid2020: number; rates2022: number } {
-  let equityWeight = 0;
-  let bondWeight = 0;
-  holdings.forEach(h => {
-    if (BOND_TICKERS.has(h.ticker)) bondWeight += h.weight;
-    else equityWeight += h.weight;
-  });
+interface ScenarioDef { name: string; emoji: string; period: string; eqDrop: number; bondDrop: number; recovery: number; desc: string }
 
-  // 2008: equity-heavy = -40 to -55%, bond-heavy = -10 to -20%
-  const crisis2008 = -(equityWeight * 0.48 + bondWeight * 0.14);
+const SCENARIO_DEFS: ScenarioDef[] = [
+  { name: '2008 Financial Crisis', emoji: '🏦', period: '2007-2009', eqDrop: 0.48, bondDrop: 0.14, recovery: 49, desc: 'Global banking collapse, Lehman Brothers fails' },
+  { name: '2020 COVID Crash', emoji: '🦠', period: 'Feb-Mar 2020', eqDrop: 0.30, bondDrop: 0.05, recovery: 5, desc: 'Fastest bear market in history, pandemic panic' },
+  { name: '2022 Rate Shock', emoji: '📈', period: 'Jan-Dec 2022', eqDrop: 0.18, bondDrop: 0.28, recovery: 18, desc: 'Fed raises rates aggressively to fight inflation' },
+  { name: '2000 Dot-Com Bust', emoji: '💻', period: '2000-2002', eqDrop: 0.45, bondDrop: 0.02, recovery: 56, desc: 'Tech bubble bursts, internet stocks collapse' },
+  { name: '1987 Black Monday', emoji: '📉', period: 'Oct 1987', eqDrop: 0.22, bondDrop: 0.03, recovery: 15, desc: 'Single day 22% drop, largest one-day crash' },
+  { name: '2011 Debt Downgrade', emoji: '🏛️', period: 'Aug 2011', eqDrop: 0.16, bondDrop: 0.02, recovery: 6, desc: 'S&P downgrades US credit rating' },
+  { name: '2015 China Selloff', emoji: '🇨🇳', period: 'Aug 2015', eqDrop: 0.10, bondDrop: 0.01, recovery: 5, desc: 'Chinese market crash triggers global selloff' },
+  { name: '2018 Q4 Selloff', emoji: '⚡', period: 'Oct-Dec 2018', eqDrop: 0.17, bondDrop: 0.02, recovery: 4, desc: 'Trade war fears and Fed rate hikes' },
+  { name: '1997 Asian Crisis', emoji: '🌏', period: '1997', eqDrop: 0.12, bondDrop: 0.01, recovery: 8, desc: 'Currency crisis spreads across Asia' },
+  { name: '2010 Flash Crash', emoji: '💥', period: 'May 2010', eqDrop: 0.07, bondDrop: 0.01, recovery: 1, desc: 'Market dropped 9% in minutes from algo trading' },
+  { name: '2001 Post 9/11', emoji: '🗽', period: 'Sep 2001', eqDrop: 0.10, bondDrop: 0.01, recovery: 4, desc: 'Markets closed 4 days, reopened sharply lower' },
+  { name: '2016 Brexit Shock', emoji: '🇬🇧', period: 'Jun 2016', eqDrop: 0.05, bondDrop: 0.01, recovery: 1, desc: 'UK votes to leave EU, surprises markets' },
+  { name: '2013 Taper Tantrum', emoji: '🏦', period: 'May 2013', eqDrop: 0.05, bondDrop: 0.04, recovery: 3, desc: 'Fed hints at ending QE, bond yields spike' },
+  { name: '1994 Bond Massacre', emoji: '📊', period: '1994', eqDrop: 0.05, bondDrop: 0.10, recovery: 12, desc: 'Fed surprises with aggressive rate hikes' },
+  { name: '2023 Banking Crisis', emoji: '🏧', period: 'Mar 2023', eqDrop: 0.06, bondDrop: 0.02, recovery: 3, desc: 'SVB and Signature Bank collapse' },
+];
 
-  // 2020 COVID: sharp drop then fast recovery; equity-heavy = -30%, bonds mild
-  const covid2020 = -(equityWeight * 0.30 + bondWeight * 0.05);
-
-  // 2022 rate hikes: bonds hurt more than equities
-  const rates2022 = -(equityWeight * 0.18 + bondWeight * 0.28);
-
-  return {
-    crisis2008: Math.round(crisis2008 * 100),
-    covid2020: Math.round(covid2020 * 100),
-    rates2022: Math.round(rates2022 * 100),
-  };
-}
-
-function recoveryMonths(drawdownPct: number, scenario: '2008' | '2020' | '2022'): number {
-  if (scenario === '2008') return drawdownPct < -40 ? 54 : drawdownPct < -30 ? 42 : 30;
-  if (scenario === '2020') return 6; // unusually fast recovery
-  return drawdownPct < -20 ? 24 : 18;
+function calcPortfolioDrop(holdings: HoldingResult[], def: ScenarioDef): number {
+  let eq = 0, bond = 0;
+  holdings.forEach(h => { if (BOND_TICKERS.has(h.ticker)) bond += h.weight; else eq += h.weight; });
+  return Math.round(-(eq * def.eqDrop + bond * def.bondDrop) * 100);
 }
 
 type Props = {
@@ -64,37 +60,14 @@ type Props = {
 };
 
 export default function StressTestModal({ visible, holdings, onClose }: Props) {
-  const dd = calcDrawdown(holdings);
-
-  const scenarios: Scenario[] = [
-    {
-      title: '2008 Financial Crisis',
-      period: 'Oct 2007 – Mar 2009',
-      emoji: '🏦',
-      drawdownPct: dd.crisis2008,
-      recoveryMonths: recoveryMonths(dd.crisis2008, '2008'),
-      description:
-        'Mortgage loans made to people who could never repay them triggered a chain reaction that collapsed the global banking system — wiping out more than half of stock market values over 17 months. Knowing exactly where your portfolio stood during the worst financial crisis since 1929 is the difference between panic-selling at the bottom and holding through to the recovery.',
-    },
-    {
-      title: '2020 COVID Crash',
-      period: 'Feb – Mar 2020',
-      emoji: '🦠',
-      drawdownPct: dd.covid2020,
-      recoveryMonths: recoveryMonths(dd.covid2020, '2020'),
-      description:
-        'A global pandemic shut down the world economy almost overnight, sending markets into a freefall of 34% in just 23 trading days — the fastest crash in history — before fully recovering within 5 months. Your portfolio\'s behavior here reveals whether your mix had the right balance to survive the chaos and capture the rebound.',
-    },
-    {
-      title: '2022 Rate Hike Shock',
-      period: 'Jan – Dec 2022',
-      emoji: '📈',
-      drawdownPct: dd.rates2022,
-      recoveryMonths: recoveryMonths(dd.rates2022, '2022'),
-      description:
-        'To fight 40-year-high inflation, the Fed raised interest rates seven times in twelve months — punishing stocks and bonds simultaneously in a way that hadn\'t happened since 1937. This scenario is the most revealing of the three: it shows whether your diversification actually works when the usual "safe" assets stop being safe.',
-    },
-  ];
+  const scenarios: Scenario[] = SCENARIO_DEFS.map(def => ({
+    title: def.name,
+    period: def.period,
+    emoji: def.emoji,
+    drawdownPct: calcPortfolioDrop(holdings, def),
+    recoveryMonths: def.recovery,
+    description: def.desc,
+  }));
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>

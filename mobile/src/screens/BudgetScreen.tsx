@@ -18,7 +18,6 @@ import GradientButton from '../components/ui/GradientButton';
 import TabShell from '../components/TabShell';
 import { IncomeModal, CategoryModal } from './BudgetModals';
 import AdBanner from '../components/AdBanner';
-import HelpFAB from '../components/HelpSystem';
 
 // ---------- constants ----------
 type NavProp = StackNavigationProp<RootStackParamList, 'Budget'>;
@@ -179,7 +178,6 @@ export default function BudgetScreen() {
         )}
       </ScrollView>
 
-      <HelpFAB screen="budget" />
       {/* Sticky ad banner */}
       <AdBanner placement="banner" style={{ marginBottom: income > 0 ? 0 : 0 }} />
 

@@ -1,25 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, radius, shadow } from '../../theme';
 import { OptimizeResponse } from '../../types';
 import DNAPersonality from './DNAPersonality';
-import { submitLeaderboard } from '../../api';
 
 export function gradeColor(grade: string): string {
   return grade === 'A' ? '#06D6A0' : grade === 'B' ? '#4361EE' : grade === 'C' ? '#FFB703' : '#EF233C';
 }
 
+function getPerformanceMessage(score: number): string {
+  if (score >= 9.0) return 'Exceptional — top tier performance';
+  if (score >= 7.5) return 'Strong portfolio — above average';
+  if (score >= 6.0) return 'Solid portfolio — good foundation';
+  if (score >= 4.5) return 'Decent start — room to grow';
+  return 'Keep building — you are learning';
+}
+
 export default function ScoreCard({ result }: { result: OptimizeResponse }) {
   const { scores, performance } = result;
   const gc = gradeColor(scores.grade);
-  const [percentile, setPercentile] = useState<number | null>(null);
-
-  useEffect(() => {
-    // Submit score anonymously to leaderboard
-    submitLeaderboard(scores.smart_score, scores.grade)
-      .then(rank => setPercentile(rank.percentile))
-      .catch(() => null); // silently ignore network errors
-  }, [scores.smart_score, scores.grade]);
 
   return (
     <View style={scoreStyles.card}>
@@ -33,11 +32,9 @@ export default function ScoreCard({ result }: { result: OptimizeResponse }) {
           <Text style={scoreStyles.gradeInfoTooltip}>
             Overall portfolio quality based on diversification and expected returns
           </Text>
-          {percentile !== null && (
-            <Text style={scoreStyles.leaderboard}>
-              📊 Top {percentile}% of My Frontier investors this week
-            </Text>
-          )}
+          <Text style={scoreStyles.leaderboard}>
+            {getPerformanceMessage(scores.smart_score)}
+          </Text>
         </View>
       </View>
 

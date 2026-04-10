@@ -1401,3 +1401,47 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/src/screens/CommunityScreen.tsx` | Full rewrite: Feed+Chat tabs, portfolio sharing, local chat |
 
 *Last updated: 2026-04-09 — Phase 23 complete.*
+
+---
+
+## Phase 24 Changes — Full Polish Pass (2026-04-09)
+
+### Removed HelpFAB (TASK 1)
+- Removed `<HelpFAB>` and import from WelcomeScreen, ResultsScreen, BudgetScreen
+- Floating ? bubble no longer appears on any screen
+
+### Score-Based Message (TASK 2)
+- Replaced "Top X% of My Frontier investors" with score-based message in ScoreCard
+- Messages: Exceptional/Strong/Solid/Decent/Keep building based on smart_score thresholds
+- Removed leaderboard API call (`submitLeaderboard` no longer called)
+
+### Privacy/Terms (TASK 4)
+- Removed Privacy Policy row from ProfileScreen (was linking to ashtonwhales GitHub Pages)
+- Terms of Service now shows inline Alert with disclaimer text instead of external URL
+
+### Debt Planner (TASK 5)
+- Strategy cards hidden when only 1 debt — shows simple "Pay off by [date]" instead
+- Payoff order section wrapped in `debts.length > 1` conditional
+- Added "Save Plan" button at bottom that saves and navigates back
+
+### Results Screen (TASK 7)
+- Replaced "Set Up Auto-Invest" with "Save and Go Home" button
+- On tap: Alert "Saved! Your portfolio has been saved." then navigate to home
+
+### Stress Test 15 Scenarios (TASK 8)
+- Expanded from 3 to 15 historical scenarios covering 1987-2023
+- Each scenario uses equity/bond weight split to calculate portfolio-specific impact
+- New generalized `calcPortfolioDrop` function replaces old `calcDrawdown`
+
+### Modified Files
+| File | What changed |
+|------|-------------|
+| `mobile/src/screens/WelcomeScreen.tsx` | Removed HelpFAB |
+| `mobile/src/screens/ResultsScreen.tsx` | Removed HelpFAB, replaced Auto-Invest with Save+Home |
+| `mobile/src/screens/BudgetScreen.tsx` | Removed HelpFAB |
+| `mobile/src/components/results/ScoreCard.tsx` | Score-based message, removed leaderboard call |
+| `mobile/src/screens/ProfileScreen.tsx` | Removed Privacy Policy, Terms shows inline Alert |
+| `mobile/src/screens/DebtPlannerScreen.tsx` | Single-debt logic, Save button |
+| `mobile/src/components/StressTestModal.tsx` | 15 scenarios with generalized drawdown calc |
+
+*Last updated: 2026-04-09 — Phase 24 complete.*

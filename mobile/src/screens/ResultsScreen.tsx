@@ -34,7 +34,6 @@ import { RootStackParamList, OptimizeResponse, SavedPortfolio, OnboardingData, H
 import { optimizePortfolio } from '../api';
 import { colors, spacing, radius } from '../theme';
 import { checkAndAwardBadges } from '../services/badgeService';
-import HelpFAB from '../components/HelpSystem';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Results'>;
@@ -205,8 +204,8 @@ export default function ResultsScreen({ navigation, route }: Props) {
           <Text style={styles.restartText}>Start a New Analysis</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.autoInvestBtn} activeOpacity={0.8} onPress={() => navigation.navigate('Premium')}>
-          <Text style={styles.autoInvestText}>Set Up Auto-Invest →</Text>
+        <TouchableOpacity style={styles.autoInvestBtn} activeOpacity={0.8} onPress={() => { Alert.alert('Saved!', 'Your portfolio has been saved.', [{ text: 'OK', onPress: () => navigation.popToTop() }]); }}>
+          <Text style={styles.autoInvestText}>Save and Go Home</Text>
         </TouchableOpacity>
 
         <AdBanner placement="banner" style={styles.adBanner} />
@@ -227,7 +226,6 @@ export default function ResultsScreen({ navigation, route }: Props) {
         <Text style={styles.persistentFooterText}>Not financial advice. For educational purposes only.</Text>
       </View>
 
-      <HelpFAB screen="results" />
 
       {/* ETF Detail Modal */}
       <ETFDetailModal holding={detailHolding} lumpSum={result.profile.lump_sum} onClose={() => setDetailHolding(null)} />

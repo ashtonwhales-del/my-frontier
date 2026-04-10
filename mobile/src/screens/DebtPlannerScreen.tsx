@@ -54,15 +54,10 @@ function fmt(n: number): string {
   return n >= 1000 ? `$${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : `$${n.toLocaleString()}`;
 }
 
-function aprColor(apr: number): string {
-  if (apr > 15) return '#EF4444';
-  if (apr >= 5) return '#F59E0B';
-  return '#10B981';
-}
+function aprColor(apr: number) { return apr > 15 ? '#EF4444' : apr >= 5 ? '#F59E0B' : '#10B981'; }
 
 function debtFreeDate(months: number): string {
-  const d = new Date();
-  d.setMonth(d.getMonth() + months);
+  const d = new Date(); d.setMonth(d.getMonth() + months);
   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
@@ -192,7 +187,10 @@ export default function DebtPlannerScreen() {
               ))}
             </View>
 
-            <View style={s.stratRow}>
+            {debts.length === 1 && avalanche.months > 0 && (
+              <Text style={s.projText}>Pay off by {debtFreeDate(avalanche.months)}</Text>
+            )}
+            {debts.length > 1 && <View style={s.stratRow}>
               {(['avalanche', 'snowball'] as const).map(strat => {
                 const r = strat === 'avalanche' ? avalanche : snowball;
                 const isSel = selectedStrategy === strat;
@@ -208,13 +206,13 @@ export default function DebtPlannerScreen() {
                   </TouchableOpacity>
                 );
               })}
-            </View>
+            </View>}
 
-            <Text style={[s.sectionLabel, { marginTop: spacing.md }]}>YOUR PAYOFF ORDER</Text>
+            {debts.length > 1 && <><Text style={[s.sectionLabel, { marginTop: spacing.md }]}>YOUR PAYOFF ORDER</Text>
             {[...debts].sort((a, b) => selectedStrategy === 'avalanche' ? b.apr - a.apr : a.balance - b.balance).map((d, i) => {
               const r = selectedStrategy === 'avalanche' ? avalanche : snowball;
               return <Text key={d.id} style={s.projText}>{i + 1}. {d.name} — pay off by {debtFreeDate(Math.round(r.months * ((i + 1) / debts.length)))}</Text>;
-            })}
+            })}</>}
 
             {monthlyAfter > 0 && (
               <View style={[s.card, { marginTop: spacing.lg }]}>
@@ -231,6 +229,11 @@ export default function DebtPlannerScreen() {
 
         {debts.length === 0 && (
           <Text style={s.empty}>Add your debts above to see payoff strategies.</Text>
+        )}
+        {debts.length > 0 && (
+          <TouchableOpacity style={[s.addBtn, { marginTop: spacing.lg }]} onPress={() => { Alert.alert('Saved!', 'Your debt plan has been saved.'); navigation.goBack(); }}>
+            <Text style={s.addBtnText}>Save Plan</Text>
+          </TouchableOpacity>
         )}
       </ScrollView>
 
@@ -281,19 +284,15 @@ const s = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingVertical: spacing.xl },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 }, emptyText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' }, deleteBtn: { color: colors.danger, fontSize: 16, fontWeight: '700', paddingHorizontal: 8 },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, ...shadow.sm }, cardTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  sectionLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  sectionLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, textTransform: 'uppercase' },
   pickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: spacing.lg },
-  pick: { backgroundColor: colors.card, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 14 },
-  pickActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  pick: { backgroundColor: colors.card, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 14 }, pickActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   pickText: { color: colors.textSecondary, fontSize: 14, fontWeight: '600' }, pickTextActive: { color: '#fff' },
   stratRow: { flexDirection: 'row', gap: 10 },
-  stratCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, alignItems: 'center' },
-  stratWinner: { borderColor: colors.success, ...shadow.sm },
-  winnerBadge: { color: colors.success, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
+  stratCard: { flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, alignItems: 'center' }, stratWinner: { borderColor: colors.success, ...shadow.sm }, winnerBadge: { color: colors.success, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
   stratTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' }, stratSub: { color: colors.textSecondary, fontSize: 12, marginBottom: 8 },
   stratNum: { color: colors.textPrimary, fontSize: 20, fontWeight: '700', marginTop: 4 }, stratLabel: { color: colors.textMuted, fontSize: 12 },
   projText: { color: colors.textSecondary, fontSize: 14, marginTop: 4 }, projBig: { color: colors.success, fontSize: 28, fontWeight: '800', marginTop: 8 }, projSub: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  empty: { color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginTop: 40 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: spacing.lg },
+  empty: { color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginTop: 40 }, modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: spacing.lg },
   modalContent: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.xl }, modalTitle: { color: colors.textPrimary, fontSize: 18, fontWeight: '700', marginBottom: spacing.lg, textAlign: 'center' }, input: { backgroundColor: colors.bg, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary, fontSize: 15, padding: 12, marginBottom: spacing.sm },
 });

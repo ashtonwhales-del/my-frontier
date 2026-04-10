@@ -23,7 +23,6 @@ import TabShell from '../components/TabShell';
 import MarketTicker from '../components/MarketTicker';
 import AdBanner from '../components/AdBanner';
 import { PortfolioSnapshot, WeeklyInsight, QuickStats, LearningProgress } from '../components/home/HomeWidgets';
-import HelpFAB from '../components/HelpSystem';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Welcome'> };
 
@@ -138,7 +137,6 @@ export default function WelcomeScreen({ navigation }: Props) {
 
           <Text style={styles.disclaimer}>For educational purposes only. Not financial advice.</Text>
         </ScrollView>
-        <HelpFAB screen="home" />
       </SafeAreaView>
     </TabShell>
   );

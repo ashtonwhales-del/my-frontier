@@ -158,8 +158,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 }
               }, 'plain-text', savedName);
             }} />
-            <SettingsRow emoji="🔒" label="Privacy Policy" onPress={() => Linking.openURL(PRIVACY_URL)} />
-            <SettingsRow emoji="📋" label="Terms of Service" onPress={() => navigation.navigate('Terms')} />
+            <SettingsRow emoji="📋" label="Terms of Service" onPress={() => Alert.alert('Terms of Service', 'My Frontier is for educational purposes only. Not financial advice. All portfolio data is stored locally on your device. We do not collect personal information.')} />
             <SettingsRow emoji="ℹ️" label="About My Frontier" value={`v${APP_VERSION}`} onPress={() => navigation.navigate('About')} />
           </View>
 
