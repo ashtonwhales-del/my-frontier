@@ -18,6 +18,7 @@ import GradientButton from '../components/ui/GradientButton';
 import TabShell from '../components/TabShell';
 import { IncomeModal, CategoryModal } from './BudgetModals';
 import AdBanner from '../components/ads/SmartBanner';
+import IncomeSourcesSection from '../components/budget/IncomeSourcesSection';
 
 // ---------- constants ----------
 type NavProp = StackNavigationProp<RootStackParamList, 'Budget'>;
@@ -51,6 +52,7 @@ export default function BudgetScreen() {
   const [amounts, setAmounts]     = useState<CategoryAmounts>({});
   const [incomeModal, setIncomeModal]   = useState(false);
   const [catModal, setCatModal]         = useState<{ key: string; emoji: string } | null>(null);
+  const [additionalMonthly, setAdditionalMonthly] = useState(0);
 
   const month = currentMonth();
 
@@ -84,7 +86,8 @@ export default function BudgetScreen() {
   };
 
   const allocated  = Object.values(amounts).reduce((s, v) => s + v, 0);
-  const remaining  = income - allocated;
+  const totalIncome = income + additionalMonthly;
+  const remaining  = totalIncome - allocated;
   const weeklyInvest = remaining > 0 ? remaining / 4.33 : 0;
   const fv30 = weeklyInvest > 0
     ? (weeklyInvest * 52) * ((Math.pow(1.07, 30) - 1) / 0.07)
@@ -105,6 +108,9 @@ export default function BudgetScreen() {
               : <Text style={styles.incomePlaceholder}>Tap to add income →</Text>}
           </Card>
         </TouchableOpacity>
+
+        {/* Additional income sources */}
+        <IncomeSourcesSection onTotalChange={setAdditionalMonthly} />
 
         {/* Category grid */}
         <View style={styles.grid}>

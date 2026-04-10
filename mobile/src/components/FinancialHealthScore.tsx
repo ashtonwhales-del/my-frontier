@@ -43,10 +43,22 @@ export default function FinancialHealthScore({ navigation }: Props) {
       // Investing rate from budget
       const month = new Date().toISOString().slice(0, 7);
       const budgetRaw = await AsyncStorage.getItem('budgetData_' + month);
+      const sourcesRaw = await AsyncStorage.getItem('incomeSources');
+      let additionalMonthly = 0;
+      if (sourcesRaw) {
+        try {
+          const srcs = JSON.parse(sourcesRaw);
+          additionalMonthly = srcs.reduce((s: number, x: any) => {
+            const a = x.amount ?? 0;
+            const f = x.frequency;
+            return s + (f === 'weekly' ? a * 4.33 : f === 'biweekly' ? a * 2.17 : f === 'monthly' ? a : a / 12);
+          }, 0);
+        } catch {}
+      }
       if (budgetRaw) {
         try {
           const bd = JSON.parse(budgetRaw);
-          const inc = bd.income ?? 0;
+          const inc = (bd.income ?? 0) + additionalMonthly;
           const exp = Object.values(bd.categories ?? {}).reduce((s: number, v: any) => s + (v as number), 0);
           const surplus = inc - exp;
           const rate = inc > 0 ? (surplus / inc) * 100 : 0;
