@@ -1,10 +1,12 @@
+import { LESSON_CONTENT } from './LessonContent';
+
 export interface Lesson {
   id: string;
   emoji: string;
   title: string;
   tier: 'beginner' | 'intermediate' | 'advanced';
   premium: boolean;
-  content: string; // multi-paragraph plain text
+  content: string; // multi-paragraph plain text — pages split on \n\n
 }
 
 export const LESSONS: Lesson[] = [
@@ -116,6 +118,13 @@ export interface Game {
   desc: string;
   premium: boolean;
 }
+
+// Override lesson content with rich multi-page versions from LessonContent.ts
+LESSONS.forEach(lesson => {
+  if (LESSON_CONTENT[lesson.id]) {
+    lesson.content = LESSON_CONTENT[lesson.id];
+  }
+});
 
 export const GAMES: Game[] = [
   { id: 'risk_quiz',    emoji: '🎮', title: 'Risk Quiz',         desc: '5 questions to discover your real risk tolerance', premium: true },

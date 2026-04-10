@@ -18,7 +18,7 @@ import { Colors } from '../theme/colors';
 const TAB_ROUTES: Record<NavTab, string> = {
   Home:      'Welcome',
   Budget:    'Budget',
-  Portfolio: 'WealthTracker',
+  Portfolio: 'CurrentPortfolio',
   Community: 'Community',
   Profile:   'Profile',
 };

@@ -32,7 +32,7 @@ const todayString = (): string => {
 };
 
 export default function CurrentPortfolioScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [tickerInput, setTickerInput] = useState('');
@@ -114,6 +114,11 @@ export default function CurrentPortfolioScreen() {
           <Text style={s.addBtnText}>+</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Link to optimizer portfolios */}
+      <TouchableOpacity onPress={() => navigation.navigate('WealthTracker' as any)} style={s.optimizerLink}>
+        <Text style={s.optimizerLinkText}>View Optimizer Portfolios  ›</Text>
+      </TouchableOpacity>
 
       {holdings.length === 0 ? renderEmpty() : (
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
@@ -207,6 +212,8 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.lg, paddingTop: Platform.OS === 'ios' ? 60 : 40, paddingBottom: spacing.md,
   },
   headerTitle: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+  optimizerLink: { paddingHorizontal: spacing.lg, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
+  optimizerLinkText: { fontSize: 13, color: colors.primary, fontWeight: '600' },
   headerDate: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   addBtn: {
     width: 40, height: 40, borderRadius: radius.lg, backgroundColor: colors.primary,

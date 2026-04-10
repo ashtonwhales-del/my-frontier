@@ -1,6 +1,6 @@
 /**
  * BudgetScreen.tsx
- * Monthly budget tracker with investing opportunity and spending DNA analysis.
+ * Monthly budget tracker with investing opportunity.
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -43,21 +43,7 @@ const storageKey = (month: string) => `budgetData_${month}`;
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const fmt = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
-// ---------- spending DNA ----------
-function spendingDNA(income: number, amounts: CategoryAmounts) {
-  if (!income) return null;
-  const total = Object.values(amounts).reduce((s, v) => s + v, 0);
-  const pctSpent = total / income;
-  const housing = (amounts['Housing'] ?? 0) / income;
-  const subs    = (amounts['Subscriptions'] ?? 0) / income;
-
-  if (pctSpent < 0.70)    return { label: 'Saver',     emoji: '🌱', color: Colors.positive };
-  if (subs > 0.15)        return { label: 'Optimizer',  emoji: '📱', color: Colors.brandGold };
-  if (housing > 0.35)     return { label: 'Housing-heavy', emoji: '🏠', color: '#F59E0B' };
-  if (pctSpent > 0.95)    return { label: 'Spender',    emoji: '💸', color: Colors.negative };
-  if (pctSpent <= 0.85)   return { label: 'Balancer',   emoji: '⚖️', color: Colors.brandBlue };
-  return { label: 'Balancer', emoji: '⚖️', color: Colors.brandBlue };
-}
+// Spending DNA removed — no personality labels on budget screen
 
 export default function BudgetScreen() {
   const navigation = useNavigation<NavProp>();
@@ -103,8 +89,6 @@ export default function BudgetScreen() {
   const fv30 = weeklyInvest > 0
     ? (weeklyInvest * 52) * ((Math.pow(1.07, 30) - 1) / 0.07)
     : 0;
-  const dna = spendingDNA(income, amounts);
-
   return (
     <TabShell active="Budget">
     <SafeAreaView style={styles.safe}>
@@ -168,17 +152,7 @@ export default function BudgetScreen() {
         </TouchableOpacity>
 
         {/* Spending insight */}
-        {dna && (
-          <View style={styles.dnaRow}>
-            <Text style={styles.dnaInsight}>
-              {dna.label === 'Saver' ? 'You spend less than 70% of your income. Great saving habits!' :
-               dna.label === 'Housing-heavy' ? 'Housing costs are above 35% of income. Look for ways to reduce fixed expenses.' :
-               dna.label === 'Optimizer' ? 'Subscriptions are over 15% of income. Review which ones you truly use.' :
-               dna.label === 'Spender' ? 'Spending is above 95% of income. Finding even small cuts could fund investing.' :
-               'Your spending is balanced across categories.'}
-            </Text>
-          </View>
-        )}
+        {/* DNA personality section removed */}
       </ScrollView>
 
       {/* Sticky ad banner */}
@@ -238,9 +212,6 @@ const styles = StyleSheet.create({
   opportunityTitle: { ...HeadingScale.md, color: Colors.textGold },
   opportunityBody:  { ...BodyScale.md, color: Colors.textSecondary, lineHeight: 22 },
   ctaBtn:           {},
-
-  dnaRow:   { marginBottom: Spacing.lg },
-  dnaInsight: { ...BodyScale.sm, color: Colors.textTertiary, textAlign: 'center', lineHeight: 18 },
 
   summaryBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
