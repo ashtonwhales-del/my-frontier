@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
 import { STORAGE } from '../constants';
@@ -58,7 +59,7 @@ export default function LearningScreen({ navigation }: Props) {
     <View style={sh.screen}>
       <View style={sh.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={sh.backBtn}>
-          <Text style={sh.backText}>Back</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
         <View style={sh.headerCenter}>
           <Text style={sh.headerTitle}>Learning Center</Text>
