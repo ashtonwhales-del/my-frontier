@@ -90,6 +90,11 @@ export default function FinancialHealthScreen() {
               <View style={[st.barFill, { width: `${(c.score / c.max) * 100}%`, backgroundColor: gradeColor((c.score / c.max) * 100) }]} />
             </View>
             <Text style={st.catTip}>{c.tip}</Text>
+            <TouchableOpacity onPress={() => {
+              const screens: Record<string, string> = { 'Investing Rate': 'Budget', 'Debt Ratio': 'DebtPlanner', 'Portfolio Quality': 'Categories', 'Consistency': 'Learning' };
+              const target = screens[c.name];
+              if (target) navigation.navigate(target as any, target === 'Categories' ? { name: 'Investor' } : undefined);
+            }} style={st.fixBtn}><Text style={st.fixTxt}>Fix This  ›</Text></TouchableOpacity>
           </View>
         ))}
         <View style={{ height: 40 }} />
@@ -115,5 +120,7 @@ const st = StyleSheet.create({
   catScore: { fontSize: 14, fontWeight: '700', color: colors.textSecondary },
   barBg: { height: 6, backgroundColor: colors.border, borderRadius: 3, marginBottom: spacing.sm },
   barFill: { height: 6, borderRadius: 3 },
-  catTip: { fontSize: 13, color: colors.textSecondary, lineHeight: 18 },
+  catTip: { fontSize: 13, color: colors.textSecondary, lineHeight: 18, marginBottom: 8 },
+  fixBtn: { alignSelf: 'flex-start' },
+  fixTxt: { fontSize: 13, color: colors.primary, fontWeight: '600' },
 });

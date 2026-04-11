@@ -41,6 +41,7 @@ export default function WelcomeScreen({ navigation }: Props) {
   const [lessonsComplete, setLessons]   = useState(0);
   const [streak, setStreak]             = useState(0);
   const [goals, setGoals]               = useState<any[]>([]);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
 
   // Reload data every time screen is focused
   useFocusEffect(useCallback(() => {
@@ -61,6 +62,8 @@ export default function WelcomeScreen({ navigation }: Props) {
       if (lessonsRaw) {
         try { setLessons(JSON.parse(lessonsRaw).length); } catch {}
       }
+      const whatsNewDone = await AsyncStorage.getItem('whatsNewDismissed_v2');
+      if (!whatsNewDone) setShowWhatsNew(true);
       const goalsRaw = await AsyncStorage.getItem('goalBuckets');
       if (goalsRaw) { try { setGoals(JSON.parse(goalsRaw)); } catch {} }
       // Streak tracking
@@ -108,6 +111,18 @@ export default function WelcomeScreen({ navigation }: Props) {
           <Text style={styles.greeting}>{getGreeting()},</Text>
           <Text style={styles.userName}>{savedName}</Text>
 
+          {showWhatsNew && (
+            <View style={styles.whatsNew}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <Text style={styles.whatsNewTitle}>What's New</Text>
+                <TouchableOpacity onPress={() => { setShowWhatsNew(false); AsyncStorage.setItem('whatsNewDismissed_v2', 'true'); }}>
+                  <Text style={{ color: Colors.textTertiary, fontSize: 14 }}>X</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.whatsNewText}>Financial Health Score, Net Worth Timeline, Goal Buckets, Bill Negotiator, Housing Tool, Income Streams</Text>
+            </View>
+          )}
+
           {/* Financial Health Score — hero metric */}
           <FinancialHealthScore navigation={navigation} />
 
@@ -146,43 +161,29 @@ export default function WelcomeScreen({ navigation }: Props) {
           {/* Quick Stats Row */}
           <QuickStats portfolioCount={portfolios.length} bestScore={bestScore} streak={streak} />
 
-          {/* Action Buttons */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Categories', { name: savedName })}
-            activeOpacity={0.85}
-            style={styles.buildBtn}
-          >
-            <LinearGradient
-              colors={['#1D4ED8', '#3B82F6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.buildGradient}
-            >
+          {/* Primary CTA */}
+          <TouchableOpacity onPress={() => navigation.navigate('Categories', { name: savedName })} activeOpacity={0.85} style={styles.buildBtn}>
+            <LinearGradient colors={['#1D4ED8', '#3B82F6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.buildGradient}>
               <Text style={styles.buildText}>Build New Portfolio</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Budget')}
-            activeOpacity={0.8}
-            style={styles.budgetBtn}
-          >
-            <Text style={styles.budgetText}>Open Budget</Text>
-          </TouchableOpacity>
-
-          {/* Quick links */}
-          <TouchableOpacity onPress={() => navigation.navigate('GoalBuckets')} activeOpacity={0.8} style={styles.budgetBtn}>
-            <Text style={styles.budgetText}>My Goals</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('BillNegotiation')} activeOpacity={0.8} style={styles.budgetBtn}>
-            <Text style={styles.budgetText}>Bill Negotiator</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Housing')} activeOpacity={0.8} style={styles.budgetBtn}>
-            <Text style={styles.budgetText}>Housing Tool</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('NetWorthTimeline')} activeOpacity={0.8} style={styles.budgetBtn}>
-            <Text style={styles.budgetText}>Net Worth Timeline</Text>
-          </TouchableOpacity>
+          {/* Quick links 2x3 grid */}
+          <View style={styles.grid}>
+            {[
+              { label: 'My Budget', icon: '💼', screen: 'Budget', color: '#10B981' },
+              { label: 'My Goals', icon: '🎯', screen: 'GoalBuckets', color: '#F59E0B' },
+              { label: 'Net Worth', icon: '📈', screen: 'NetWorthTimeline', color: '#8B5CF6' },
+              { label: 'Bills', icon: '💡', screen: 'BillNegotiation', color: '#EF4444' },
+              { label: 'Housing', icon: '🏠', screen: 'Housing', color: '#14B8A6' },
+              { label: 'Learning', icon: '📚', screen: 'Learning', color: '#3B82F6' },
+            ].map(link => (
+              <TouchableOpacity key={link.screen} style={[styles.gridCard, { backgroundColor: link.color + '18' }]} onPress={() => navigation.navigate(link.screen as any)} activeOpacity={0.75}>
+                <Text style={styles.gridIcon}>{link.icon}</Text>
+                <Text style={styles.gridLabel}>{link.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           {/* Learning Progress */}
           <LearningProgress completed={lessonsComplete} total={12} navigation={navigation} />
@@ -223,8 +224,14 @@ const styles = StyleSheet.create({
   buildGradient: { paddingVertical: 17, alignItems: 'center', borderRadius: Radius.xl },
   buildText:     { fontSize: 16, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.3 },
 
-  budgetBtn: { borderWidth: 1.5, borderColor: Colors.borderSubtle, borderRadius: Radius.xl, paddingVertical: 14, alignItems: 'center', marginBottom: Spacing.lg },
-  budgetText: { fontSize: 15, fontWeight: '600', color: Colors.textSecondary },
+  whatsNew: { backgroundColor: '#F59E0B18', borderRadius: Radius.lg, borderWidth: 1, borderColor: '#F59E0B', padding: Spacing.md, marginBottom: Spacing.lg },
+  whatsNewTitle: { fontSize: 14, fontWeight: '700', color: '#F59E0B' },
+  whatsNewText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 18 },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.lg },
+  gridCard: { width: '48%', borderRadius: Radius.lg, padding: Spacing.md, alignItems: 'center', gap: 4 },
+  gridIcon: { fontSize: 24 },
+  gridLabel: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
 
   goalSection: { marginBottom: Spacing.lg },
   goalCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.bgCard, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.borderSubtle, padding: Spacing.md, marginBottom: Spacing.xs },

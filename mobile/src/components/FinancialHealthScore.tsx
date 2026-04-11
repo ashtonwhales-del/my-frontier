@@ -33,6 +33,7 @@ interface Props { navigation: any }
 
 export default function FinancialHealthScore({ navigation }: Props) {
   const [score, setScore] = useState(0);
+  const [loaded, setLoaded] = useState(false);
   const [insight, setInsight] = useState('Calculating...');
 
   useEffect(() => {
@@ -103,19 +104,21 @@ export default function FinancialHealthScore({ navigation }: Props) {
 
       const total = investing + debt + portfolio + streak;
       setScore(total);
+      setLoaded(true);
 
       const insights: Record<string, string> = {
-        'investing rate': 'Increase your investing rate for the biggest impact',
-        'debt': 'Paying down debt will boost your score significantly',
+        'investing rate': 'Boost your score: invest even $25 more per week',
+        'debt': 'Pay down debt to unlock your full financial potential',
         'portfolio quality': 'Build a higher-scoring portfolio to improve',
-        'consistency': 'Open the app daily to build your streak',
+        'consistency': 'Open My Frontier daily to build your streak',
+        'none': 'Your finances are in excellent shape!',
       };
-      setInsight(insights[lowestCat] ?? 'Keep building your financial foundation');
+      setInsight(total >= 85 ? insights['none'] : insights[lowestCat] ?? 'Keep building your financial foundation');
     })();
   }, []);
 
   const offset = CIRC * (1 - score / 100);
-  const c = gradeColor(score);
+  const c = loaded ? gradeColor(score) : colors.border;
 
   return (
     <TouchableOpacity style={s.card} onPress={() => navigation.navigate('FinancialHealth')} activeOpacity={0.8}>
@@ -123,7 +126,7 @@ export default function FinancialHealthScore({ navigation }: Props) {
         <Svg width={SIZE} height={SIZE}>
           <Circle cx={SIZE/2} cy={SIZE/2} r={R} stroke={colors.border} strokeWidth={STROKE} fill="none" />
           <Circle cx={SIZE/2} cy={SIZE/2} r={R} stroke={c} strokeWidth={STROKE} fill="none"
-            strokeDasharray={`${CIRC}`} strokeDashoffset={offset}
+            strokeDasharray={`${CIRC}`} strokeDashoffset={loaded ? offset : CIRC}
             strokeLinecap="round" rotation="-90" origin={`${SIZE/2},${SIZE/2}`} />
         </Svg>
         <View style={s.scoreOverlay}>
