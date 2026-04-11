@@ -3,11 +3,12 @@
  * No API calls. All answers hardcoded locally. Instant, free, never fails.
  */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList, OptimizeResponse, BudgetContext } from '../types';
-import { colors, spacing, radius, shadow } from '../theme';
+import { Ionicons } from '@expo/vector-icons';
+import { RootStackParamList, OptimizeResponse } from '../types';
+import { colors, spacing, radius } from '../theme';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Advisor'>;
@@ -53,9 +54,11 @@ export default function AdvisorScreen({ navigation, route }: Props) {
   const filtered = QA_DATA.filter(qa => qa.cat === activeCat);
 
   return (
-    <View style={s.root}>
+    <SafeAreaView style={s.root}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}><Text style={s.backText}>{'<'}</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
+        </TouchableOpacity>
         <Text style={s.title}>Ask Alex</Text>
         <Text style={{ fontSize: 24 }}>🤖</Text>
       </View>
@@ -96,14 +99,14 @@ export default function AdvisorScreen({ navigation, route }: Props) {
           ))
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
-  backBtn: { width: 40, height: 40, justifyContent: 'center' }, backText: { color: colors.primary, fontSize: 22, fontWeight: '700' },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
   title: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
   portfolioCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, margin: spacing.lg, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md },
   grade: { fontSize: 36, fontWeight: '900' }, portfolioStat: { fontSize: 13, color: colors.textSecondary },
@@ -117,7 +120,7 @@ const s = StyleSheet.create({
   qText: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.textPrimary }, qArrow: { fontSize: 18, color: colors.textMuted, marginLeft: 8 },
   answerCard: { backgroundColor: colors.card, borderRadius: radius.lg, borderLeftWidth: 4, borderLeftColor: colors.primary, padding: spacing.lg },
   alexRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
-  alexCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#EEF2FF', alignItems: 'center', justifyContent: 'center' },
+  alexCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   alexName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   questionText: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.md },
   answerText: { fontSize: 15, color: colors.textSecondary, lineHeight: 24, marginBottom: spacing.md },
