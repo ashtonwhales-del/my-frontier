@@ -91,6 +91,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
     try {
       const res = await optimizePortfolio({ ...data, riskTolerance: newRisk });
       setResult(res);
+      await savePortfolioToStorage({ ...data, riskTolerance: newRisk }, res);
     } catch (e: any) {
       setError(e.message ?? 'Recalculation failed');
     } finally { setRiskSwitching(false); }

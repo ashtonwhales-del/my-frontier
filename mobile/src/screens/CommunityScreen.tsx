@@ -15,31 +15,17 @@ import { STORAGE } from '../constants';
 
 function gc(g: string) { return g === 'A' ? '#10B981' : g === 'B' ? '#3B82F6' : g === 'C' ? '#F59E0B' : '#EF4444'; }
 
-const MOCK_POSTS = [
-  { id: '1', user: 'FrontierExplorer42', grade: 'A', ret: '12.3', risk: '14.1', likes: 24, time: '2h ago' },
-  { id: '2', user: 'WealthBuilder99', grade: 'B', ret: '9.8', risk: '11.2', likes: 18, time: '4h ago' },
-  { id: '3', user: 'DiversifyQueen', grade: 'A', ret: '11.1', risk: '12.8', likes: 31, time: '6h ago' },
-  { id: '4', user: 'IndexFundFan', grade: 'B', ret: '8.5', risk: '9.4', likes: 12, time: '1d ago' },
-  { id: '5', user: 'RiskTaker2026', grade: 'C', ret: '15.2', risk: '22.1', likes: 9, time: '1d ago' },
-  { id: '6', user: 'SteadyGrowth', grade: 'B', ret: '10.0', risk: '12.0', likes: 15, time: '2d ago' },
-  { id: '7', user: 'ETFNovice', grade: 'C', ret: '7.8', risk: '10.5', likes: 6, time: '3d ago' },
-  { id: '8', user: 'RetirementReady', grade: 'A', ret: '11.5', risk: '11.9', likes: 42, time: '3d ago' },
-];
-
 interface ChatMsg { user: string; text: string; isMe: boolean; type?: 'portfolio_share'; grade?: string; portfolioName?: string; returnPct?: string; riskPct?: string; score?: number }
 
-const STARTER_MSGS: ChatMsg[] = [
-  { user: 'FrontierExplorer42', text: 'Anyone building aggressive growth right now?', isMe: false },
-  { user: 'WealthBuilder99', text: 'Just got a B grade! 12% expected return', isMe: false },
-  { user: 'DiversifyQueen', text: 'Adding international ETFs boosted my diversification score', isMe: false },
-  { user: 'IndexFundFan', text: 'The stress test is wild. 31% drop in 2008 scenario', isMe: false },
-  { user: 'SteadyBuilder', text: 'Should I include bonds if I am 25?', isMe: false },
-];
+const WELCOME_MSG: ChatMsg = {
+  user: 'My Frontier',
+  text: "Welcome to the My Frontier community! Share your portfolios, ask questions, and connect with other investors. You're one of the first here. Start the conversation!",
+  isMe: false,
+};
 
 export default function CommunityScreen() {
   const navigation = useNavigation<any>();
   const [tab, setTab] = useState<'feed' | 'chat'>('feed');
-  const [likes, setLikes] = useState<Record<string, number>>({});
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [myName, setMyName] = useState('');
@@ -47,7 +33,7 @@ export default function CommunityScreen() {
 
   useEffect(() => {
     AsyncStorage.getItem('communityChat').then(raw => {
-      setMsgs(raw ? JSON.parse(raw) : STARTER_MSGS);
+      setMsgs(raw ? JSON.parse(raw) : [WELCOME_MSG]);
     });
     AsyncStorage.getItem('communityUsername').then(name => {
       if (name) { setMyName(name); return; }
@@ -119,18 +105,15 @@ export default function CommunityScreen() {
             <Text style={s.shareCardTitle}>Share My Portfolio</Text>
             <Text style={s.shareCardSub}>Post your portfolio to the community feed</Text>
           </TouchableOpacity>
-          {MOCK_POSTS.map(p => (
-            <View key={p.id} style={s.postCard}>
-              <View style={s.postTop}><Text style={s.postUser}>{p.user}</Text><Text style={s.postTime}>{p.time}</Text></View>
-              <View style={s.postBody}>
-                <Text style={[s.postGrade, { color: gc(p.grade) }]}>{p.grade}</Text>
-                <View><Text style={s.postStat}>{p.ret}% return</Text><Text style={s.postStat}>{p.risk}% risk</Text></View>
-              </View>
-              <TouchableOpacity onPress={() => setLikes(prev => ({ ...prev, [p.id]: (prev[p.id] ?? 0) + 1 }))} style={s.likeRow}>
-                <Text style={s.likeText}>❤️ {p.likes + (likes[p.id] ?? 0)}</Text>
-              </TouchableOpacity>
+          {(
+            <View style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
+              <Text style={{ fontSize: 40, marginBottom: spacing.md }}>📭</Text>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 }}>No posts yet</Text>
+              <Text style={{ fontSize: 13, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 }}>
+                Share your portfolio above to start the community feed!
+              </Text>
             </View>
-          ))}
+          )}
           <View style={{ height: 80 }} />
         </ScrollView>
       ) : (
@@ -179,13 +162,6 @@ const s = StyleSheet.create({
   scroll: { padding: spacing.lg, gap: spacing.md },
   shareCard: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.primary, padding: spacing.lg, alignItems: 'center' },
   shareCardTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 }, shareCardSub: { fontSize: 13, color: colors.textSecondary },
-  postCard: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md },
-  postTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm },
-  postUser: { fontSize: 13, fontWeight: '700', color: colors.textSecondary }, postTime: { fontSize: 12, color: colors.textMuted },
-  postBody: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginBottom: spacing.sm },
-  postGrade: { fontSize: 36, fontWeight: '900' }, postStat: { fontSize: 13, color: colors.textSecondary },
-  likeRow: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },
-  likeText: { fontSize: 13, color: colors.textSecondary },
   chatScroll: { padding: spacing.lg, gap: spacing.sm, paddingBottom: 20 },
   msgRow: { marginBottom: 4 }, msgRowMe: { alignItems: 'flex-end' }, msgRowOther: { alignItems: 'flex-start' },
   msgUser: { fontSize: 11, color: colors.textMuted, marginBottom: 2, marginLeft: 4 },

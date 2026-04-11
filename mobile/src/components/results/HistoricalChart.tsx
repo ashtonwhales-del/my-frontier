@@ -136,7 +136,7 @@ export default function HistoricalChart({ result }: { result: OptimizeResponse }
               </Text>
             </View>
           </View>
-          <Text style={styles.note}>Historical results do not guarantee future performance. Not financial advice.</Text>
+          <Text style={styles.note}>* Estimated based on asset class benchmarks. Not actual portfolio history. Past performance does not guarantee future results.</Text>
         </>
       )}
     </View>
