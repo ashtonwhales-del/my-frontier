@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   pathCardDesc: { fontSize: 13, color: colors.textSecondary, lineHeight: 18 },
   pathCardArrow: { fontSize: 20, color: colors.primary, marginLeft: spacing.sm },
   infoBox: {
-    backgroundColor: '#EEF2FF',
+    backgroundColor: '#3B82F615',
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.lg,
@@ -480,14 +480,14 @@ const styles = StyleSheet.create({
   suggestionAmountDivider: { width: 1, height: 36, backgroundColor: '#6EE7B7' },
   equitySplit: { fontSize: 13, color: '#047857', fontWeight: '600', textAlign: 'center' },
   notice: {
-    backgroundColor: '#FFF9E6',
+    backgroundColor: colors.card,
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.lg,
     borderLeftWidth: 3,
     borderLeftColor: colors.warning,
   },
-  noticeText: { fontSize: 13, color: '#92400E', lineHeight: 20 },
+  noticeText: { fontSize: 13, color: colors.textMuted, lineHeight: 20 },
   disclaimer: {
     fontSize: 11,
     color: colors.textMuted,

@@ -601,14 +601,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  compareBtnActive: { backgroundColor: '#EEF2FF' },
+  compareBtnActive: { backgroundColor: '#3B82F620' },
   compareBtnText: { fontSize: 16, opacity: 0.4 },
   compareBtnTextActive: { opacity: 1 },
   deleteBtn: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#EF444415',
   },
   deleteBtnText: { fontSize: 16 },
 });
