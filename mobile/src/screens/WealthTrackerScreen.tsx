@@ -465,7 +465,7 @@ export default function WealthTrackerScreen({ navigation }: Props) {
                         )}
                         <View style={styles.chipRow}>
                           <View style={styles.chip}>
-                            <Text style={styles.chipText}>{score}/100</Text>
+                            <Text style={styles.chipText}>{score}/10</Text>
                           </View>
                           <View style={styles.chip}>
                             <Text style={styles.chipText}>{(portfolio.result.performance.expected_annual_return * 100).toFixed(1)}% return</Text>

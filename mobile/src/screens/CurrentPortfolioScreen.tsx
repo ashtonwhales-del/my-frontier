@@ -13,6 +13,7 @@ import {
 SafeAreaView, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, shadow } from '../theme';
 import HoldingCard from '../components/portfolio/HoldingCard';
 
@@ -123,11 +124,11 @@ export default function CurrentPortfolioScreen() {
   );
 
   return (
-    <View style={s.root}>
+    <SafeAreaView style={s.root}>
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.navigate('Welcome' as any)} style={{ paddingRight: 12 }}>
-          <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '600' }}>Home</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={s.headerTitle}>My Portfolio</Text>
@@ -149,8 +150,8 @@ export default function CurrentPortfolioScreen() {
           <View style={s.heroCard}>
             <Text style={s.heroLabel}>TOTAL VALUE</Text>
             <Text style={s.heroValue}>{formatCurrency(totalValue)}</Text>
-            <Text style={[s.heroChange, { color: totalDayChange >= 0 ? '#10B981' : '#EF4444' }]}>
-              Today: {totalDayChange >= 0 ? '+' : ''}{formatCurrency(totalDayChange)}
+            <Text style={[s.heroChange, { color: Object.keys(prices).length > 0 ? (totalDayChange >= 0 ? '#10B981' : '#EF4444') : colors.textMuted }]}>
+              {Object.keys(prices).length > 0 ? `Today: ${totalDayChange >= 0 ? '+' : ''}${formatCurrency(totalDayChange)}` : 'Loading prices...'}
             </Text>
           </View>
 
@@ -216,7 +217,7 @@ export default function CurrentPortfolioScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -245,28 +246,6 @@ const s = StyleSheet.create({
   heroLabel: { fontSize: 11, fontWeight: '700', color: colors.brandGold, letterSpacing: 1.5 },
   heroValue: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, marginTop: 4 },
   heroChange: { fontSize: 13, color: colors.textSecondary, marginTop: 4 },
-
-  // Holdings
-  holdingCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card,
-    borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.sm,
-    borderWidth: 1, borderColor: colors.border,
-  },
-  holdingLeft: { flex: 1 },
-  holdingTicker: { fontSize: 17, fontWeight: '700', color: colors.textPrimary },
-  holdingSub: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  holdingRight: { alignItems: 'flex-end', marginRight: spacing.sm },
-  holdingValue: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
-  changeBadge: {
-    backgroundColor: colors.border, borderRadius: radius.sm, paddingHorizontal: 8,
-    paddingVertical: 2, marginTop: 4,
-  },
-  changeBadgeText: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
-  deleteBtn: {
-    width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(239,68,68,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  deleteBtnText: { fontSize: 13, fontWeight: '700', color: colors.danger },
 
   // Empty
   emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.xl },

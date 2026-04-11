@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
@@ -60,7 +60,7 @@ export default function App() {
       const [disclaimerAccepted, onboardingComplete, newOnboardingDone] = await Promise.all([
         AsyncStorage.getItem(STORAGE.DISCLAIMER_ACCEPTED),
         AsyncStorage.getItem(STORAGE.ONBOARDING_COMPLETE),
-        AsyncStorage.getItem('newOnboardingComplete'),
+        AsyncStorage.getItem(STORAGE.NEW_ONBOARDING_COMPLETE),
       ]);
       if (!disclaimerAccepted) setInitialRoute('Disclaimer');
       else if (!onboardingComplete) setInitialRoute('Onboarding');
@@ -70,7 +70,12 @@ export default function App() {
   }, []);
 
   if (!initialRoute) {
-    return <View style={{ flex: 1, backgroundColor: Colors.bgPrimary }} />;
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.bgPrimary, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontSize: 32, fontWeight: '900', color: Colors.brandGold, letterSpacing: 2 }}>MY FRONTIER</Text>
+        <Text style={{ fontSize: 14, color: Colors.textTertiary, marginTop: 8 }}>Loading...</Text>
+      </View>
+    );
   }
 
   return (

@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius } from '../../theme';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#14B8A6'];
@@ -40,9 +41,9 @@ export default function HoldingCard({ holding, priceData, index, totalValue, onD
         </View>
         <View style={{ alignItems: 'flex-end' }}>
           <Text style={s.price}>${price.toFixed(2)}</Text>
-          <View style={[s.badge, { backgroundColor: isUp ? '#10B98122' : '#EF444422' }]}>
-            <Text style={[s.badgeText, { color: isUp ? '#10B981' : '#EF4444' }]}>
-              {isUp ? '+' : ''}{chg.toFixed(2)} ({chgPct.toFixed(1)}%)
+          <View style={[s.badge, { backgroundColor: priceData ? (isUp ? '#10B98122' : '#EF444422') : colors.card }]}>
+            <Text style={[s.badgeText, { color: priceData ? (isUp ? '#10B981' : '#EF4444') : colors.textMuted }]}>
+              {priceData ? `${isUp ? '+' : ''}${chg.toFixed(2)} (${chgPct.toFixed(1)}%)` : 'Loading...'}
             </Text>
           </View>
         </View>
@@ -50,11 +51,13 @@ export default function HoldingCard({ holding, priceData, index, totalValue, onD
       <View style={s.bottomRow}>
         <Text style={s.value}>Value: ${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Text>
         <Text style={[s.gain, { color: gainUp ? '#10B981' : '#EF4444' }]}>
-          {gainUp ? '+' : ''}{gainLoss.toFixed(0)} ({gainPct.toFixed(1)}%)
+          {gainUp ? '+$' : '-$'}{Math.abs(gainLoss).toFixed(0)} ({gainPct.toFixed(1)}%)
         </Text>
       </View>
       <View style={s.barBg}><View style={[s.barFill, { width: `${Math.min(portfolioPct, 100)}%`, backgroundColor: dotColor }]} /></View>
-      <TouchableOpacity onPress={onDelete} style={s.deleteBtn}><Text style={s.deleteText}>Remove</Text></TouchableOpacity>
+      <TouchableOpacity onPress={onDelete} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ alignSelf: 'flex-end', padding: 8 }}>
+        <Ionicons name="trash-outline" size={18} color={colors.danger} />
+      </TouchableOpacity>
     </View>
   );
 }

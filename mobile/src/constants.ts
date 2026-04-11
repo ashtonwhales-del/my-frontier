@@ -22,6 +22,7 @@ export const STORAGE = {
   LESSONS_COMPLETE:           'lessonsComplete',     // JSON array of completed lesson IDs
   MARKET_PULSE_CACHE:         'marketPulseCache',    // cached market pulse JSON + timestamp
   IS_PREMIUM:                 'isPremium',           // boolean string — override for testing
+  NEW_ONBOARDING_COMPLETE:    'newOnboardingComplete',
 } as const;
 
 // Free tier limits
