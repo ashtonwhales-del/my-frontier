@@ -22,33 +22,44 @@ interface Debt {
 
 interface PayoffResult { totalInterest: number; months: number }
 
-function simulate(debts: Debt[], extraMonthly: number, strategy: 'avalanche' | 'snowball'): PayoffResult {
-  if (debts.length === 0) return { totalInterest: 0, months: 0 };
-  const pool = debts.map(d => ({ ...d, bal: d.balance }));
-  const sorted = strategy === 'avalanche'
-    ? pool.sort((a, b) => b.apr - a.apr)
-    : pool.sort((a, b) => a.bal - b.bal);
-  let months = 0, totalInterest = 0, extra = extraMonthly;
-  const MAX_MONTHS = 600;
-  while (sorted.some(d => d.bal > 0.01) && months < MAX_MONTHS) {
+function simulate(debts: Debt[], extra: number, strategy: 'avalanche' | 'snowball'): PayoffResult {
+  if (!debts.length) return { months: 0, totalInterest: 0 };
+
+  let items = debts
+    .filter(d => d.balance > 0)
+    .map(d => ({ ...d, bal: d.balance }))
+    .sort((a, b) => strategy === 'avalanche' ? b.apr - a.apr : a.balance - b.balance);
+
+  let months = 0;
+  let totalInterest = 0;
+
+  while (items.some(d => d.bal > 0) && months < 360) {
     months++;
-    let surplus = extra;
-    for (const d of sorted) {
-      if (d.bal <= 0) continue;
+    // Apply interest
+    items = items.map(d => {
+      if (d.bal <= 0) return d;
       const interest = d.bal * (d.apr / 100 / 12);
       totalInterest += interest;
-      d.bal += interest;
-      const pay = Math.min(d.bal, d.minPayment);
-      d.bal -= pay;
-    }
-    for (const d of sorted) {
-      if (d.bal <= 0 || surplus <= 0) continue;
-      const pay = Math.min(d.bal, surplus);
-      d.bal -= pay;
-      surplus -= pay;
+      return { ...d, bal: d.bal + interest };
+    });
+    // Pay minimums on all active debts, roll freed minimums into surplus
+    let surplus = extra;
+    items = items.map(d => {
+      if (d.bal <= 0) { surplus += d.minPayment; return d; }
+      const pay = Math.min(d.minPayment, d.bal);
+      if (pay < d.minPayment) surplus += d.minPayment - pay;
+      return { ...d, bal: Math.max(0, d.bal - pay) };
+    });
+    // Apply surplus to first priority debt still owing
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].bal > 0) {
+        const pay = Math.min(surplus, items[i].bal);
+        items[i] = { ...items[i], bal: Math.max(0, items[i].bal - pay) };
+        break;
+      }
     }
   }
-  return { totalInterest: Math.round(totalInterest), months };
+  return { months, totalInterest: Math.round(totalInterest) };
 }
 
 function fmt(n: number): string {

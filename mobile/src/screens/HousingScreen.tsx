@@ -50,6 +50,8 @@ export default function HousingScreen() {
   const [homePrice, setHomePrice] = useState('300000');
   const [downPct, setDownPct] = useState('20');
   const [rate, setRate] = useState('7.0');
+  const [propTaxRate, setPropTaxRate] = useState('1.2');
+  const [hoaMonthly, setHoaMonthly] = useState('0');
 
   useFocusEffect(useCallback(() => {
     const month = new Date().toISOString().slice(0, 7);
@@ -75,7 +77,10 @@ export default function HousingScreen() {
   const loan = hp * (1 - dp);
   const nPay = 360;
   const mortgage = loan * (ir * Math.pow(1 + ir, nPay)) / (Math.pow(1 + ir, nPay) - 1);
-  const totalOwn = mortgage + hp * 0.012 / 12 + 100;
+  const monthlyTax = (hp * (parseFloat(propTaxRate) || 1.2) / 100) / 12;
+  const monthlyHOA = parseFloat(hoaMonthly) || 0;
+  const monthlyInsurance = hp * 0.005 / 12;
+  const totalOwn = mortgage + monthlyTax + monthlyInsurance + monthlyHOA;
   const rentEquiv = curRent || hp * 0.007;
 
   return (
@@ -143,13 +148,25 @@ export default function HousingScreen() {
           <TextInput style={s.input} value={downPct} onChangeText={setDownPct} keyboardType="decimal-pad" returnKeyType="done" />
           <Text style={s.inputLabel}>Interest rate %:</Text>
           <TextInput style={s.input} value={rate} onChangeText={setRate} keyboardType="decimal-pad" returnKeyType="done" />
+          <Text style={s.inputLabel}>Property tax rate (% of home price):</Text>
+          <TextInput style={s.input} value={propTaxRate} onChangeText={setPropTaxRate} keyboardType="decimal-pad" returnKeyType="done" />
+          <Text style={s.inputLabel}>Monthly HOA ($):</Text>
+          <TextInput style={s.input} value={hoaMonthly} onChangeText={setHoaMonthly} keyboardType="number-pad" returnKeyType="done" />
           <View style={s.card}>
-            <Text style={s.compareLabel}>Monthly Mortgage (est.)</Text>
+            <Text style={s.compareLabel}>Monthly Ownership Cost (est.)</Text>
             <Text style={s.compareVal}>{fmt(totalOwn)}</Text>
+            <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 4 }}>
+              Mortgage {fmt(mortgage)} + Tax {fmt(monthlyTax)} + Insurance {fmt(monthlyInsurance)}{monthlyHOA > 0 ? ` + HOA ${fmt(monthlyHOA)}` : ''}
+            </Text>
           </View>
           <View style={s.card}>
             <Text style={s.compareLabel}>Equivalent Rent</Text>
             <Text style={s.compareVal}>{fmt(rentEquiv)}</Text>
+            {!curRent && (
+              <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 4 }}>
+                Using estimated rent (0.7% of home price). Enter your actual rent in the Budget tab for accuracy.
+              </Text>
+            )}
           </View>
           <View style={[s.card, { borderLeftWidth: 4, borderLeftColor: totalOwn < rentEquiv ? '#10B981' : '#F59E0B' }]}>
             <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textPrimary }}>

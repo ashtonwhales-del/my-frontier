@@ -9,10 +9,12 @@ import {
   TextInput,
   Dimensions,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import Svg, { Polyline, Line, Text as SvgText, Circle as SvgCircle } from 'react-native-svg';
 import { RootStackParamList, SavedPortfolio } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
@@ -147,10 +149,15 @@ function ProjectionChart({ portfolios, selectedIds }: ProjectionChartProps) {
       {/* Legend */}
       <View style={chartStyles.legend}>
         {(() => {
-          const nameCount: Record<string, number> = {};
+          const nameCounts: Record<string, number> = {};
+          const nameIndex: Record<string, number> = {};
+          selected.forEach(p => { nameCounts[p.name] = (nameCounts[p.name] || 0) + 1; });
           return selected.map((p, idx) => {
-            nameCount[p.name] = (nameCount[p.name] || 0) + 1;
-            const suffix = nameCount[p.name] > 1 ? ` #${nameCount[p.name]}` : '';
+            let suffix = '';
+            if (nameCounts[p.name] > 1) {
+              nameIndex[p.name] = (nameIndex[p.name] || 0) + 1;
+              suffix = ` #${nameIndex[p.name]}`;
+            }
             const retPct = (p.result.performance.expected_annual_return * 100).toFixed(1);
             const label = `${p.name}${suffix} (${retPct}%)`;
             return (
@@ -388,12 +395,12 @@ export default function WealthTrackerScreen({ navigation }: Props) {
 
   return (
     <TabShell active="Invest" navigation={navigation}>
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen}>
       <PortfolioDetailModal portfolio={detailPortfolio} onClose={() => setDetailPortfolio(null)} />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>←</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{userName}'s Wealth Journey</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Compare')} style={styles.headerCompareBtn}>
@@ -510,7 +517,7 @@ export default function WealthTrackerScreen({ navigation }: Props) {
         )}
         <View style={{ height: spacing.xl }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
     </TabShell>
   );
 }
@@ -521,7 +528,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingTop: 56,
     paddingBottom: spacing.md,
     backgroundColor: colors.card,
     borderBottomWidth: 1,
@@ -529,7 +535,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   backBtn: { padding: spacing.sm },
-  backText: { fontSize: 22, color: colors.primary, fontWeight: '700' },
   headerTitle: { flex: 1, fontSize: 18, fontWeight: '800', color: colors.textPrimary },
   headerCompareBtn: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 5 },
   headerCompareBtnText: { fontSize: 12, color: colors.primary, fontWeight: '700' },
