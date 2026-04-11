@@ -64,6 +64,11 @@ export default function LessonReaderScreen({ route, navigation }: Props) {
           </View>
           {(() => { const m = pages[page]?.match(/\$[\d,]+(?:\.\d+)?|[\d]+\.?\d*%/); return m ? <View style={s.keyStatBox}><Text style={s.keyStatNum}>{m[0]}</Text></View> : null; })()}
           <Text style={s.pageText}>{pages[page]}</Text>
+          {(() => {
+            const sentences = (pages[page] ?? '').split(/[.!?]/).filter(s => s.trim().length > 20);
+            const key = sentences.find(s => /means|shows|because|important|key|critical/i.test(s));
+            return key ? <View style={s.insightBox}><Text style={s.insightLabel}>Key Insight</Text><Text style={s.insightText}>{key.trim()}.</Text></View> : null;
+          })()}
         </View>
       </ScrollView>
       <View style={s.nav}>
@@ -97,12 +102,15 @@ const s = StyleSheet.create({
   fill: { height: 3, backgroundColor: Colors.brandBlue, borderRadius: 2 },
   body: { flex: 1 },
   bodyPad: { padding: Spacing.lg },
-  contentCard: { backgroundColor: '#0F1629', borderRadius: 16, padding: 24, borderWidth: 1, borderColor: '#1E2D4A' },
-  emojiWrap: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#1E2D4A', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 16, marginTop: 8 },
-  pageEmoji: { fontSize: 52 },
+  contentCard: { backgroundColor: '#0D1526', borderRadius: 16, padding: 20, borderLeftWidth: 3, borderLeftColor: '#3B82F6' },
+  emojiWrap: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#1E2D4A', borderWidth: 2, borderColor: '#3B82F640', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 16, marginTop: 8 },
+  pageEmoji: { fontSize: 56 },
   keyStatBox: { alignSelf: 'center', backgroundColor: '#1E3A5F', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10, marginBottom: 16, borderWidth: 1, borderColor: '#3B82F6' },
   keyStatNum: { fontSize: 28, fontWeight: '900', color: '#F59E0B', textAlign: 'center' },
-  pageText: { color: '#CBD5E1', fontSize: 18, lineHeight: 30, letterSpacing: 0.2 },
+  pageText: { color: '#CBD5E1', fontSize: 17, lineHeight: 28, letterSpacing: 0.2 },
+  insightBox: { marginTop: 16, backgroundColor: '#1E2D4A', borderRadius: 12, padding: 14, borderLeftWidth: 3, borderLeftColor: '#F59E0B' },
+  insightLabel: { fontSize: 11, fontWeight: '700', color: '#F59E0B', letterSpacing: 0.8, marginBottom: 4 },
+  insightText: { fontSize: 14, color: '#94A3B8', lineHeight: 20 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, paddingBottom: 40, backgroundColor: Colors.bgCard, borderTopWidth: 1, borderTopColor: Colors.borderSubtle },
   btn: { backgroundColor: Colors.bgCardElevated, paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.md },
   btnDim: { opacity: 0.4 },
