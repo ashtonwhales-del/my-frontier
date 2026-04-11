@@ -130,35 +130,26 @@ export function WeeklyInsight({ navigation }: { navigation: any }) {
 
 // ── DailyChallenge ─────────────────────────────────────────────────────────
 const CHALLENGES = [
-  'Build a portfolio with Sharpe ratio above 1.2',
-  'Add an international ETF to your allocation',
-  'Check if your portfolio survived the 2008 crash test',
-  'Build a Conservative portfolio with grade B or better',
-  'Create a portfolio with 10+ ETFs for maximum diversification',
-  'Build a portfolio that beats the S&P 500 expected return',
-  'Try adding bonds to see how it affects your risk score',
-  'Build your most aggressive portfolio yet',
-  'Create a portfolio focused on dividends and income',
-  'Compare two portfolios to find the more efficient one',
-  'Build a portfolio with diversification score above 8',
-  'Try clean energy sectors in your next portfolio',
-  'Build a portfolio with less than 10% volatility',
-  'Add emerging markets and see how it changes your return',
-  'Build a portfolio that holds through the COVID crash test',
-  'Create a balanced portfolio with grade B',
-  'Try adding real estate ETFs for extra diversification',
-  'Build your lowest-risk portfolio possible',
-  'Create a portfolio with expected return above 15%',
-  'Compare your best portfolio against your newest one',
+  { title: 'Build a portfolio with Sharpe above 1.2', explain: 'The Sharpe ratio measures return per unit of risk. Above 1.2 is excellent.' },
+  { title: 'Add international ETFs to your portfolio', explain: 'International ETFs like VWO expose you to faster-growing economies.' },
+  { title: 'Stress test your portfolio against 2008', explain: 'The 2008 crisis dropped markets 57%. See how your portfolio survives.' },
+  { title: 'Set a savings goal for something you want', explain: 'Goal-based investing ties your money to real milestones.' },
+  { title: 'Enter your bills in the Bill Negotiator', explain: 'Most people overpay $200-500/year. Negotiating saves thousands.' },
+  { title: 'Build an aggressive portfolio and stress test it', explain: 'Aggressive portfolios can drop 40-50%. Knowing this prevents panic.' },
+  { title: 'Add a second income source to your budget', explain: 'Multiple income streams reduce financial risk dramatically.' },
+  { title: 'Check your Net Worth Timeline milestone ages', explain: 'Seeing projected wealth at 40, 50, 60 makes numbers feel real.' },
+  { title: 'Build a conservative portfolio', explain: 'Conservative portfolios trade returns for stability during crashes.' },
+  { title: 'Find an affordable city in the Housing tool', explain: 'The 30% rule says housing should be under 30% of income.' },
 ];
 
 export function DailyChallenge({ navigation }: { navigation: any }) {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-  const challenge = CHALLENGES[dayOfYear % CHALLENGES.length];
+  const ch = CHALLENGES[dayOfYear % CHALLENGES.length];
   return (
     <TouchableOpacity style={dc.card} onPress={() => navigation.navigate('Categories', { name: 'Investor' })} activeOpacity={0.8}>
       <Text style={dc.label}>DAILY CHALLENGE</Text>
-      <Text style={dc.text}>{challenge}</Text>
+      <Text style={dc.text}>{ch.title}</Text>
+      <Text style={dc.explain}>{ch.explain}</Text>
       <Text style={dc.cta}>Accept Challenge  ›</Text>
     </TouchableOpacity>
   );
@@ -229,7 +220,8 @@ const wi = StyleSheet.create({
 const dc = StyleSheet.create({
   card: { backgroundColor: '#F59E0B12', borderRadius: Radius.lg, borderWidth: 1, borderColor: '#F59E0B', padding: Spacing.lg, marginBottom: Spacing.lg },
   label: { fontSize: 10, fontWeight: '700', color: '#F59E0B', letterSpacing: 1.2, marginBottom: Spacing.sm },
-  text: { ...BodyScale.md, color: Colors.textPrimary, fontWeight: '600', lineHeight: 22, marginBottom: Spacing.sm },
+  text: { ...BodyScale.md, color: Colors.textPrimary, fontWeight: '600', lineHeight: 22, marginBottom: 4 },
+  explain: { ...BodyScale.sm, color: Colors.textSecondary, lineHeight: 18, marginBottom: Spacing.sm },
   cta: { ...BodyScale.sm, color: '#F59E0B', fontWeight: '600' },
 });
 

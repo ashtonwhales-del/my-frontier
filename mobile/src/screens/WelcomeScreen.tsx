@@ -21,7 +21,7 @@ import { BodyScale } from '../theme/typography';
 import { fetchMarketPulse } from '../api';
 import TabShell from '../components/TabShell';
 import MarketTicker from '../components/MarketTicker';
-import AdBanner from '../components/ads/SmartBanner';
+// No ads on home screen
 import { PortfolioSnapshot, WeeklyInsight, DailyChallenge, QuickStats, LearningProgress } from '../components/home/HomeWidgets';
 import FinancialHealthScore from '../components/FinancialHealthScore';
 
@@ -149,8 +149,7 @@ export default function WelcomeScreen({ navigation }: Props) {
           {/* Portfolio Snapshot */}
           <PortfolioSnapshot portfolios={portfolios} navigation={navigation} />
 
-          {/* Ad banner (free users) */}
-          <AdBanner placement="banner" />
+          {/* No ads on home screen — ever */}
 
           {/* Daily Challenge */}
           <DailyChallenge navigation={navigation} />

@@ -50,9 +50,13 @@ export default function NetWorthTimelineScreen() {
         try {
           const ports = JSON.parse(portRaw);
           const bestRet = Math.max(0, ...ports.map((p: any) => p.result?.performance?.expected_annual_return ?? 0));
-          if (bestRet > 0) annualReturn = bestRet;
+          if (bestRet > 0.03 && bestRet < 0.25) annualReturn = bestRet; // sanity: 3-25%
         } catch {}
       }
+      // Cap return at 15% to prevent wild projections
+      annualReturn = Math.min(annualReturn, 0.15);
+      // Cap monthly contribution at a reasonable maximum ($5000/month)
+      monthlySurplus = Math.min(monthlySurplus, 5000);
 
       const monthlyRate = Math.pow(1 + annualReturn, 1 / 12) - 1;
       const years = 50;

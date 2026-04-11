@@ -10,7 +10,7 @@ import { SmartBanner } from '../components/ads/SmartBanner';
 
 const BILLS = [
   { id: 'internet', name: 'Internet', emoji: '📡', avg: 65, script: 'Call your provider and say: "I have been a loyal customer and I see competitors offering service for $40/month. Can you match that or I will need to switch?" Most providers have retention departments that offer 20-40% discounts on the spot.' },
-  { id: 'cell', name: 'Cell Phone', emoji: '📱', avg: 85, script: 'Call customer service: "I want to review my plan. What promotions do you have for loyal customers?" Ask about autopay discounts, paperless billing credits, and loyalty rewards.' },
+  { id: 'cell', name: 'Cell Phone', emoji: '📱', avg: 65, script: 'Call customer service: "I want to review my plan. What promotions do you have for loyal customers?" Ask about autopay discounts, paperless billing credits, and loyalty rewards.' },
   { id: 'car_ins', name: 'Car Insurance', emoji: '🚗', avg: 140, script: 'Get 3 competitor quotes first. Then call: "I have a quote for $X from a competitor. Can you beat it?" Also ask about safe driver discounts and bundling with renters insurance.' },
   { id: 'renters', name: 'Renters Insurance', emoji: '🏠', avg: 18, script: 'Ask your car insurance provider for a bundle discount. Most offer 10-15% off both policies. If paying over $18, shop at Lemonade or Progressive for instant online quotes.' },
   { id: 'streaming', name: 'Streaming', emoji: '📺', avg: 45, script: 'Audit every streaming service. Cancel any not used in 30 days. Many offer promo rates to returning customers. Share plans with family to split costs.' },
@@ -92,10 +92,11 @@ export default function BillNegotiationScreen() {
                   </View>
                 )}
               </View>
-              {over && !negotiated.has(bill.id) && (
-                <TouchableOpacity style={s.negotiateBtn} onPress={() => setSelected(bill)}><Text style={s.negotiateTxt}>Negotiate  ›</Text></TouchableOpacity>
+              {!negotiated.has(bill.id) ? (
+                <TouchableOpacity style={s.negotiateBtn} onPress={() => setSelected(bill)}><Text style={s.negotiateTxt}>Get script  ›</Text></TouchableOpacity>
+              ) : (
+                <Text style={s.negotiatedTag}>Negotiated</Text>
               )}
-              {negotiated.has(bill.id) && <Text style={s.negotiatedTag}>Negotiated</Text>}
             </View>
           );
         })}
