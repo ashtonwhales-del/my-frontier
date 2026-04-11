@@ -1,4 +1,5 @@
 import { LESSON_CONTENT } from './LessonContent';
+import { EXTRA_CONTENT } from './LessonContentExtra';
 
 export interface Lesson {
   id: string;
@@ -109,6 +110,26 @@ export const LESSONS: Lesson[] = [
     premium: true,
     content: `The government taxes investment gains. But you can legally minimize how much you pay.\n\nKey accounts:\n• 401(k): Pre-tax contributions reduce your taxable income now. Gains grow tax-deferred. Pay taxes on withdrawal at retirement.\n• Roth IRA: Post-tax contributions. Gains grow tax-FREE. No taxes on withdrawal. Limit: $7,000/year (2024).\n• Regular brokerage: Taxable, but capital gains tax is lower than income tax if you hold >1 year.\n\nOrder of priority:\n1. Max your 401(k) match (free money from employer)\n2. Max your Roth IRA ($7,000/year)\n3. Max your 401(k) ($23,000/year)\n4. Regular brokerage for everything else\n\nTax-loss harvesting: If an ETF loses value, you can sell it, claim the loss to offset gains, and immediately buy a similar ETF. My Frontier doesn't implement this yet, but it's worth knowing.`,
   },
+  // ── NEW BEGINNER ─────────────────────────────────────────────────────────
+  { id: 'stock_market', emoji: '🏛️', title: 'What is the Stock Market?', tier: 'beginner' as const, premium: false, content: EXTRA_CONTENT.stock_market ?? '' },
+  { id: 'first_paycheck', emoji: '💵', title: 'Understanding Your First Paycheck', tier: 'beginner' as const, premium: false, content: EXTRA_CONTENT.first_paycheck ?? '' },
+  { id: 'starting_early', emoji: '⏰', title: 'The Power of Starting Early', tier: 'beginner' as const, premium: false, content: EXTRA_CONTENT.starting_early ?? '' },
+  { id: 'inflation', emoji: '📉', title: 'What is Inflation?', tier: 'beginner' as const, premium: false, content: EXTRA_CONTENT.inflation ?? '' },
+  { id: 'emergency_fund', emoji: '🛡️', title: 'Building Your Emergency Fund', tier: 'beginner' as const, premium: false, content: EXTRA_CONTENT.emergency_fund ?? '' },
+  { id: 'debt_types', emoji: '💳', title: 'Good Debt vs Bad Debt', tier: 'beginner' as const, premium: false, content: EXTRA_CONTENT.debt_types ?? '' },
+  // ── NEW INTERMEDIATE ─────────────────────────────────────────────────────
+  { id: 'dca', emoji: '🔄', title: 'Dollar Cost Averaging', tier: 'intermediate' as const, premium: true, content: EXTRA_CONTENT.dca ?? '' },
+  { id: 'balance_sheet', emoji: '📋', title: 'How to Read a Balance Sheet', tier: 'intermediate' as const, premium: true, content: EXTRA_CONTENT.balance_sheet ?? '' },
+  { id: 'pe_ratio', emoji: '🔢', title: 'Understanding P/E Ratios', tier: 'intermediate' as const, premium: true, content: EXTRA_CONTENT.pe_ratio ?? '' },
+  { id: 'dividends', emoji: '💰', title: 'Building a Dividend Portfolio', tier: 'intermediate' as const, premium: true, content: EXTRA_CONTENT.dividends ?? '' },
+  { id: 'sector_rotation', emoji: '🔁', title: 'Sector Rotation Strategy', tier: 'intermediate' as const, premium: true, content: EXTRA_CONTENT.sector_rotation ?? '' },
+  // ── NEW ADVANCED ─────────────────────────────────────────────────────────
+  { id: 'options_basics', emoji: '📊', title: 'Options: Calls and Puts', tier: 'advanced' as const, premium: true, content: EXTRA_CONTENT.options_basics ?? '' },
+  { id: 'tax_loss', emoji: '🌿', title: 'Tax-Loss Harvesting', tier: 'advanced' as const, premium: true, content: EXTRA_CONTENT.tax_loss ?? '' },
+  { id: 'factor_investing', emoji: '🧬', title: 'Factor Investing', tier: 'advanced' as const, premium: true, content: EXTRA_CONTENT.factor_investing ?? '' },
+  { id: 'rebalancing', emoji: '⚖️', title: 'Portfolio Rebalancing', tier: 'advanced' as const, premium: true, content: EXTRA_CONTENT.rebalancing ?? '' },
+  { id: 'bonds_advanced', emoji: '📜', title: 'Bond Duration and Yield', tier: 'advanced' as const, premium: true, content: EXTRA_CONTENT.bonds_advanced ?? '' },
+  { id: 'alternatives', emoji: '🌐', title: 'Alternative Assets', tier: 'advanced' as const, premium: true, content: EXTRA_CONTENT.alternatives ?? '' },
 ];
 
 export interface Game {
@@ -121,9 +142,8 @@ export interface Game {
 
 // Override lesson content with rich multi-page versions from LessonContent.ts
 LESSONS.forEach(lesson => {
-  if (LESSON_CONTENT[lesson.id]) {
-    lesson.content = LESSON_CONTENT[lesson.id];
-  }
+  if (LESSON_CONTENT[lesson.id]) lesson.content = LESSON_CONTENT[lesson.id];
+  if (EXTRA_CONTENT[lesson.id]) lesson.content = EXTRA_CONTENT[lesson.id];
 });
 
 export const GAMES: Game[] = [
