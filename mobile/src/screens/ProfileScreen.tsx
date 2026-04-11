@@ -20,6 +20,7 @@ import { HeadingScale, BodyScale, LabelStyle, NumberScale } from '../theme/typog
 import { isPremium } from '../services/premiumService';
 import AdBanner from '../components/ads/SmartBanner';
 import TabShell from '../components/TabShell';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Profile'> };
 
@@ -57,6 +58,7 @@ function SettingsRow({ emoji, label, value, onPress, danger = false }: {
 }
 
 export default function ProfileScreen({ navigation }: Props) {
+  const { isDark, toggleTheme } = useTheme();
   const [savedName, setSavedName]   = useState('');
   const [portfolios, setPortfolios] = useState<SavedPortfolio[]>([]);
   const [badgeCount, setBadgeCount] = useState(0);
@@ -160,6 +162,21 @@ export default function ProfileScreen({ navigation }: Props) {
             }} />
             <SettingsRow emoji="📋" label="Terms of Service" onPress={() => Alert.alert('Terms of Service', 'My Frontier is for educational purposes only. Not financial advice. All portfolio data is stored locally on your device. We do not collect personal information.')} />
             <SettingsRow emoji="ℹ️" label="About My Frontier" value={`v${APP_VERSION}`} onPress={() => navigation.navigate('About')} />
+          </View>
+
+          {/* Appearance */}
+          <Text style={styles.sectionLabel}>APPEARANCE</Text>
+          <View style={styles.card}>
+            <View style={st.row}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <Text style={{ fontSize: 24 }}>{isDark ? '🌙' : '☀️'}</Text>
+                <View>
+                  <Text style={st.rowLabel}>{isDark ? 'Dark Mode' : 'Light Mode'}</Text>
+                  <Text style={{ fontSize: 12, color: Colors.textTertiary, marginTop: 2 }}>Switch app appearance</Text>
+                </View>
+              </View>
+              <Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: '#CBD5E1', true: Colors.brandBlue }} thumbColor="#FFFFFF" />
+            </View>
           </View>
 
           {/* Support section */}

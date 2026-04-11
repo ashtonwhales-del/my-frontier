@@ -44,3 +44,14 @@ export const Colors = {
 } as const;
 
 export type ColorKey = keyof typeof Colors;
+
+export const LightColors: Record<keyof typeof Colors, string | readonly string[]> = {
+  bgPrimary: '#F8FAFC', bgCard: '#FFFFFF', bgCardElevated: '#F1F5F9', bgInput: '#E2E8F0',
+  borderSubtle: '#E2E8F0',
+  brandBlue: '#2563EB', brandGold: '#D97706',
+  positive: '#059669', positiveSubtle: '#D1FAE5', negative: '#DC2626', negativeSubtle: '#FEE2E2',
+  textPrimary: '#0F172A', textSecondary: '#334155', textTertiary: '#94A3B8', textGold: '#92400E',
+  gradientBlue: ['#1D4ED8', '#3B82F6'] as const, gradientGold: ['#D97706', '#F59E0B'] as const,
+  primary: '#2563EB', primaryDark: '#1D4ED8', accent: '#7209B7', success: '#059669',
+  warning: '#D97706', danger: '#DC2626', bg: '#F8FAFC', card: '#FFFFFF', textMuted: '#64748B', border: '#E2E8F0',
+};

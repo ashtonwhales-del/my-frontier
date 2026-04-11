@@ -11,6 +11,7 @@ import { STORAGE } from './src/constants';
 import { Colors } from './src/theme/colors';
 import { initializePurchases } from './src/services/purchaseService';
 import { warmupServer } from './src/api';
+import { ThemeProvider } from './src/context/ThemeContext';
 import ErrorBoundary           from './src/components/ErrorBoundary';
 import DisclaimerScreen        from './src/screens/DisclaimerScreen';
 import OnboardingScreen        from './src/screens/OnboardingScreen';
@@ -76,6 +77,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      <ThemeProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <NavigationContainer>
           <StatusBar style="light" />
@@ -125,6 +127,7 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
       </GestureHandlerRootView>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
