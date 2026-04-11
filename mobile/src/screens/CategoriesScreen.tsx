@@ -3,8 +3,9 @@
  * Step 1: CategoryPicker (choose sectors)
  * Step 2: ContributionStep (weekly amount + 30yr projection)
  */
-import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types';
@@ -22,6 +23,13 @@ export default function CategoriesScreen({ navigation, route }: Props) {
   const { name } = route.params;
   const [step, setStep] = useState<1 | 2>(1);
   const [categories, setCategories] = useState<string[]>([]);
+  const [userAge, setUserAge] = useState(30);
+
+  useEffect(() => {
+    AsyncStorage.getItem('userAge').then(v => {
+      if (v) setUserAge(parseInt(v, 10) || 30);
+    });
+  }, []);
 
   function handleCategoriesConfirm(cats: string[]) {
     setCategories(cats);
@@ -46,20 +54,18 @@ export default function CategoriesScreen({ navigation, route }: Props) {
         riskTolerance,
         lumpSum,
         weeklyContribution: weekly,
-        age: 30,
+        age: userAge,
       },
     });
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <StepProgressBar
-          currentStep={step}
-          totalSteps={2}
-          labels={['Sectors', 'Amount']}
-        />
-      </View>
+    <SafeAreaView style={styles.container}>
+      <StepProgressBar
+        currentStep={step}
+        totalSteps={2}
+        labels={['Sectors', 'Amount']}
+      />
 
       {step === 1 && (
         <CategoryPicker
@@ -74,11 +80,10 @@ export default function CategoriesScreen({ navigation, route }: Props) {
           lumpSum={0}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingHorizontal: spacing.lg },
+  container: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: spacing.lg },
 });

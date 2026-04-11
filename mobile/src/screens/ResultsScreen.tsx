@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-SafeAreaView, } from 'react-native';
+  SafeAreaView,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -27,7 +28,7 @@ import RiskSwitcher from '../components/results/RiskSwitcher';
 import ShareCard from '../components/results/ShareCard';
 import HistoricalChart from '../components/results/HistoricalChart';
 import ETFDetailModal from '../components/results/ETFDetailModal';
-import { buildShareText, generatePortfolioHTML } from '../components/results/pdfExport';
+import { generatePortfolioHTML } from '../components/results/pdfExport';
 
 import { STORAGE, PREMIUM_TRIGGER_COUNT } from '../constants';
 import { RootStackParamList, OptimizeResponse, SavedPortfolio, OnboardingData, HoldingResult } from '../types';
@@ -81,6 +82,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
   const [selectedRisk, setSelectedRisk] = useState<number>(data.riskTolerance);
   const [riskSwitching, setRiskSwitching] = useState(false);
   const [detailHolding, setDetailHolding] = useState<HoldingResult | null>(null);
+  const premiumTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   async function handleRiskChange(newRisk: number) {
     if (newRisk === selectedRisk || riskSwitching) return;
@@ -111,11 +113,12 @@ export default function ResultsScreen({ navigation, route }: Props) {
           categoriesCount: res.profile.categories.length,
         });
         if (newCount >= PREMIUM_TRIGGER_COUNT) {
-          setTimeout(() => navigation.navigate('Premium'), 1200);
+          premiumTimerRef.current = setTimeout(() => navigation.navigate('Premium'), 1200);
         }
       })
       .catch(e => setError(e.message ?? 'Optimization failed'))
       .finally(() => { setLoading(false); setLoadingAdVisible(false); });
+    return () => { if (premiumTimerRef.current) clearTimeout(premiumTimerRef.current); };
   }, []);
 
   async function handleExport() {
@@ -158,7 +161,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
   }
 
   return (
-    <View style={styles.screenWrapper}>
+    <SafeAreaView style={styles.screenWrapper}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.pageHeader}>
           <TouchableOpacity onPress={() => navigation.popToTop()} style={styles.backBtn}>
@@ -184,7 +187,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
         <RiskSwitcher selected={selectedRisk} onSelect={handleRiskChange} switching={riskSwitching} />
 
         <Text style={styles.sectionTitle}>📊 Your ETF Allocation</Text>
-        <Text style={styles.sectionHint}>Tap any card to expand · long-press for detail</Text>
+        <Text style={styles.sectionHint}>Long press any holding for details</Text>
         {result.holdings.map((h, idx) => (
           <React.Fragment key={h.ticker}>
             <TouchableOpacity onLongPress={() => setDetailHolding(h)} activeOpacity={1}>
@@ -195,7 +198,6 @@ export default function ResultsScreen({ navigation, route }: Props) {
         ))}
 
         <WhatThisMeansSection result={result} />
-        <AdBanner placement="banner" style={{ marginVertical: spacing.sm }} />
         <RewardedFeature holdings={result.holdings} />
         <ProjectionsSection projections={result.projections} profile={result.profile} performance={result.performance} />
         <HistoricalChart result={result} />
@@ -241,7 +243,7 @@ export default function ResultsScreen({ navigation, route }: Props) {
 
       {/* ETF Detail Modal */}
       <ETFDetailModal holding={detailHolding} lumpSum={result.profile.lump_sum} onClose={() => setDetailHolding(null)} />
-    </View>
+    </SafeAreaView>
   );
 }
 

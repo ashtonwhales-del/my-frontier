@@ -2,11 +2,12 @@
  * CompareScreen.tsx — Unlimited portfolio comparison
  * Select any number of portfolios, compare all metrics side by side.
  */
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList, SavedPortfolio } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
 import { STORAGE } from '../constants';
@@ -32,11 +33,11 @@ export default function CompareScreen({ navigation }: Props) {
   const [portfolios, setPortfolios] = useState<SavedPortfolio[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     AsyncStorage.getItem(STORAGE.SAVED_PORTFOLIOS)
       .then(raw => raw ? setPortfolios(JSON.parse(raw)) : null)
       .catch(() => null);
-  }, []);
+  }, []));
 
   function toggle(idx: number) {
     setSelected(prev => { const n = new Set(prev); n.has(idx) ? n.delete(idx) : n.add(idx); return n; });
@@ -49,7 +50,7 @@ export default function CompareScreen({ navigation }: Props) {
   const bestIdx = sel.length > 0 ? sel.reduce((best, p, i) => p.result.scores.smart_score > sel[best].result.scores.smart_score ? i : best, 0) : -1;
 
   return (
-    <View style={s.screen}>
+    <SafeAreaView style={s.screen}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}><Ionicons name="chevron-back" size={24} color={colors.primary} /></TouchableOpacity>
         <Text style={s.headerTitle}>Compare Portfolios</Text>
@@ -111,14 +112,14 @@ export default function CompareScreen({ navigation }: Props) {
         )}
         <View style={{ height: 60 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
-  backBtn: { width: 40, height: 40, justifyContent: 'center' }, backText: { color: colors.primary, fontSize: 22, fontWeight: '700' },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
   content: { padding: spacing.md, gap: spacing.sm },
   label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: spacing.xs },

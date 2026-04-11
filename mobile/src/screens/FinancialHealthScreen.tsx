@@ -1,12 +1,12 @@
 /**
  * FinancialHealthScreen.tsx — Detailed breakdown of Financial Health Score
  */
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-import { colors, spacing, radius, shadow } from '../theme';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { colors, spacing, radius } from '../theme';
 import { STORAGE } from '../constants';
 
 function gradeLabel(s: number) { return s >= 90 ? 'Excellent' : s >= 75 ? 'Strong' : s >= 60 ? 'Building' : s >= 40 ? 'Starting' : 'Critical'; }
@@ -19,8 +19,7 @@ export default function FinancialHealthScreen() {
   const [total, setTotal] = useState(0);
   const [cats, setCats] = useState<Cat[]>([]);
 
-  useEffect(() => {
-    (async () => {
+  const loadData = useCallback(() => { (async () => {
       let investing = 0, debt = 25, portfolio = 0, streak = 2;
       const month = new Date().toISOString().slice(0, 7);
       const budgetRaw = await AsyncStorage.getItem('budgetData_' + month);
@@ -65,8 +64,10 @@ export default function FinancialHealthScreen() {
     })();
   }, []);
 
+  useFocusEffect(loadData);
+
   return (
-    <View style={st.root}>
+    <SafeAreaView style={st.root}>
       <View style={st.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40 }}>
           <Ionicons name="chevron-back" size={24} color={colors.primary} />
@@ -104,14 +105,13 @@ export default function FinancialHealthScreen() {
         ))}
         <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const st = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
-  back: { color: colors.primary, fontSize: 22, fontWeight: '700' },
   headerTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
   scroll: { padding: spacing.lg },
   heroCard: { alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, padding: spacing.xl, marginBottom: spacing.lg },

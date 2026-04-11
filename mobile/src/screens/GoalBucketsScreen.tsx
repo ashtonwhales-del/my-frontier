@@ -9,7 +9,7 @@ SafeAreaView, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { colors, spacing, radius, shadow } from '../theme';
+import { colors, spacing, radius } from '../theme';
 
 const ICONS = ['🏠', '🚗', '💒', '🎓', '✈️', '💰', '🏖️', '💼'] as const;
 const RISK_OPTS = ['conservative', 'moderate', 'aggressive'] as const;
