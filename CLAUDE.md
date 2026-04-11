@@ -1627,3 +1627,52 @@ The existing `withRetry` in `api.ts` handles this gracefully — no code changes
 | `mobile/App.tsx` | Registered CurrentPortfolioScreen |
 
 *Last updated: 2026-04-10 — Phase 28 complete.*
+
+---
+
+## Phases 29-34 — Complete Expansion (2026-04-10)
+
+All 6 expansion phases from MASTER_EXPANSION_SPEC.md are now built and deployed:
+
+| Phase | Feature | Screen | Lines |
+|-------|---------|--------|-------|
+| 29 | Financial Health Score | FinancialHealthScreen.tsx | 119 |
+| 30 | Net Worth Timeline | NetWorthTimelineScreen.tsx | 199 |
+| 31 | Goal Buckets | GoalBucketsScreen.tsx | 203 |
+| 32 | Bill Negotiation Center | BillNegotiationScreen.tsx | 167 |
+| 33 | Multiple Income Streams | IncomeSourcesSection.tsx | 147 |
+| 34 | Housing Affordability | HousingScreen.tsx | 186 |
+
+### Phase 29 — Financial Health Score (0-100)
+- 4 categories: Investing Rate (30pts), Debt Ratio (25pts), Portfolio Quality (25pts), Consistency (20pts)
+- Circular SVG progress ring on home screen, detail breakdown screen
+
+### Phase 30 — Net Worth Timeline
+- Two projection lines (current + optimized +20%) from current age to 80
+- SVG chart with milestone markers ($100K, $500K, $1M), touch scrubber
+- Age modal on first visit
+
+### Phase 31 — Goal Buckets
+- Named savings goals with icon, target amount, target date
+- Auto-calculated weekly contribution via compound interest
+- ETF recommendations based on time horizon (<3yr bonds, 3-7yr balanced, 7+ growth)
+
+### Phase 32 — Bill Negotiation Center + Ad Consolidation
+- 10 bill categories with national averages and negotiation scripts
+- Per-bill overpaying detection, copy script button, mark negotiated
+- Consolidated all ads to SmartBanner (deleted old AdBanner.tsx)
+
+### Phase 33 — Multiple Income Streams
+- 6 source types (Salary, Freelance, Rental, Dividends, Side Business, Other)
+- 4 frequencies (Weekly, Bi-weekly, Monthly, Annually)
+- Total income feeds into budget surplus and Financial Health Score
+
+### Phase 34 — Housing Affordability Tool
+- 4 tab sections: Affordability (30/28/25% rules), Market Data (16 metros), Buy vs Rent calculator, Resources (6 external links)
+- Auto-fills income from Budget, compares current rent to guidelines
+- Mortgage calculator with down payment, interest rate, property tax
+
+### Navigation: All 6 screens registered in App.tsx and types.ts
+### Home screen: Quick links for Goals, Bills, Housing, Net Worth Timeline
+
+*Last updated: 2026-04-10 — Phases 29-34 complete. Full expansion deployed.*

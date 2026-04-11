@@ -177,6 +177,9 @@ export default function WelcomeScreen({ navigation }: Props) {
           <TouchableOpacity onPress={() => navigation.navigate('BillNegotiation')} activeOpacity={0.8} style={styles.budgetBtn}>
             <Text style={styles.budgetText}>Bill Negotiator</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Housing')} activeOpacity={0.8} style={styles.budgetBtn}>
+            <Text style={styles.budgetText}>Housing Tool</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('NetWorthTimeline')} activeOpacity={0.8} style={styles.budgetBtn}>
             <Text style={styles.budgetText}>Net Worth Timeline</Text>
           </TouchableOpacity>

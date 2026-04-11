@@ -42,6 +42,7 @@ import FinancialHealthScreen   from './src/screens/FinancialHealthScreen';
 import NetWorthTimelineScreen  from './src/screens/NetWorthTimelineScreen';
 import GoalBucketsScreen       from './src/screens/GoalBucketsScreen';
 import BillNegotiationScreen   from './src/screens/BillNegotiationScreen';
+import HousingScreen           from './src/screens/HousingScreen';
 import ProfileScreen           from './src/screens/ProfileScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -111,6 +112,7 @@ export default function App() {
             <Stack.Screen name="NetWorthTimeline"  component={NetWorthTimelineScreen} />
             <Stack.Screen name="GoalBuckets"       component={GoalBucketsScreen} />
             <Stack.Screen name="BillNegotiation"   component={BillNegotiationScreen} />
+            <Stack.Screen name="Housing"           component={HousingScreen} />
             <Stack.Screen name="Profile"           component={ProfileScreen} />
           </Stack.Navigator>
         </NavigationContainer>
