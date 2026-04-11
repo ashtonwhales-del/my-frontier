@@ -72,6 +72,13 @@ export default function GoalBucketsScreen() {
     const goal: Goal = { id: Date.now().toString(), name: name.trim(), icon, targetAmount: t, targetDate: dateStr, currentSaved: s, weeklyContribution: Math.round(weekly * 100) / 100, riskProfile: risk };
     persist([...goals, goal]);
     setName(''); setAmount(''); setSaved(''); setModal(false); Keyboard.dismiss();
+    const monthlyAmt = Math.round(goal.weeklyContribution * 4.33);
+    if (monthlyAmt > 0) {
+      Alert.alert('Sync to Budget?', `Add $${monthlyAmt}/mo for "${goal.name}" to budget?`, [
+        { text: 'Not now', style: 'cancel' },
+        { text: 'Add', onPress: async () => { const raw = await AsyncStorage.getItem('goalBudgetSyncs'); const syncs = raw ? JSON.parse(raw) : []; syncs.push({ name: goal.name, monthlyAmount: monthlyAmt }); await AsyncStorage.setItem('goalBudgetSyncs', JSON.stringify(syncs)); } },
+      ]);
+    }
   };
 
   const removeGoal = (id: string) => persist(goals.filter(g => g.id !== id));

@@ -14,8 +14,10 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius, shadow } from '../theme';
+import HoldingCard from '../components/portfolio/HoldingCard';
 
 const STORAGE_KEY = 'myHoldings';
+const API_BASE = 'https://my-frontier-api.onrender.com';
 
 interface Holding {
   ticker: string;
@@ -39,10 +41,28 @@ export default function CurrentPortfolioScreen() {
   const [tickerInput, setTickerInput] = useState('');
   const [sharesInput, setSharesInput] = useState('');
   const [priceInput, setPriceInput] = useState('');
+  const [prices, setPrices] = useState<Record<string, { price: number; change: number; changePercent: number; history: number[] }>>({});
+
+  const fetchPrices = async (h: Holding[]) => {
+    if (!h.length) return;
+    try {
+      const tickers = h.map(x => x.ticker).join(',');
+      const res = await fetch(`${API_BASE}/prices?tickers=${tickers}`);
+      const data = await res.json();
+      if (data.prices) setPrices(data.prices);
+    } catch { /* silent */ }
+  };
 
   useEffect(() => {
     loadHoldings();
   }, []);
+
+  useEffect(() => {
+    if (holdings.length === 0) return;
+    fetchPrices(holdings);
+    const iv = setInterval(() => fetchPrices(holdings), 60000);
+    return () => clearInterval(iv);
+  }, [holdings.length]);
 
   const loadHoldings = async () => {
     try {
@@ -58,7 +78,8 @@ export default function CurrentPortfolioScreen() {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   };
 
-  const totalValue = holdings.reduce((sum, h) => sum + h.shares * h.avgCost, 0);
+  const totalValue = holdings.reduce((sum, h) => sum + h.shares * (prices[h.ticker]?.price ?? h.avgCost), 0);
+  const totalDayChange = holdings.reduce((sum, h) => sum + (prices[h.ticker]?.change ?? 0) * h.shares, 0);
 
   const handleAdd = () => {
     const ticker = tickerInput.trim().toUpperCase();
@@ -130,32 +151,15 @@ export default function CurrentPortfolioScreen() {
           <View style={s.heroCard}>
             <Text style={s.heroLabel}>TOTAL VALUE</Text>
             <Text style={s.heroValue}>{formatCurrency(totalValue)}</Text>
-            <Text style={s.heroChange}>Today: $0.00 (0.00%)</Text>
+            <Text style={[s.heroChange, { color: totalDayChange >= 0 ? '#10B981' : '#EF4444' }]}>
+              Today: {totalDayChange >= 0 ? '+' : ''}{formatCurrency(totalDayChange)}
+            </Text>
           </View>
 
-          {/* Holdings list */}
-          {holdings.map((h, idx) => {
-            const value = h.shares * h.avgCost;
-            return (
-              <View key={`${h.ticker}-${idx}`} style={s.holdingCard}>
-                <View style={s.holdingLeft}>
-                  <Text style={s.holdingTicker}>{h.ticker}</Text>
-                  <Text style={s.holdingSub}>
-                    {h.shares} shares @ {formatCurrency(h.avgCost)}
-                  </Text>
-                </View>
-                <View style={s.holdingRight}>
-                  <Text style={s.holdingValue}>{formatCurrency(value)}</Text>
-                  <View style={s.changeBadge}>
-                    <Text style={s.changeBadgeText}>0.00%</Text>
-                  </View>
-                </View>
-                <TouchableOpacity style={s.deleteBtn} onPress={() => handleDelete(idx)}>
-                  <Text style={s.deleteBtnText}>X</Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })}
+          {/* Holdings list — Yahoo Finance style */}
+          {holdings.map((h, idx) => (
+            <HoldingCard key={`${h.ticker}-${idx}`} holding={h} priceData={prices[h.ticker]} index={idx} totalValue={totalValue} onDelete={() => handleDelete(idx)} />
+          ))}
         </ScrollView>
       )}
 

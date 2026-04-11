@@ -232,7 +232,14 @@ export default function DebtPlannerScreen() {
           <Text style={s.empty}>Add your debts above to see payoff strategies.</Text>
         )}
         {debts.length > 0 && (
-          <TouchableOpacity style={[s.addBtn, { marginTop: spacing.lg }]} onPress={() => { Alert.alert('Saved!', 'Your debt plan has been saved.'); navigation.goBack(); }}>
+          <TouchableOpacity style={[s.addBtn, { marginTop: spacing.lg }]} onPress={async () => {
+            await AsyncStorage.setItem('debtPlannerData', JSON.stringify(debts));
+            const total = debts.reduce((s, d) => s + d.minPayment, 0) + extraMonthly;
+            Alert.alert('Sync to Budget?', `Add $${total}/mo for debt payments to your budget?`, [
+              { text: 'Not now', style: 'cancel', onPress: () => navigation.goBack() },
+              { text: 'Add', onPress: async () => { await AsyncStorage.setItem('debtBudgetSync', JSON.stringify({ amount: total, label: `Debt (${selectedStrategy})` })); navigation.goBack(); } },
+            ]);
+          }}>
             <Text style={s.addBtnText}>Save Plan</Text>
           </TouchableOpacity>
         )}

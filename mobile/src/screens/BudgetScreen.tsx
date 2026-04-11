@@ -53,6 +53,8 @@ export default function BudgetScreen() {
   const [incomeModal, setIncomeModal]   = useState(false);
   const [catModal, setCatModal]         = useState<{ key: string; emoji: string } | null>(null);
   const [additionalMonthly, setAdditionalMonthly] = useState(0);
+  const [debtSync, setDebtSync] = useState<{ amount: number; label: string } | null>(null);
+  const [goalSyncs, setGoalSyncs] = useState<{ name: string; monthlyAmount: number }[]>([]);
 
   const month = currentMonth();
 
@@ -63,6 +65,10 @@ export default function BudgetScreen() {
       setIncome(data.income ?? 0);
       setAmounts(data.categories ?? {});
     }
+    const dRaw = await AsyncStorage.getItem('debtBudgetSync');
+    if (dRaw) try { setDebtSync(JSON.parse(dRaw)); } catch {}
+    const gRaw = await AsyncStorage.getItem('goalBudgetSyncs');
+    if (gRaw) try { setGoalSyncs(JSON.parse(gRaw)); } catch {}
   }, [month]);
 
   useEffect(() => { load(); }, [load]);
@@ -85,7 +91,8 @@ export default function BudgetScreen() {
     setCatModal(null);
   };
 
-  const allocated  = Object.values(amounts).reduce((s, v) => s + v, 0);
+  const syncedTotal = (debtSync?.amount ?? 0) + goalSyncs.reduce((s, g) => s + g.monthlyAmount, 0);
+  const allocated  = Object.values(amounts).reduce((s, v) => s + v, 0) + syncedTotal;
   const totalIncome = income + additionalMonthly;
   const remaining  = totalIncome - allocated;
   const weeklyInvest = remaining > 0 ? remaining / 4.33 : 0;
@@ -130,6 +137,20 @@ export default function BudgetScreen() {
             );
           })}
         </View>
+
+        {/* Synced from Debt/Goals */}
+        {debtSync && (
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Colors.borderSubtle }}>
+            <Text style={{ fontSize: 13, color: Colors.textTertiary }}>🔒 {debtSync.label}</Text>
+            <Text style={{ fontSize: 13, color: Colors.textSecondary, fontWeight: '600' }}>{fmt(debtSync.amount)}/mo</Text>
+          </View>
+        )}
+        {goalSyncs.map(g => (
+          <View key={g.name} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Colors.borderSubtle }}>
+            <Text style={{ fontSize: 13, color: Colors.textTertiary }}>🔒 {g.name}</Text>
+            <Text style={{ fontSize: 13, color: Colors.textSecondary, fontWeight: '600' }}>{fmt(g.monthlyAmount)}/mo</Text>
+          </View>
+        ))}
 
         {/* Investing opportunity */}
         {income > 0 && (
