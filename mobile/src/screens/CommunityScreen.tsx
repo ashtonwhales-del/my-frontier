@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, spacing, radius, shadow } from '../theme';
+import { STORAGE } from '../constants';
 
 function gc(g: string) { return g === 'A' ? '#10B981' : g === 'B' ? '#3B82F6' : g === 'C' ? '#F59E0B' : '#EF4444'; }
 
@@ -61,7 +62,7 @@ export default function CommunityScreen() {
   }
 
   async function handleSharePortfolio() {
-    const raw = await AsyncStorage.getItem('savedPortfolios');
+    const raw = await AsyncStorage.getItem(STORAGE.SAVED_PORTFOLIOS);
     const portfolios = raw ? JSON.parse(raw) : [];
     if (!portfolios.length) { Alert.alert('No Portfolios', 'Build a portfolio first to share it.'); return; }
     const buttons = portfolios.slice(0, 5).map((p: any) => ({
@@ -73,9 +74,10 @@ export default function CommunityScreen() {
         const sc = Math.round((p.result?.scores?.smart_score ?? 7) * 10);
         const top = (p.result?.holdings || []).slice(0, 3).map((h: any) => `${h.ticker} ${(h.weight * 100).toFixed(0)}%`).join(' · ');
         const chatMsg: ChatMsg = { user: myName, text: `${myName} shared ${p.name}${top ? ' — ' + top : ''}`, isMe: true, type: 'portfolio_share', grade, portfolioName: p.name, returnPct: ret, riskPct: risk, score: sc };
-        const next = [...msgs, chatMsg];
+        const next = [...msgs, chatMsg].slice(-100);
         setMsgs(next);
         AsyncStorage.setItem('communityChat', JSON.stringify(next));
+        setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
         Alert.alert('Shared!', `${p.name} posted to community.`);
       },
     }));
@@ -85,7 +87,7 @@ export default function CommunityScreen() {
 
   function sendMsg() {
     if (!input.trim()) return;
-    const next = [...msgs, { user: myName, text: input.trim(), isMe: true }];
+    const next = [...msgs, { user: myName, text: input.trim(), isMe: true }].slice(-100);
     setMsgs(next);
     setInput('');
     AsyncStorage.setItem('communityChat', JSON.stringify(next));
@@ -134,7 +136,7 @@ export default function CommunityScreen() {
       ) : (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
           <ScrollView ref={scrollRef} contentContainerStyle={s.chatScroll} showsVerticalScrollIndicator={false}
-            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}>
+>
             {msgs.map((m, i) => m.type === 'portfolio_share' ? (
               <View key={i} style={s.richCard}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>

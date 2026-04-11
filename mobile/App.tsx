@@ -30,11 +30,9 @@ import AboutScreen             from './src/screens/AboutScreen';
 import LearningScreen          from './src/screens/LearningScreen';
 import CompareScreen           from './src/screens/CompareScreen';
 import BudgetScreen            from './src/screens/BudgetScreen';
-import NetWorthScreen          from './src/screens/NetWorthScreen';
-import DebtPayoffScreen        from './src/screens/DebtPayoffScreen';
+// Dead routes removed: NetWorthScreen, DebtPayoffScreen (replaced by Timeline + Planner)
 import DebtPlannerScreen       from './src/screens/DebtPlannerScreen';
-import SubscriptionAuditScreen from './src/screens/SubscriptionAuditScreen';
-import MyPortfolioScreen       from './src/screens/MyPortfolioScreen';
+// Dead routes removed: SubscriptionAuditScreen, MyPortfolioScreen (replaced by CurrentPortfolio)
 import CurrentPortfolioScreen  from './src/screens/CurrentPortfolioScreen';
 import CommunityScreen         from './src/screens/CommunityScreen';
 import LessonReaderScreen      from './src/screens/LessonReaderScreen';
@@ -106,11 +104,9 @@ export default function App() {
             <Stack.Screen name="Learning"          component={LearningScreen} />
             <Stack.Screen name="Compare"           component={CompareScreen} />
             <Stack.Screen name="Budget"            component={BudgetScreen} />
-            <Stack.Screen name="NetWorth"          component={NetWorthScreen} />
-            <Stack.Screen name="DebtPayoff"        component={DebtPayoffScreen} />
+            {/* NetWorth + DebtPayoff removed — replaced by NetWorthTimeline + DebtPlanner */}
             <Stack.Screen name="DebtPlanner"       component={DebtPlannerScreen} />
-            <Stack.Screen name="SubscriptionAudit" component={SubscriptionAuditScreen} />
-            <Stack.Screen name="MyPortfolio"       component={MyPortfolioScreen} />
+            {/* SubscriptionAudit + MyPortfolio removed — replaced by CurrentPortfolio */}
             <Stack.Screen name="CurrentPortfolio"  component={CurrentPortfolioScreen} />
             <Stack.Screen name="Community"         component={CommunityScreen} />
             <Stack.Screen name="LessonReader"      component={LessonReaderScreen} />

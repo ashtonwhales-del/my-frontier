@@ -216,8 +216,8 @@ export default function ResultsScreen({ navigation, route }: Props) {
           <Text style={styles.restartText}>Start a New Analysis</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.autoInvestBtn} activeOpacity={0.8} onPress={() => { Alert.alert('Saved!', 'Your portfolio has been saved.', [{ text: 'OK', onPress: () => navigation.popToTop() }]); }}>
-          <Text style={styles.autoInvestText}>Save and Go Home</Text>
+        <TouchableOpacity style={styles.autoInvestBtn} activeOpacity={0.8} onPress={() => navigation.navigate('WealthTracker' as any)}>
+          <Text style={styles.autoInvestText}>View My Portfolios</Text>
         </TouchableOpacity>
 
         <AdBanner placement="banner" style={styles.adBanner} />
