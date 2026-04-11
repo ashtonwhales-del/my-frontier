@@ -3,10 +3,11 @@
  * Financial dashboard shown to returning users every session.
  * Split: heavy sub-components live in components/home/HomeWidgets.tsx
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert, Animated, Dimensions,
 } from 'react-native';
+import Svg, { Polyline, Defs, LinearGradient as SvgGradient, Stop, Path, Text as SvgText, Circle } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -22,7 +23,7 @@ import { fetchMarketPulse } from '../api';
 import TabShell from '../components/TabShell';
 import MarketTicker from '../components/MarketTicker';
 // No ads on home screen
-import { PortfolioSnapshot, DailyChallenge, QuickStats } from '../components/home/HomeWidgets';
+import { DailyChallenge, QuickStats } from '../components/home/HomeWidgets';
 // FinancialHealthScore moved to FinanceHub
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Welcome'> };
@@ -145,7 +146,67 @@ export default function WelcomeScreen({ navigation }: Props) {
                 return <View style={styles.quoteCard}><Text style={styles.quoteText}>"{tq.q}"</Text><Text style={styles.quoteAuthor}>{tq.a}</Text></View>;
               })()}
 
-              <PortfolioSnapshot portfolios={portfolios} navigation={navigation} />
+              {/* Wealth Projection Chart */}
+              {(() => {
+                const best = portfolios[0];
+                const ret = best?.result?.performance?.expected_annual_return ?? 0.08;
+                const weekly = best?.result?.profile?.weekly_contribution ?? 100;
+                const monthlyRate = Math.pow(1 + Math.min(ret, 0.20), 1 / 12) - 1;
+                const monthly = weekly * 4.33;
+                const CW = Dimensions.get('window').width - 64;
+                const CH = 130;
+                const PAD = { l: 8, r: 8, t: 10, b: 22 };
+                const pts: { x: number; y: number; val: number }[] = [];
+                let val = 0;
+                for (let yr = 0; yr <= 30; yr++) {
+                  if (yr > 0) for (let m = 0; m < 12; m++) val = val * (1 + monthlyRate) + monthly;
+                  const x = PAD.l + (yr / 30) * (CW - PAD.l - PAD.r);
+                  pts.push({ x, y: 0, val });
+                }
+                const maxVal = Math.max(...pts.map(p => p.val), 1);
+                pts.forEach(p => { p.y = PAD.t + (CH - PAD.t - PAD.b) * (1 - p.val / maxVal); });
+                const linePts = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+                const fillPath = `M${pts[0].x},${CH - PAD.b} ` + pts.map(p => `L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ` L${pts[30].x},${CH - PAD.b} Z`;
+                const fmtK = (n: number) => n >= 1e6 ? '$' + (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? '$' + (n / 1e3).toFixed(0) + 'K' : '$' + Math.round(n);
+                const finalVal = pts[30].val;
+                const yr10 = pts[10];
+                const yr20 = pts[20];
+                const grade = best?.result?.scores?.grade ?? 'B';
+                const gradeC = grade === 'A' ? '#10B981' : grade === 'B' ? '#3B82F6' : '#F59E0B';
+                return (
+                  <View style={styles.wealthCard}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <View>
+                        <Text style={styles.wealthLabel}>PROJECTED WEALTH</Text>
+                        <Text style={styles.wealthValue}>{fmtK(finalVal)}</Text>
+                      </View>
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={[styles.wealthGrade, { color: gradeC }]}>{grade}</Text>
+                        <Text style={styles.wealthRet}>{(ret * 100).toFixed(1)}%/yr</Text>
+                      </View>
+                    </View>
+                    <Svg width={CW} height={CH}>
+                      <Defs>
+                        <SvgGradient id="wealthFill" x1="0" y1="0" x2="0" y2="1">
+                          <Stop offset="0" stopColor="#3B82F6" stopOpacity="0.3" />
+                          <Stop offset="1" stopColor="#3B82F6" stopOpacity="0" />
+                        </SvgGradient>
+                      </Defs>
+                      <Path d={fillPath} fill="url(#wealthFill)" />
+                      <Polyline points={linePts} fill="none" stroke="#3B82F6" strokeWidth={2.5} strokeLinecap="round" />
+                      <Circle cx={yr10.x} cy={yr10.y} r={3} fill="#F59E0B" />
+                      <Circle cx={yr20.x} cy={yr20.y} r={3} fill="#F59E0B" />
+                      <SvgText x={PAD.l} y={CH - 4} fontSize={9} fill="#475569">Now</SvgText>
+                      <SvgText x={yr10.x} y={CH - 4} fontSize={9} fill="#475569" textAnchor="middle">10yr</SvgText>
+                      <SvgText x={yr20.x} y={CH - 4} fontSize={9} fill="#475569" textAnchor="middle">20yr</SvgText>
+                      <SvgText x={CW - PAD.r} y={CH - 4} fontSize={9} fill="#475569" textAnchor="end">30yr</SvgText>
+                      <SvgText x={yr10.x} y={yr10.y - 8} fontSize={9} fill="#F59E0B" textAnchor="middle">{fmtK(yr10.val)}</SvgText>
+                      <SvgText x={yr20.x} y={yr20.y - 8} fontSize={9} fill="#F59E0B" textAnchor="middle">{fmtK(yr20.val)}</SvgText>
+                    </Svg>
+                    <Text style={styles.wealthSub}>{fmtK(weekly * 52)}/yr invested · Best portfolio</Text>
+                  </View>
+                );
+              })()}
 
               {pulse && (
                 <View style={styles.pulseCard}>
@@ -208,6 +269,13 @@ const styles = StyleSheet.create({
   featureRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm, marginBottom: Spacing.xl },
   featurePill: { backgroundColor: Colors.bgCard, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.borderSubtle, padding: Spacing.sm, alignItems: 'center', gap: 4 },
   featurePillText: { fontSize: 11, color: Colors.textTertiary, fontWeight: '600' },
+  wealthCard: { backgroundColor: Colors.bgCard, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.brandBlue + '40', padding: Spacing.md, marginBottom: Spacing.lg },
+  wealthLabel: { fontSize: 10, fontWeight: '700', color: Colors.textTertiary, letterSpacing: 1.2 },
+  wealthValue: { fontSize: 32, fontWeight: '900', color: Colors.textPrimary, letterSpacing: -1 },
+  wealthGrade: { fontSize: 28, fontWeight: '900' },
+  wealthRet: { fontSize: 12, color: Colors.textSecondary },
+  wealthSub: { fontSize: 12, color: Colors.textTertiary, textAlign: 'center', marginTop: 6 },
+
   quoteCard: { backgroundColor: Colors.bgCard, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.borderSubtle, padding: Spacing.lg, marginBottom: Spacing.lg },
   quoteText: { fontSize: 15, fontStyle: 'italic', color: Colors.textSecondary, lineHeight: 22, marginBottom: Spacing.sm },
   quoteAuthor: { fontSize: 12, color: Colors.textTertiary, fontWeight: '600' },
