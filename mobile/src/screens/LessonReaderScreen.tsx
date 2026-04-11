@@ -3,12 +3,13 @@
  * Shows one page at a time with prev/next navigation and progress bar.
  */
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions, SafeAreaView } from 'react-native';
 import Svg, { Polyline, Line, Text as SvgText, Rect } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types';
+import { STORAGE } from '../constants';
 import { Colors } from '../theme/colors';
 import { Spacing, Radius } from '../theme/spacing';
 
@@ -126,18 +127,17 @@ export default function LessonReaderScreen({ route, navigation }: Props) {
   const total = pages.length;
 
   const handleComplete = async () => {
-    const key = 'lessonsComplete';
-    const raw = await AsyncStorage.getItem(key);
+    const raw = await AsyncStorage.getItem(STORAGE.LESSONS_COMPLETE);
     const done: string[] = raw ? JSON.parse(raw) : [];
     if (!done.includes(lessonId)) {
       done.push(lessonId);
-      await AsyncStorage.setItem(key, JSON.stringify(done));
+      await AsyncStorage.setItem(STORAGE.LESSONS_COMPLETE, JSON.stringify(done));
     }
     navigation.goBack();
   };
 
   return (
-    <View style={s.root}>
+    <SafeAreaView style={s.root}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={s.back}>Back</Text>
@@ -155,7 +155,7 @@ export default function LessonReaderScreen({ route, navigation }: Props) {
               <Text style={s.pageEmoji}>{(VIS[lessonId] || ['📚','💡','🎯','⭐','✅'])[Math.min(page, 4)]}</Text>
             </View>
           )}
-          {(() => { const m = pages[page]?.match(/\$[\d,]+(?:\.\d+)?|[\d]+\.?\d*%/); return m ? <View style={s.keyStatBox}><Text style={s.keyStatNum}>{m[0]}</Text></View> : null; })()}
+          {(() => { const m = pages[page]?.match(/\$[\d,]{4,}(?:\.\d+)?|\b[1-9]\d+\.?\d*%/); return m ? <View style={s.keyStatBox}><Text style={s.keyStatNum}>{m[0]}</Text></View> : null; })()}
           <Text style={s.pageText}>{pages[page]}</Text>
           {(() => {
             const sentences = (pages[page] ?? '').split(/[.!?]/).filter(s => s.trim().length > 20);
@@ -181,7 +181,7 @@ export default function LessonReaderScreen({ route, navigation }: Props) {
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
