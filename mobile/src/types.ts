@@ -100,6 +100,7 @@ export interface BudgetContext {
 export type RootStackParamList = {
   Disclaimer:        undefined;
   Onboarding:        undefined;
+  NewOnboarding:     undefined;
   Welcome:           undefined;
   Categories:        { name: string };
   RiskTolerance:     { name: string; categories: string[] };

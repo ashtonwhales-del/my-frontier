@@ -14,6 +14,7 @@ import { warmupServer } from './src/api';
 import ErrorBoundary           from './src/components/ErrorBoundary';
 import DisclaimerScreen        from './src/screens/DisclaimerScreen';
 import OnboardingScreen        from './src/screens/OnboardingScreen';
+import NewOnboardingScreen     from './src/screens/NewOnboardingScreen';
 import WelcomeScreen           from './src/screens/WelcomeScreen';
 import CategoriesScreen        from './src/screens/CategoriesScreen';
 import RiskToleranceScreen     from './src/screens/RiskToleranceScreen';
@@ -57,12 +58,14 @@ export default function App() {
     warmupServer();
 
     (async () => {
-      const [disclaimerAccepted, onboardingComplete] = await Promise.all([
+      const [disclaimerAccepted, onboardingComplete, newOnboardingDone] = await Promise.all([
         AsyncStorage.getItem(STORAGE.DISCLAIMER_ACCEPTED),
         AsyncStorage.getItem(STORAGE.ONBOARDING_COMPLETE),
+        AsyncStorage.getItem('newOnboardingComplete'),
       ]);
       if (!disclaimerAccepted) setInitialRoute('Disclaimer');
       else if (!onboardingComplete) setInitialRoute('Onboarding');
+      else if (!newOnboardingDone) setInitialRoute('NewOnboarding');
       else setInitialRoute('Welcome');
     })();
   }, []);
@@ -86,6 +89,7 @@ export default function App() {
               options={{ gestureEnabled: false }}
             />
             <Stack.Screen name="Onboarding"        component={OnboardingScreen} />
+            <Stack.Screen name="NewOnboarding"     component={NewOnboardingScreen} options={{ gestureEnabled: false }} />
             <Stack.Screen name="Welcome"           component={WelcomeScreen} />
             <Stack.Screen name="Categories"        component={CategoriesScreen} />
             <Stack.Screen name="RiskTolerance"     component={RiskToleranceScreen} />
