@@ -387,7 +387,7 @@ export default function WealthTrackerScreen({ navigation }: Props) {
   const userName = portfolios[0]?.data.name ?? 'Your';
 
   return (
-    <TabShell active="Portfolio" navigation={navigation}>
+    <TabShell active="Invest" navigation={navigation}>
     <View style={styles.screen}>
       <PortfolioDetailModal portfolio={detailPortfolio} onClose={() => setDetailPortfolio(null)} />
 

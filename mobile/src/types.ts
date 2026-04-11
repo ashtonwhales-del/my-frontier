@@ -129,5 +129,7 @@ export type RootStackParamList = {
   GoalBuckets:       undefined;
   BillNegotiation:   undefined;
   Housing:           undefined;
+  FinanceHub:        undefined;
+  InvestHub:         undefined;
   Profile:           undefined;
 };

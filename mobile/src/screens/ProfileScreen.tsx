@@ -107,7 +107,7 @@ export default function ProfileScreen({ navigation }: Props) {
   }
 
   return (
-    <TabShell active="Profile" navigation={navigation}>
+    <TabShell active="Home" navigation={navigation}>
       <SafeAreaView style={styles.safe}>
 
         {/* Header */}

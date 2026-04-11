@@ -17,10 +17,10 @@ import { Colors } from '../theme/colors';
 // Maps BottomNav tab IDs to Stack screen names
 const TAB_ROUTES: Record<NavTab, string> = {
   Home:      'Welcome',
-  Budget:    'Budget',
-  Portfolio: 'CurrentPortfolio',
+  Finance:   'FinanceHub',
+  Invest:    'InvestHub',
+  Learn:     'Learning',
   Community: 'Community',
-  Profile:   'Profile',
 };
 
 interface TabShellProps {

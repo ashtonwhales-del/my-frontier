@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../theme/colors';
 
-export type NavTab = 'Home' | 'Budget' | 'Portfolio' | 'Community' | 'Profile';
+export type NavTab = 'Home' | 'Finance' | 'Invest' | 'Learn' | 'Community';
 
 interface BottomNavProps {
   active: NavTab;
@@ -25,10 +25,10 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { id: 'Home',      label: 'Home',      iconActive: 'home',          iconInactive: 'home-outline' },
-  { id: 'Budget',    label: 'Budget',    iconActive: 'wallet',        iconInactive: 'wallet-outline' },
-  { id: 'Portfolio', label: 'Portfolio', iconActive: 'bar-chart',     iconInactive: 'bar-chart-outline' },
+  { id: 'Finance',   label: 'Finance',   iconActive: 'wallet',        iconInactive: 'wallet-outline' },
+  { id: 'Invest',    label: 'Invest',    iconActive: 'bar-chart',     iconInactive: 'bar-chart-outline' },
+  { id: 'Learn',     label: 'Learn',     iconActive: 'book',          iconInactive: 'book-outline' },
   { id: 'Community', label: 'Community', iconActive: 'people',        iconInactive: 'people-outline' },
-  { id: 'Profile',   label: 'Profile',   iconActive: 'person-circle', iconInactive: 'person-circle-outline' },
 ];
 
 export default function BottomNav({ active, onSelect }: BottomNavProps) {

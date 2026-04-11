@@ -164,6 +164,9 @@ export default function ResultsScreen({ navigation, route }: Props) {
           <TouchableOpacity onPress={() => navigation.popToTop()} style={styles.backBtn}>
             <Text style={styles.backText}>✕ Start Over</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => Alert.alert('Frontier Score', 'Your Frontier Score (0-10) measures how efficiently your portfolio converts risk into return. A score of 7.5+ means excellent risk-adjusted performance.')}>
+            <Text style={{ color: colors.textMuted, fontSize: 18 }}>ℹ️</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.exportBtn} onPress={handleExport} disabled={exporting} activeOpacity={0.75}>
             <Text style={styles.exportBtnText}>{exporting ? '…' : '↓ PDF'}</Text>
           </TouchableOpacity>

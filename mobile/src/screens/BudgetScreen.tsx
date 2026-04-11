@@ -93,7 +93,7 @@ export default function BudgetScreen() {
     ? (weeklyInvest * 52) * ((Math.pow(1.07, 30) - 1) / 0.07)
     : 0;
   return (
-    <TabShell active="Budget">
+    <TabShell active="Finance">
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.screenTitle}>Monthly Budget</Text>
