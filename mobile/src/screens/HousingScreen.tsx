@@ -2,7 +2,7 @@
  * HousingScreen.tsx — Affordability calculator, market data, buy vs rent, resources
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Linking, Keyboard } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Linking, Keyboard, SafeAreaView, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius } from '../theme';
@@ -168,7 +168,7 @@ export default function HousingScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
   back: { color: colors.primary, fontSize: 22, fontWeight: '700' },
   title: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border },

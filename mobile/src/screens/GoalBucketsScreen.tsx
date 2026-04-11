@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   TextInput, Modal, Alert, Keyboard,
-} from 'react-native';
+SafeAreaView, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius, shadow } from '../theme';
@@ -165,7 +165,7 @@ export default function GoalBucketsScreen() {
 
 const st = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
   back: { color: colors.primary, fontSize: 22, fontWeight: '700' },
   title: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
   addBtn: { fontSize: 28, color: colors.primary, fontWeight: '700' },

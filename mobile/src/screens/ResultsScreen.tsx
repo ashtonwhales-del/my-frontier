@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-} from 'react-native';
+SafeAreaView, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   autoInvestBtn: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.md, paddingVertical: 13, alignItems: 'center', marginBottom: spacing.lg },
   autoInvestText: { color: colors.primary, fontSize: 15, fontWeight: '600' },
   adBanner: { marginBottom: spacing.sm },
-  pageHeader: { paddingTop: 56, paddingBottom: spacing.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pageHeader: { paddingBottom: spacing.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   exportBtn: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 5 },
   exportBtnText: { fontSize: 13, color: colors.primary, fontWeight: '700' },
   fab: {

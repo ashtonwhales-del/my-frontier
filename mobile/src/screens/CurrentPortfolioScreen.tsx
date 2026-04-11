@@ -10,7 +10,7 @@ import {
   Alert,
   Platform,
   Keyboard,
-} from 'react-native';
+SafeAreaView, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius, shadow } from '../theme';
@@ -226,7 +226,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: spacing.lg, paddingTop: Platform.OS === 'ios' ? 60 : 40, paddingBottom: spacing.md,
+    paddingHorizontal: spacing.lg, paddingBottom: spacing.md,
   },
   headerTitle: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
   optimizerLink: { paddingHorizontal: spacing.lg, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },

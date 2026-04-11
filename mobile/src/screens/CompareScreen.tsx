@@ -3,7 +3,7 @@
  * Select any number of portfolios, compare all metrics side by side.
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, SavedPortfolio } from '../types';
@@ -116,7 +116,7 @@ export default function CompareScreen({ navigation }: Props) {
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
   backBtn: { width: 40, height: 40, justifyContent: 'center' }, backText: { color: colors.primary, fontSize: 22, fontWeight: '700' },
   headerTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
   content: { padding: spacing.md, gap: spacing.sm },

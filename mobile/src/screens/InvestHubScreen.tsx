@@ -3,7 +3,7 @@
  * Central hub for portfolio building, tracking, and analysis.
  */
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius } from '../theme';
 import TabShell from '../components/TabShell';
@@ -55,7 +55,7 @@ export default function InvestHubScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: { paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+  header: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
   title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
   scroll: { padding: spacing.lg },
   sectionTitle: { fontSize: 11, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: spacing.md, marginBottom: spacing.sm },

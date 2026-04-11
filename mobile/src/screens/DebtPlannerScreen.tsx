@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, FlatList, Alert, Platform,
   Keyboard,
-} from 'react-native';
+SafeAreaView, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -282,7 +282,7 @@ export default function DebtPlannerScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: Platform.OS === 'ios' ? 56 : 16, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
   backBtn: { width: 40, height: 40, justifyContent: 'center' }, backText: { color: colors.primary, fontSize: 22, fontWeight: '700' },
   title: { color: colors.textPrimary, fontSize: 18, fontWeight: '700' }, scroll: { padding: spacing.lg, paddingBottom: 40 },
   addBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 14, alignItems: 'center', marginBottom: spacing.lg }, addBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
