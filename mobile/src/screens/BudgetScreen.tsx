@@ -2,12 +2,12 @@
  * BudgetScreen.tsx
  * Monthly budget tracker with investing opportunity.
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
 import { Colors } from '../theme/colors';
@@ -44,8 +44,6 @@ const storageKey = (month: string) => `budgetData_${month}`;
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const fmt = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
-// Spending DNA removed — no personality labels on budget screen
-
 export default function BudgetScreen() {
   const navigation = useNavigation<NavProp>();
   const [income, setIncome]       = useState(0);
@@ -71,7 +69,7 @@ export default function BudgetScreen() {
     if (gRaw) try { setGoalSyncs(JSON.parse(gRaw)); } catch {}
   }, [month]);
 
-  useEffect(() => { load(); }, [load]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const persist = async (newIncome: number, newAmounts: CategoryAmounts) => {
     const data: BudgetData = { income: newIncome, categories: newAmounts };
@@ -96,9 +94,9 @@ export default function BudgetScreen() {
   const totalIncome = income + additionalMonthly;
   const remaining  = totalIncome - allocated;
   const weeklyInvest = remaining > 0 ? remaining / 4.33 : 0;
-  const fv30 = weeklyInvest > 0
-    ? (weeklyInvest * 52) * ((Math.pow(1.07, 30) - 1) / 0.07)
-    : 0;
+  const weeklyRate = 0.07 / 52;
+  const weeks30 = 30 * 52;
+  const fv30 = weeklyInvest > 0 ? weeklyInvest * ((Math.pow(1 + weeklyRate, weeks30) - 1) / weeklyRate) : 0;
   return (
     <TabShell active="Finance">
     <SafeAreaView style={styles.safe}>
@@ -163,7 +161,7 @@ export default function BudgetScreen() {
             </Text>
             <GradientButton
               label="Build My Portfolio →"
-              onPress={() => navigation.navigate('Welcome')}
+              onPress={() => navigation.navigate('Categories' as any, { name: 'Investor' })}
               style={styles.ctaBtn}
             />
           </Card>
@@ -187,8 +185,7 @@ export default function BudgetScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Sticky ad banner */}
-      <AdBanner placement="banner" style={{ marginBottom: income > 0 ? 0 : 0 }} />
+      <AdBanner placement="banner" />
 
       {/* Sticky summary bar */}
       {income > 0 && (
