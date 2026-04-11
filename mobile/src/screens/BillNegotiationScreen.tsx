@@ -3,6 +3,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Modal, Alert, Keyboard, SafeAreaView, } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius, shadow } from '../theme';
@@ -59,7 +60,7 @@ export default function BillNegotiationScreen() {
   return (
     <View style={s.root}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40 }}><Text style={s.back}>{'<'}</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></TouchableOpacity>
         <Text style={s.title}>Bill Negotiator</Text>
         <View style={{ width: 40 }} />
       </View>

@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, FlatList, Alert, Platform,
   Keyboard,
 SafeAreaView, } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -135,7 +136,7 @@ export default function DebtPlannerScreen() {
         <Text style={s.debtDetail}>${item.minPayment}/mo minimum</Text>
       </View>
       <TouchableOpacity onPress={() => remove(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-        <Text style={s.deleteBtn}>X</Text>
+        <Ionicons name="trash-outline" size={18} color={colors.danger} />
       </TouchableOpacity>
     </View>
   );
@@ -144,7 +145,7 @@ export default function DebtPlannerScreen() {
     <View style={s.root}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Text style={s.backText}>{'<'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
         <Text style={s.title}>Debt Repayment Plan</Text>
         <View style={{ width: 40 }} />

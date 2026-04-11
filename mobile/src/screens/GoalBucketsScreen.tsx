@@ -6,6 +6,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   TextInput, Modal, Alert, Keyboard,
 SafeAreaView, } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius, shadow } from '../theme';
@@ -88,7 +89,7 @@ export default function GoalBucketsScreen() {
   return (
     <View style={st.root}>
       <View style={st.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40 }}><Text style={st.back}>{'<'}</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40 }}><Ionicons name="chevron-back" size={24} color={colors.primary} /></TouchableOpacity>
         <Text style={st.title}>My Goals</Text>
         <TouchableOpacity onPress={() => setModal(true)}><Text style={st.addBtn}>+</Text></TouchableOpacity>
       </View>
@@ -109,7 +110,7 @@ export default function GoalBucketsScreen() {
                   <Text style={st.cardName}>{g.name}</Text>
                   <Text style={st.cardMeta}>{fmt(g.currentSaved)} of {fmt(g.targetAmount)} · {mo > 0 ? mo + ' months left' : 'Past due'}</Text>
                 </View>
-                <TouchableOpacity onPress={() => removeGoal(g.id)}><Text style={st.deleteX}>X</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => removeGoal(g.id)}><Ionicons name="trash-outline" size={18} color={colors.danger} /></TouchableOpacity>
               </View>
               <View style={st.barBg}><View style={[st.barFill, { width: `${pct}%` }]} /></View>
               <View style={st.cardBottom}>

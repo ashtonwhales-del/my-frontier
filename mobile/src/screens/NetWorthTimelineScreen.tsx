@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Modal, Dimensions, PanResponder, Keyboard, SafeAreaView, } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Svg, { Polyline, Line, Text as SvgText, Circle } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -118,7 +119,7 @@ export default function NetWorthTimelineScreen() {
     <View style={s.root}>
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40 }}>
-          <Text style={s.back}>{'<'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Net Worth Timeline</Text>
         <View style={{ width: 40 }} />

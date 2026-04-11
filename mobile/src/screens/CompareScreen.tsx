@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, SavedPortfolio } from '../types';
@@ -50,7 +51,7 @@ export default function CompareScreen({ navigation }: Props) {
   return (
     <View style={s.screen}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}><Text style={s.backText}>{'<'}</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}><Ionicons name="chevron-back" size={24} color={colors.primary} /></TouchableOpacity>
         <Text style={s.headerTitle}>Compare Portfolios</Text>
         <View style={{ width: 40 }} />
       </View>

@@ -3,6 +3,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius, shadow } from '../theme';
@@ -68,7 +69,7 @@ export default function FinancialHealthScreen() {
     <View style={st.root}>
       <View style={st.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 40 }}>
-          <Text style={st.back}>{'<'}</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
         <Text style={st.headerTitle}>Financial Health</Text>
         <View style={{ width: 40 }} />
