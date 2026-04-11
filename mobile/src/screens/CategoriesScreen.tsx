@@ -35,7 +35,9 @@ export default function CategoriesScreen({ navigation, route }: Props) {
     const aggCount = categories.filter(c => aggressive.includes(c)).length;
     const safeCount = categories.filter(c => safe.includes(c)).length;
     const total = categories.length || 1;
-    const riskTolerance = aggCount / total > 0.5 ? 5 : safeCount / total > 0.5 ? 1 : 3;
+    const aggRatio = aggCount / total;
+    const safeRatio = safeCount / total;
+    const riskTolerance = aggRatio > 0.5 ? 5 : aggRatio > 0.3 ? 4 : safeRatio > 0.5 ? 1 : safeRatio > 0.3 ? 2 : 3;
 
     navigation.navigate('Results', {
       data: {

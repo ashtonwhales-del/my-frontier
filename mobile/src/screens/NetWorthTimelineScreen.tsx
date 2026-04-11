@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Modal, Dimensions, TouchableWithoutFeedback, GestureResponderEvent } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Modal, Dimensions, PanResponder, Keyboard } from 'react-native';
 import Svg, { Polyline, Line, Text as SvgText, Circle } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -92,11 +92,20 @@ export default function NetWorthTimelineScreen() {
   const curPts = current.map((v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
   const optPts = optimized.map((v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
 
-  const handleTouch = (e: GestureResponderEvent) => {
-    const x = e.nativeEvent.locationX - PAD.l;
+  const updateScrub = (x: number) => {
+    const adj = x - PAD.l;
     if (current.length === 0 || plotW === 0) return;
-    setScrubIdx(Math.min(Math.max(0, Math.floor((x / plotW) * current.length)), current.length - 1));
+    setScrubIdx(Math.min(Math.max(0, Math.floor((adj / plotW) * current.length)), current.length - 1));
   };
+  const panRef = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponderCapture: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponderCapture: () => true,
+    onPanResponderGrant: (e) => updateScrub(e.nativeEvent.locationX),
+    onPanResponderMove: (e) => updateScrub(e.nativeEvent.locationX),
+    onPanResponderRelease: () => setScrubIdx(null),
+  })).current;
 
   const milestones = [100000, 500000, 1000000].map(target => {
     const yr = current.findIndex(v => v >= target);
@@ -125,8 +134,7 @@ export default function NetWorthTimelineScreen() {
               <Text style={[s.scrubVal, { color: '#10B981' }]}>Optimized: {fmtD(optimized[scrubIdx] ?? 0)}</Text>
             </View>
           )}
-          <TouchableWithoutFeedback onPressIn={handleTouch} onPressOut={() => setScrubIdx(null)}>
-            <View>
+          <View style={{ position: 'relative' }}>
               <Svg width={chartW} height={CHART_H}>
                 {[0, 0.25, 0.5, 0.75, 1].map(r => {
                   const y = PAD.t + plotH * (1 - r);
@@ -143,8 +151,8 @@ export default function NetWorthTimelineScreen() {
                   <Circle key={m.target} cx={toX(m.yearIdx!)} cy={toY(m.target)} r={4} fill="#F59E0B" />
                 ))}
               </Svg>
-            </View>
-          </TouchableWithoutFeedback>
+              <View style={StyleSheet.absoluteFill} {...panRef.panHandlers} />
+          </View>
         </View>
 
         <View style={s.legend}>

@@ -2,7 +2,7 @@
  * BillNegotiationScreen.tsx — Compare bills to national averages + negotiation scripts
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Modal, Alert, Clipboard } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Modal, Alert, Keyboard } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius, shadow } from '../theme';
@@ -114,7 +114,7 @@ export default function BillNegotiationScreen() {
               <Text style={s.modalCompare}>You pay: {fmt(amounts[selected.id] ?? 0)}/mo  |  Avg: {fmt(selected.avg)}/mo</Text>
               <Text style={s.modalScript}>{selected.script}</Text>
               <View style={s.modalBtns}>
-                <TouchableOpacity style={s.copyBtn} onPress={() => { try { Clipboard.setString(selected.script); } catch {} Alert.alert('Copied!'); }}>
+                <TouchableOpacity style={s.copyBtn} onPress={() => Alert.alert('Script', selected.script)}>
                   <Text style={s.copyTxt}>Copy Script</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={s.markBtn} onPress={() => markNegotiated(selected.id)}>
