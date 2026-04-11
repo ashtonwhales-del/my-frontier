@@ -5,7 +5,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -73,6 +73,11 @@ export default function WelcomeScreen({ navigation }: Props) {
         const newCount = streakData.lastDate === yesterday ? streakData.count + 1 : 1;
         setStreak(newCount);
         await AsyncStorage.setItem('appStreak', JSON.stringify({ lastDate: today, count: newCount }));
+        // Streak milestone check
+        const milestones = [{ d: 3, b: '🌱', t: 'Seedling', m: '3-day streak! Building a habit.' }, { d: 7, b: '🔥', t: 'On Fire', m: '1 week! Consistent investors win.' }, { d: 14, b: '⚡', t: 'Momentum', m: '2 weeks! More momentum than 90% of investors.' }, { d: 30, b: '💎', t: 'Diamond', m: '30 days! Top 5% of all users.' }, { d: 100, b: '🚀', t: 'Legend', m: '100 days! Daily wealth habit mastered.' }];
+        const hit = milestones.filter(m => newCount >= m.d).pop();
+        const prevShown = await AsyncStorage.getItem('lastStreakMilestoneShown');
+        if (hit && prevShown !== String(hit.d)) { await AsyncStorage.setItem('lastStreakMilestoneShown', String(hit.d)); Alert.alert(hit.b + ' ' + hit.t, hit.m); }
       }
     })();
   }, []));
@@ -120,11 +125,35 @@ export default function WelcomeScreen({ navigation }: Props) {
             </View>
           )}
 
-          {/* Financial Health Score — hero metric */}
-          <FinancialHealthScore navigation={navigation} />
+          {/* Daily Quote */}
+          {(() => {
+            const QUOTES = [
+              { q: 'The best time to invest was 20 years ago. The second best time is now.', a: 'Chinese Proverb' },
+              { q: 'Do not save what is left after spending. Spend what is left after saving.', a: 'Warren Buffett' },
+              { q: 'An investment in knowledge pays the best interest.', a: 'Benjamin Franklin' },
+              { q: 'The stock market transfers money from the impatient to the patient.', a: 'Warren Buffett' },
+              { q: 'Compound interest is the eighth wonder of the world.', a: 'Albert Einstein' },
+              { q: 'A budget tells your money where to go instead of wondering where it went.', a: 'Dave Ramsey' },
+              { q: 'Risk comes from not knowing what you are doing.', a: 'Warren Buffett' },
+              { q: 'Price is what you pay. Value is what you get.', a: 'Warren Buffett' },
+              { q: 'In investing, what is comfortable is rarely profitable.', a: 'Robert Arnott' },
+              { q: 'Financial freedom is available to those who learn about it and work for it.', a: 'Robert Kiyosaki' },
+            ];
+            const doy = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+            const tq = QUOTES[doy % QUOTES.length];
+            return (
+              <View style={styles.quoteCard}>
+                <Text style={styles.quoteText}>"{tq.q}"</Text>
+                <Text style={styles.quoteAuthor}>{tq.a}</Text>
+              </View>
+            );
+          })()}
 
           {/* Daily Challenge */}
           <DailyChallenge navigation={navigation} />
+
+          {/* Financial Health Score — compact */}
+          <FinancialHealthScore navigation={navigation} />
 
           {/* Quick Stats Row */}
           <QuickStats portfolioCount={portfolios.length} bestScore={bestScore} streak={streak} />
@@ -167,6 +196,10 @@ const styles = StyleSheet.create({
   buildBtn:      { marginBottom: Spacing.sm, borderRadius: Radius.xl, overflow: 'hidden' },
   buildGradient: { paddingVertical: 17, alignItems: 'center', borderRadius: Radius.xl },
   buildText:     { fontSize: 16, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.3 },
+
+  quoteCard: { backgroundColor: Colors.bgCard, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.borderSubtle, padding: Spacing.lg, marginBottom: Spacing.lg },
+  quoteText: { fontSize: 16, fontStyle: 'italic', color: Colors.textSecondary, lineHeight: 24, marginBottom: Spacing.sm },
+  quoteAuthor: { fontSize: 13, color: Colors.textTertiary, fontWeight: '600' },
 
   whatsNew: { backgroundColor: '#F59E0B18', borderRadius: Radius.lg, borderWidth: 1, borderColor: '#F59E0B', padding: Spacing.md, marginBottom: Spacing.lg },
   whatsNewTitle: { fontSize: 14, fontWeight: '700', color: '#F59E0B' },

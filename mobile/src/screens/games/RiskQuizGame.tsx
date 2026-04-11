@@ -105,7 +105,7 @@ export default function RiskQuizGame() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => navigation.navigate('Learning' as never)} style={styles.backBtn}>
           <Text style={styles.backArrow}>{'<'}</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Risk Quiz</Text>
@@ -122,7 +122,7 @@ export default function RiskQuizGame() {
           <Text style={styles.avgScore}>Average score: {avg.toFixed(1)} / 5</Text>
           <TouchableOpacity
             style={styles.ctaBtn}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.navigate('Learning' as never)}
           >
             <Text style={styles.ctaText}>Build a portfolio matching this profile</Text>
           </TouchableOpacity>

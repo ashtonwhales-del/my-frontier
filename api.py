@@ -375,16 +375,24 @@ def health():
     }
 
 
-@app.get("/prices", summary="Get current prices for tickers (uses cache)")
+@app.get("/prices", summary="Get current prices with change data")
 def get_prices(tickers: str = ""):
-    """Returns latest close prices for comma-separated tickers."""
+    """Returns price, change, changePercent, and 5-day history per ticker."""
     _refresh_price_cache()
     requested = [t.strip().upper() for t in tickers.split(",") if t.strip()][:20]
     result: Dict = {}
     for t in requested:
-        if t in _PRICE_CACHE and len(_PRICE_CACHE[t]) > 0:
-            result[t] = round(float(_PRICE_CACHE[t].iloc[-1]), 2)
-    return {"prices": result, "cached": True}
+        if t in _PRICE_CACHE and len(_PRICE_CACHE[t]) >= 2:
+            series = _PRICE_CACHE[t]
+            curr = float(series.iloc[-1])
+            prev = float(series.iloc[-2])
+            chg = round(curr - prev, 2)
+            pct = round((chg / prev) * 100, 2) if prev != 0 else 0.0
+            history = [round(float(v), 2) for v in series.tail(5).tolist()]
+            result[t] = {"price": round(curr, 2), "change": chg, "changePercent": pct, "history": history}
+        elif t in _PRICE_CACHE and len(_PRICE_CACHE[t]) == 1:
+            result[t] = {"price": round(float(_PRICE_CACHE[t].iloc[-1]), 2), "change": 0, "changePercent": 0, "history": []}
+    return {"prices": result}
 
 
 @app.get("/alex-test", summary="Quick check — is an AI key configured?")

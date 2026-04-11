@@ -35,10 +35,11 @@ function monthsUntil(dateStr: string): number {
   return (y - now.getFullYear()) * 12 + (m - now.getMonth() - 1);
 }
 
-function etfRec(months: number): string {
-  if (months < 36) return '80% AGG (bonds), 20% VTI — protect what you have';
-  if (months < 84) return '60% VTI, 30% AGG, 10% VWO — balanced growth';
-  return '70% VTI, 20% QQQ, 10% VWO — maximize growth';
+function goalAdvice(months: number): { emoji: string; title: string; advice: string } {
+  if (months <= 6) return { emoji: '🏦', title: 'Keep it in savings', advice: 'Less than 6 months away. Use a high-yield savings account. The market could drop right before you need it.' };
+  if (months <= 24) return { emoji: '⚖️', title: 'Conservative approach', advice: 'With 1-2 years, keep 70% in bond funds for safety and 30% in broad market funds for modest growth.' };
+  if (months <= 60) return { emoji: '📈', title: 'Balanced growth', advice: 'You have 3-5 years. A 60% stock, 40% bond portfolio gives meaningful growth while limiting downside.' };
+  return { emoji: '🚀', title: 'Growth focused', advice: 'With 5+ years, time is your biggest asset. Use My Frontier to build the optimal diversified portfolio.' };
 }
 
 export default function GoalBucketsScreen() {
@@ -123,7 +124,9 @@ export default function GoalBucketsScreen() {
               <Text style={st.detailName}>{detail.name}</Text>
               <Text style={st.detailAmt}>{fmt(detail.targetAmount)} by {detail.targetDate}</Text>
               <Text style={st.detailWeekly}>{fmt(detail.weeklyContribution)}/week · {detail.riskProfile}</Text>
-              <View style={st.etfCard}><Text style={st.etfLabel}>RECOMMENDED ETF MIX</Text><Text style={st.etfText}>{etfRec(monthsUntil(detail.targetDate))}</Text></View>
+              {(() => { const a = goalAdvice(monthsUntil(detail.targetDate)); return (
+                <View style={st.etfCard}><Text style={{ fontSize: 28, textAlign: 'center', marginBottom: 8 }}>{a.emoji}</Text><Text style={st.etfLabel}>{a.title}</Text><Text style={st.etfText}>{a.advice}</Text></View>
+              ); })()}
             </>)}
             <TouchableOpacity style={st.closeBtn} onPress={() => setDetail(null)}><Text style={st.closeTxt}>Close</Text></TouchableOpacity>
           </View>
