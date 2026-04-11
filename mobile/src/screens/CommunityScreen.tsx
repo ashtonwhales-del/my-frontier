@@ -71,7 +71,8 @@ export default function CommunityScreen() {
         const ret = ((p.result?.performance?.expected_annual_return ?? 0) * 100).toFixed(1);
         const risk = ((p.result?.performance?.annual_volatility ?? 0) * 100).toFixed(1);
         const sc = Math.round((p.result?.scores?.smart_score ?? 7) * 10);
-        const chatMsg: ChatMsg = { user: myName, text: `${myName} shared ${p.name}`, isMe: true, type: 'portfolio_share', grade, portfolioName: p.name, returnPct: ret, riskPct: risk, score: sc };
+        const top = (p.result?.holdings || []).slice(0, 3).map((h: any) => `${h.ticker} ${(h.weight * 100).toFixed(0)}%`).join(' · ');
+        const chatMsg: ChatMsg = { user: myName, text: `${myName} shared ${p.name}${top ? ' — ' + top : ''}`, isMe: true, type: 'portfolio_share', grade, portfolioName: p.name, returnPct: ret, riskPct: risk, score: sc };
         const next = [...msgs, chatMsg];
         setMsgs(next);
         AsyncStorage.setItem('communityChat', JSON.stringify(next));

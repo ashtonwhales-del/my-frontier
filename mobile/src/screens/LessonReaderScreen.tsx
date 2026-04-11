@@ -58,11 +58,13 @@ export default function LessonReaderScreen({ route, navigation }: Props) {
       </View>
       <View style={s.track}><View style={[s.fill, { width: `${((page + 1) / total) * 100}%` }]} /></View>
       <ScrollView style={s.body} contentContainerStyle={s.bodyPad} showsVerticalScrollIndicator={false}>
-        <View style={s.visualWrap}>
-          <Text style={s.pageEmoji}>{(VIS[lessonId] || ['📚','💡','🎯','⭐','✅'])[Math.min(page, 4)]}</Text>
+        <View style={s.contentCard}>
+          <View style={s.emojiWrap}>
+            <Text style={s.pageEmoji}>{(VIS[lessonId] || ['📚','💡','🎯','⭐','✅'])[Math.min(page, 4)]}</Text>
+          </View>
+          {(() => { const m = pages[page]?.match(/\$[\d,]+(?:\.\d+)?|[\d]+\.?\d*%/); return m ? <View style={s.keyStatBox}><Text style={s.keyStatNum}>{m[0]}</Text></View> : null; })()}
+          <Text style={s.pageText}>{pages[page]}</Text>
         </View>
-        {(() => { const m = pages[page]?.match(/\$[\d,]+(?:\.\d+)?|[\d]+\.?\d*%/); return m ? <View style={s.keyStatBox}><Text style={s.keyStatNum}>{m[0]}</Text></View> : null; })()}
-        <Text style={s.pageText}>{pages[page]}</Text>
       </ScrollView>
       <View style={s.nav}>
         <TouchableOpacity style={[s.btn, page === 0 && s.btnDim]} onPress={() => page > 0 && setPage(p => p - 1)}>
@@ -94,19 +96,20 @@ const s = StyleSheet.create({
   track: { height: 3, backgroundColor: Colors.borderSubtle, marginHorizontal: Spacing.lg },
   fill: { height: 3, backgroundColor: Colors.brandBlue, borderRadius: 2 },
   body: { flex: 1 },
-  bodyPad: { padding: Spacing.xl },
-  visualWrap: { alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
-  pageEmoji: { fontSize: 64 },
+  bodyPad: { padding: Spacing.lg },
+  contentCard: { backgroundColor: '#0F1629', borderRadius: 16, padding: 24, borderWidth: 1, borderColor: '#1E2D4A' },
+  emojiWrap: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#1E2D4A', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 16, marginTop: 8 },
+  pageEmoji: { fontSize: 52 },
   keyStatBox: { alignSelf: 'center', backgroundColor: '#1E3A5F', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10, marginBottom: 16, borderWidth: 1, borderColor: '#3B82F6' },
   keyStatNum: { fontSize: 28, fontWeight: '900', color: '#F59E0B', textAlign: 'center' },
-  pageText: { color: Colors.textSecondary, fontSize: 17, lineHeight: 28 },
+  pageText: { color: '#CBD5E1', fontSize: 18, lineHeight: 30, letterSpacing: 0.2 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, paddingBottom: 40, backgroundColor: Colors.bgCard, borderTopWidth: 1, borderTopColor: Colors.borderSubtle },
   btn: { backgroundColor: Colors.bgCardElevated, paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.md },
   btnDim: { opacity: 0.4 },
   btnText: { color: Colors.textPrimary, fontSize: 14, fontWeight: '600' },
   dots: { flexDirection: 'row', gap: 6 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.borderSubtle },
-  dotActive: { backgroundColor: Colors.brandBlue, width: 16 },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1E2D4A' },
+  dotActive: { backgroundColor: Colors.brandBlue, width: 20, height: 8, borderRadius: 4 },
   doneBtn: { backgroundColor: Colors.positive },
   doneTxt: { color: '#fff', fontSize: 14, fontWeight: '700' },
 });

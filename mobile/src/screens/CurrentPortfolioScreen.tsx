@@ -173,7 +173,16 @@ export default function CurrentPortfolioScreen() {
               placeholder="e.g. AAPL"
               placeholderTextColor={colors.textSecondary}
               autoCapitalize="characters"
+              autoCorrect={false}
+              returnKeyType="done"
             />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8, maxHeight: 34 }} contentContainerStyle={{ gap: 6 }}>
+              {['VTI','SPY','QQQ','NVDA','AAPL','MSFT','AMZN','GOOGL','META','TSLA','AGG','VWO','GLD'].map(t => (
+                <TouchableOpacity key={t} onPress={() => setTickerInput(t)} style={{ backgroundColor: colors.border, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary }}>{t}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
 
             <Text style={s.inputLabel}>Number of Shares</Text>
             <TextInput
@@ -287,6 +296,5 @@ const s = StyleSheet.create({
     alignItems: 'center', marginTop: spacing.sm,
   },
   modalAddBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  modalCancelBtn: { alignItems: 'center', paddingVertical: 14, marginTop: 4 },
-  modalCancelText: { fontSize: 15, color: colors.textSecondary },
+  modalCancelBtn: { alignItems: 'center', paddingVertical: 14, marginTop: 4 }, modalCancelText: { fontSize: 15, color: colors.textSecondary },
 });

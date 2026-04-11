@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, radius } from '../theme';
 import { SmartBanner } from '../components/ads/SmartBanner';
 
-const TABS = ['Afford', 'Market', 'Buy vs Rent', 'Links'] as const;
+const TABS = ['Budget', 'Market', 'Buy vs Rent', 'Resources'] as const;
 type Tab = typeof TABS[number];
 
 const RULES = [
@@ -41,7 +41,7 @@ const fmt = (n: number) => '$' + Math.round(n).toLocaleString();
 
 export default function HousingScreen() {
   const navigation = useNavigation<any>();
-  const [tab, setTab] = useState<Tab>('Afford');
+  const [tab, setTab] = useState<Tab>('Budget');
   const [income, setIncome] = useState(0);
   const [rent, setRent] = useState('');
   const [search, setSearch] = useState('');
@@ -82,23 +82,31 @@ export default function HousingScreen() {
         {TABS.map(t => <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabActive]} onPress={() => setTab(t)}><Text style={[s.tabText, tab === t && s.tabTextActive]}>{t}</Text></TouchableOpacity>)}
       </View>
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        {tab === 'Afford' && (<>
-          <Text style={s.sectionTitle}>Monthly Income: {fmt(income)}</Text>
-          {RULES.map(r => (
-            <View key={r.name} style={s.card}>
-              <Text style={s.ruleName}>{r.name}</Text>
-              <Text style={s.ruleAmt}>{fmt(income * r.pct)}/mo</Text>
-              <Text style={s.ruleDesc}>{r.desc}</Text>
+        {tab === 'Budget' && (<>
+          {income > 0 && (
+            <View style={s.card}>
+              <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 12 }}>Based on your {fmt(income)}/month income:</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                {[{ label: 'Comfortable', pct: 0.25, color: '#10B981' }, { label: 'Stretching', pct: 0.28, color: '#F59E0B' }, { label: 'Tight', pct: 0.30, color: '#EF4444' }].map(r => (
+                  <View key={r.label} style={{ alignItems: 'center', flex: 1 }}>
+                    <Text style={{ fontSize: 11, color: r.color, fontWeight: '700', marginBottom: 4 }}>{r.label}</Text>
+                    <Text style={{ fontSize: 20, fontWeight: '900', color: colors.textPrimary }}>{fmt(income * r.pct)}</Text>
+                    <Text style={{ fontSize: 11, color: colors.textMuted }}>{Math.round(r.pct * 100)}% of income</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          ))}
+          )}
           <Text style={s.inputLabel}>Your current rent/mortgage:</Text>
           <TextInput style={s.input} value={rent} onChangeText={t => { setRent(t); save(); }} keyboardType="number-pad" returnKeyType="done" placeholder="0" placeholderTextColor={colors.textMuted} />
           {curRent > 0 && income > 0 && (
             <View style={[s.card, { borderLeftWidth: 4, borderLeftColor: curRent > income * 0.30 ? '#EF4444' : '#10B981' }]}>
               <Text style={{ fontSize: 14, color: curRent > income * 0.30 ? '#EF4444' : '#10B981', fontWeight: '600' }}>
-                {curRent > income * 0.30 ? 'Above 30% guideline. Consider ways to reduce housing costs.' : 'Great housing discipline! Below the 30% guideline.'}
+                {curRent > income * 0.30 ? 'You are overspending on housing.' : 'You are within a healthy housing budget.'}
               </Text>
-              {curRent > income * 0.25 && <Text style={s.savingsHint}>At 25% rule you could invest {fmt((curRent - income * 0.25) * 12)}/yr more</Text>}
+              {curRent > income * 0.25 && (
+                <Text style={s.savingsHint}>Moving to 25% frees up {fmt((curRent - income * 0.25))}/mo to invest. That is {fmt((curRent - income * 0.25) * 12 * ((Math.pow(1.07, 30) - 1) / 0.07))} over 30 years.</Text>
+              )}
             </View>
           )}
         </>)}
@@ -108,7 +116,10 @@ export default function HousingScreen() {
             const affordable = income > 0 && m.r2 <= income * 0.30;
             return (
               <View key={m.city} style={[s.card, affordable && { borderLeftWidth: 4, borderLeftColor: '#10B981' }]}>
-                <Text style={s.cityName}>{m.city}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <Text style={s.cityName}>{m.city}</Text>
+                  {income > 0 && <Text style={{ fontSize: 11, fontWeight: '700', color: affordable ? '#10B981' : m.r2 <= income * 0.36 ? '#F59E0B' : '#EF4444' }}>{affordable ? 'Affordable' : m.r2 <= income * 0.36 ? 'Tight' : 'Over budget'}</Text>}
+                </View>
                 <View style={s.rentRow}>
                   <Text style={s.rentCol}>1BR: {fmt(m.r1)}</Text>
                   <Text style={s.rentCol}>2BR: {fmt(m.r2)}</Text>
@@ -140,7 +151,7 @@ export default function HousingScreen() {
             <Text style={s.savingsHint}>Difference: {fmt(Math.abs(totalOwn - rentEquiv))}/mo</Text>
           </View>
         </>)}
-        {tab === 'Links' && (<>
+        {tab === 'Resources' && (<>
           {RESOURCES.map(r => (
             <TouchableOpacity key={r.title} style={s.linkCard} onPress={() => Linking.openURL(r.url)} activeOpacity={0.8}>
               <View style={{ flex: 1 }}><Text style={s.linkTitle}>{r.title}</Text><Text style={s.linkSub}>{r.sub}</Text></View>
