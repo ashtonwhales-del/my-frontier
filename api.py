@@ -160,7 +160,7 @@ def _refresh_price_cache() -> None:
     except Exception as e:
         _logger.error(f"[cache] Price cache refresh failed: {e}")
 
-app = FastAPI(title="FrontierFi API", description="ETF portfolio optimization API", lifespan=lifespan)
+app = FastAPI(title="My Frontier API", description="ETF portfolio optimization API", lifespan=lifespan)
 
 # ── CORS ───────────────────────────────────────────────────────────────────────
 if ENV == "production":
@@ -392,6 +392,21 @@ def get_prices(tickers: str = ""):
             result[t] = {"price": round(curr, 2), "change": chg, "changePercent": pct, "history": history}
         elif t in _PRICE_CACHE and len(_PRICE_CACHE[t]) == 1:
             result[t] = {"price": round(float(_PRICE_CACHE[t].iloc[-1]), 2), "change": 0, "changePercent": 0, "history": []}
+        else:
+            # On-demand fetch for tickers not in core cache
+            try:
+                import yfinance as yf
+                hist = yf.Ticker(t).history(period="5d", timeout=6)
+                if len(hist) >= 2:
+                    curr = float(hist["Close"].iloc[-1]); prev = float(hist["Close"].iloc[-2])
+                    chg = round(curr - prev, 2); pct = round((chg / prev) * 100, 2) if prev != 0 else 0.0
+                    result[t] = {"price": round(curr, 2), "change": chg, "changePercent": pct, "history": [round(float(v), 2) for v in hist["Close"].tolist()]}
+                elif len(hist) == 1:
+                    result[t] = {"price": round(float(hist["Close"].iloc[-1]), 2), "change": 0, "changePercent": 0, "history": []}
+            except Exception:
+                pass
+            finally:
+                gc.collect()
     return {"prices": result}
 
 
@@ -647,7 +662,7 @@ def optimize(req: OptimizeRequest, request: Request):
     except HTTPException:
         raise
     except Exception as exc:
-        print(f"[/optimize] Unhandled error: {type(exc).__name__}: {exc}")
+        _logger.error(f"[/optimize] Unhandled error: {type(exc).__name__}: {exc}")
         return JSONResponse(
             status_code=500,
             content={"error": "Portfolio calculation failed. This is usually caused by a data download issue. Please try again in a few moments."},

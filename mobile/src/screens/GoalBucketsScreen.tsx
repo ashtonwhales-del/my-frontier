@@ -62,11 +62,15 @@ export default function GoalBucketsScreen() {
     });
   }, []);
 
+  const fmtDate = (ym: string) => { const [y, m] = ym.split('-'); const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${mn[parseInt(m) - 1] ?? ''} ${y}`; };
   const persist = (next: Goal[]) => { setGoals(next); AsyncStorage.setItem('goalBuckets', JSON.stringify(next)); };
 
   const addGoal = () => {
     const t = parseFloat(amount); const s = parseFloat(saved) || 0;
     if (!name.trim() || isNaN(t) || t <= 0) { Alert.alert('Fill in all fields'); return; }
+    const monthNum = parseInt(month); const yearNum = parseInt(year);
+    if (monthNum < 1 || monthNum > 12) { Alert.alert('Invalid month', 'Enter a month between 01 and 12'); return; }
+    if (yearNum < new Date().getFullYear()) { Alert.alert('Invalid year', 'Target date must be in the future'); return; }
     const dateStr = `${year}-${month.padStart(2, '0')}`;
     const mo = monthsUntil(dateStr);
     const weekly = calcWeekly(t, s, mo);
@@ -101,7 +105,7 @@ export default function GoalBucketsScreen() {
         {goals.map(g => {
           const pct = g.targetAmount > 0 ? Math.min(100, (g.currentSaved / g.targetAmount) * 100) : 0;
           const mo = monthsUntil(g.targetDate);
-          const onTrack = g.weeklyContribution <= 500;
+          const onTrack = pct >= 0.1 || g.currentSaved > 0;
           return (
             <TouchableOpacity key={g.id} style={st.card} onPress={() => setDetail(g)} activeOpacity={0.8}>
               <View style={st.cardTop}>
@@ -130,7 +134,7 @@ export default function GoalBucketsScreen() {
             {detail && (<>
               <Text style={st.detailIcon}>{detail.icon}</Text>
               <Text style={st.detailName}>{detail.name}</Text>
-              <Text style={st.detailAmt}>{fmt(detail.targetAmount)} by {detail.targetDate}</Text>
+              <Text style={st.detailAmt}>{fmt(detail.targetAmount)} by {fmtDate(detail.targetDate)}</Text>
               <Text style={st.detailWeekly}>{fmt(detail.weeklyContribution)}/week · {detail.riskProfile}</Text>
               {(() => { const a = goalAdvice(monthsUntil(detail.targetDate)); return (
                 <View style={st.etfCard}><Text style={{ fontSize: 28, textAlign: 'center', marginBottom: 8 }}>{a.emoji}</Text><Text style={st.etfLabel}>{a.title}</Text><Text style={st.etfText}>{a.advice}</Text></View>

@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, FlatList, Alert, Platform,
-  Keyboard,
-SafeAreaView, } from 'react-native';
+  SafeAreaView, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -216,6 +215,16 @@ export default function DebtPlannerScreen() {
               return <Text key={d.id} style={s.projText}>{i + 1}. {d.name} — pay off by {debtFreeDate(Math.round(r.months * ((i + 1) / debts.length)))}</Text>;
             })}</>}
 
+            {debts.length > 1 && (
+              <View style={{ backgroundColor: colors.card, borderRadius: 12, padding: 12, marginTop: spacing.sm, marginBottom: spacing.sm, borderLeftWidth: 3, borderLeftColor: colors.success }}>
+                <Text style={{ color: colors.textPrimary, fontSize: 13, fontWeight: '600' }}>
+                  {avalanche.totalInterest <= snowball.totalInterest
+                    ? `Avalanche saves $${(snowball.totalInterest - avalanche.totalInterest).toLocaleString()} vs Snowball`
+                    : 'Both strategies are similar. Snowball gives faster early wins.'}
+                </Text>
+              </View>
+            )}
+
             {monthlyAfter > 0 && (
               <View style={[s.card, { marginTop: spacing.lg }]}>
                 <Text style={s.cardTitle}>After you are debt-free</Text>
@@ -237,7 +246,7 @@ export default function DebtPlannerScreen() {
             await AsyncStorage.setItem('debtPlannerData', JSON.stringify(debts));
             const total = debts.reduce((s, d) => s + d.minPayment, 0) + extraMonthly;
             Alert.alert('Sync to Budget?', `Add $${total}/mo for debt payments to your budget?`, [
-              { text: 'Not now', style: 'cancel', onPress: () => navigation.goBack() },
+              { text: 'Not now', style: 'cancel' },
               { text: 'Add', onPress: async () => { await AsyncStorage.setItem('debtBudgetSync', JSON.stringify({ amount: total, label: `Debt (${selectedStrategy})` })); navigation.goBack(); } },
             ]);
           }}>

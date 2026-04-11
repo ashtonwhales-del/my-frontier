@@ -67,7 +67,10 @@ export default function BillNegotiationScreen() {
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         <View style={s.heroCard}>
           <Text style={s.heroLabel}>POTENTIAL ANNUAL SAVINGS</Text>
-          <Text style={s.heroAmount}>{fmt(annualSavings)}</Text>
+          {annualSavings > 0
+            ? <Text style={s.heroAmount}>{fmt(annualSavings)}</Text>
+            : <Text style={{ color: colors.textMuted, fontSize: 14, textAlign: 'center', marginVertical: 8 }}>Enter your bill amounts below to find savings</Text>
+          }
           <Text style={s.heroSub}>Based on your bills vs national averages</Text>
         </View>
 
@@ -116,7 +119,7 @@ export default function BillNegotiationScreen() {
               <Text style={s.modalScript}>{selected.script}</Text>
               <View style={s.modalBtns}>
                 <TouchableOpacity style={s.copyBtn} onPress={() => Alert.alert('Script', selected.script)}>
-                  <Text style={s.copyTxt}>Copy Script</Text>
+                  <Text style={s.copyTxt}>View Script</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={s.markBtn} onPress={() => markNegotiated(selected.id)}>
                   <Text style={s.markTxt}>Mark Negotiated</Text>

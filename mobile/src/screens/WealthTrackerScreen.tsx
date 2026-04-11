@@ -217,7 +217,7 @@ function PortfolioDetailModal({ portfolio, onClose }: DetailModalProps) {
           <View style={detailStyles.gradeHero}>
             <Text style={[detailStyles.gradeHeroLetter, { color: gradeColor(grade) }]}>{grade}</Text>
             <View style={detailStyles.gradeHeroRight}>
-              <Text style={detailStyles.gradeHeroScore}>{score}/100</Text>
+              <Text style={detailStyles.gradeHeroScore}>{score}/10</Text>
               <Text style={detailStyles.gradeHeroLabel}>Frontier Score</Text>
               <Text style={detailStyles.gradeHeroGrade}>{grade} Portfolio</Text>
             </View>
@@ -343,7 +343,7 @@ export default function WealthTrackerScreen({ navigation }: Props) {
         const sorted = saved.sort((a, b) => b.createdAt - a.createdAt);
         setPortfolios(sorted);
         // Auto-select the 2 most recent for comparison
-        setSelectedIds(sorted.map(p => p.id)); // select all by default
+        setSelectedIds(prev => prev.length === 0 ? sorted.map(p => p.id) : prev);
       } catch {}
     }
   }
@@ -384,7 +384,7 @@ export default function WealthTrackerScreen({ navigation }: Props) {
     await AsyncStorage.setItem(STORAGE.SAVED_PORTFOLIOS, JSON.stringify(updated));
   }
 
-  const userName = portfolios[0]?.data.name ?? 'Your';
+  const userName = portfolios[0]?.name ?? 'Your';
 
   return (
     <TabShell active="Invest" navigation={navigation}>
