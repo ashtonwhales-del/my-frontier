@@ -174,7 +174,7 @@ export default function NetWorthTimelineScreen() {
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
             <Text style={s.modalTitle}>How old are you?</Text>
-            <TextInput style={s.modalInput} value={ageInput} onChangeText={setAgeInput} keyboardType="number-pad" placeholder="25" placeholderTextColor={colors.textMuted} maxLength={2} />
+            <TextInput style={s.modalInput} value={ageInput} onChangeText={setAgeInput} keyboardType="number-pad" returnKeyType="done" placeholder="25" placeholderTextColor={colors.textMuted} maxLength={2} />
             <TouchableOpacity style={s.modalBtn} onPress={saveAge}><Text style={s.modalBtnText}>Save</Text></TouchableOpacity>
           </View>
         </View>

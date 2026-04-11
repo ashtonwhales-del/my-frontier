@@ -245,9 +245,9 @@ export default function DebtPlannerScreen() {
             <TextInput style={s.input} placeholder="Debt name" placeholderTextColor={colors.textMuted}
               value={name} onChangeText={setName} />
             <TextInput style={s.input} placeholder="Balance ($)" placeholderTextColor={colors.textMuted}
-              value={balance} onChangeText={setBalance} keyboardType="number-pad" />
+              value={balance} onChangeText={setBalance} keyboardType="number-pad" returnKeyType="done" />
             <TextInput style={s.input} placeholder="Interest rate (APR %)" placeholderTextColor={colors.textMuted}
-              value={apr} onChangeText={setApr} keyboardType="decimal-pad" />
+              value={apr} onChangeText={setApr} keyboardType="decimal-pad" returnKeyType="done" />
             <TextInput style={s.input} placeholder="Loan term years (optional)" placeholderTextColor={colors.textMuted}
               value={termYears} onChangeText={t => {
                 setTermYears(t);
@@ -257,9 +257,9 @@ export default function DebtPlannerScreen() {
                   const pmt = b * (mr * Math.pow(1 + mr, n)) / (Math.pow(1 + mr, n) - 1);
                   setMinPay(String(Math.round(pmt)));
                 }
-              }} keyboardType="number-pad" />
+              }} keyboardType="number-pad" returnKeyType="done" />
             <TextInput style={s.input} placeholder="Minimum payment ($)" placeholderTextColor={colors.textMuted}
-              value={minPay} onChangeText={setMinPay} keyboardType="number-pad" />
+              value={minPay} onChangeText={setMinPay} keyboardType="number-pad" returnKeyType="done" />
             <TouchableOpacity style={s.addBtn} onPress={addDebt}>
               <Text style={s.addBtnText}>Add Debt</Text>
             </TouchableOpacity>

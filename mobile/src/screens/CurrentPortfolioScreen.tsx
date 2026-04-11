@@ -107,7 +107,10 @@ export default function CurrentPortfolioScreen() {
     <View style={s.root}>
       {/* Header */}
       <View style={s.header}>
-        <View>
+        <TouchableOpacity onPress={() => navigation.navigate('Welcome' as any)} style={{ paddingRight: 12 }}>
+          <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '600' }}>Home</Text>
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
           <Text style={s.headerTitle}>My Portfolio</Text>
           <Text style={s.headerDate}>{todayString()}</Text>
         </View>
@@ -179,7 +182,7 @@ export default function CurrentPortfolioScreen() {
               onChangeText={setSharesInput}
               placeholder="e.g. 10"
               placeholderTextColor={colors.textSecondary}
-              keyboardType="number-pad"
+              keyboardType="number-pad" returnKeyType="done"
             />
 
             <Text style={s.inputLabel}>Purchase Price ($)</Text>
@@ -189,7 +192,7 @@ export default function CurrentPortfolioScreen() {
               onChangeText={setPriceInput}
               placeholder="e.g. 150.00"
               placeholderTextColor={colors.textSecondary}
-              keyboardType="decimal-pad"
+              keyboardType="decimal-pad" returnKeyType="done"
             />
 
             <TouchableOpacity style={s.modalAddBtn} onPress={handleAdd}>

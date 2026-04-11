@@ -25,7 +25,7 @@ const MOCK_POSTS = [
   { id: '8', user: 'RetirementReady', grade: 'A', ret: '11.5', risk: '11.9', likes: 42, time: '3d ago' },
 ];
 
-interface ChatMsg { user: string; text: string; isMe: boolean }
+interface ChatMsg { user: string; text: string; isMe: boolean; type?: 'portfolio_share'; grade?: string; portfolioName?: string; returnPct?: string; riskPct?: string; score?: number }
 
 const STARTER_MSGS: ChatMsg[] = [
   { user: 'FrontierExplorer42', text: 'Anyone building aggressive growth right now?', isMe: false },
@@ -67,13 +67,15 @@ export default function CommunityScreen() {
     const buttons = portfolios.slice(0, 5).map((p: any) => ({
       text: `${p.name} (${p.result?.scores?.grade ?? '?'})`,
       onPress: () => {
-        const grade = p.result?.scores?.grade ?? '?';
+        const grade = p.result?.scores?.grade ?? 'B';
         const ret = ((p.result?.performance?.expected_annual_return ?? 0) * 100).toFixed(1);
-        const chatMsg: ChatMsg = { user: myName, text: `Shared: ${p.name} | Grade ${grade} | ${ret}% return`, isMe: true };
+        const risk = ((p.result?.performance?.annual_volatility ?? 0) * 100).toFixed(1);
+        const sc = Math.round((p.result?.scores?.smart_score ?? 7) * 10);
+        const chatMsg: ChatMsg = { user: myName, text: `${myName} shared ${p.name}`, isMe: true, type: 'portfolio_share', grade, portfolioName: p.name, returnPct: ret, riskPct: risk, score: sc };
         const next = [...msgs, chatMsg];
         setMsgs(next);
         AsyncStorage.setItem('communityChat', JSON.stringify(next));
-        Alert.alert('Shared!', `${p.name} posted to feed and chat.`);
+        Alert.alert('Shared!', `${p.name} posted to community.`);
       },
     }));
     buttons.push({ text: 'Cancel', onPress: () => {} });
@@ -132,7 +134,20 @@ export default function CommunityScreen() {
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
           <ScrollView ref={scrollRef} contentContainerStyle={s.chatScroll} showsVerticalScrollIndicator={false}
             onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}>
-            {msgs.map((m, i) => (
+            {msgs.map((m, i) => m.type === 'portfolio_share' ? (
+              <View key={i} style={s.richCard}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <Text style={[s.richGrade, { color: gc(m.grade ?? 'B') }]}>{m.grade}</Text>
+                  <View><Text style={{ fontSize: 14, fontWeight: '700', color: colors.textPrimary }}>{m.portfolioName}</Text><Text style={{ fontSize: 11, color: colors.textMuted }}>{m.user}</Text></View>
+                </View>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
+                  <Text style={s.richStat}>{m.returnPct}% return</Text>
+                  <Text style={s.richStat}>{m.riskPct}% risk</Text>
+                  <Text style={s.richStat}>{m.score}/100</Text>
+                </View>
+                <Text style={{ fontSize: 10, color: colors.textMuted }}>Built on My Frontier</Text>
+              </View>
+            ) : (
               <View key={i} style={[s.msgRow, m.isMe ? s.msgRowMe : s.msgRowOther]}>
                 {!m.isMe && <Text style={s.msgUser}>{m.user}</Text>}
                 <View style={[s.msgBubble, m.isMe ? s.bubbleMe : s.bubbleOther]}>
@@ -178,4 +193,7 @@ const s = StyleSheet.create({
   chatInput: { flex: 1, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: colors.textPrimary },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   sendText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  richCard: { backgroundColor: '#0F1629', borderLeftWidth: 3, borderLeftColor: '#3B82F6', borderRadius: 12, padding: 12, marginVertical: 6 },
+  richGrade: { fontSize: 32, fontWeight: '900', width: 40 },
+  richStat: { fontSize: 12, color: '#94A3B8', backgroundColor: '#1E2A4A', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
 });

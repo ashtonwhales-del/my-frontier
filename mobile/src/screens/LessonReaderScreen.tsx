@@ -16,6 +16,21 @@ type Props = {
   route: RouteProp<RootStackParamList, 'LessonReader'>;
 };
 
+const VIS: Record<string, string[]> = {
+  what_is_etf: ['🍕', '📦', '🏪', '💼', '💰'],
+  risk_tolerance: ['🎢', '🎠', '⚖️', '🛡️', '🎯'],
+  diversification: ['🚢', '🌐', '🔀', '📊', '✅'],
+  efficient_frontier: ['📈', '🏆', '🧮', '⭐', '🎓'],
+  compound_interest: ['🌱', '🌳', '💎', '⏰', '🚀'],
+  brokerage_account: ['🏦', '📝', '💳', '🤝', '✅'],
+  read_etf: ['🔍', '📋', '💹', '🎯', '✅'],
+  international: ['🌍', '🗺️', '💱', '📊', '🌐'],
+  mvo_deep_dive: ['🧮', '📐', '⚖️', '🏆', '🎯'],
+  survive_crash: ['📉', '😤', '💪', '🛒', '🏆'],
+  financial_goals: ['🎯', '🏠', '💒', '🎓', '💰'],
+  tax_efficient: ['💸', '🏦', '📊', '🌿', '✅'],
+};
+
 export default function LessonReaderScreen({ route, navigation }: Props) {
   const { lessonId, title, pages, tier } = route.params;
   const [page, setPage] = useState(0);
@@ -43,6 +58,10 @@ export default function LessonReaderScreen({ route, navigation }: Props) {
       </View>
       <View style={s.track}><View style={[s.fill, { width: `${((page + 1) / total) * 100}%` }]} /></View>
       <ScrollView style={s.body} contentContainerStyle={s.bodyPad} showsVerticalScrollIndicator={false}>
+        <View style={s.visualWrap}>
+          <Text style={s.pageEmoji}>{(VIS[lessonId] || ['📚','💡','🎯','⭐','✅'])[Math.min(page, 4)]}</Text>
+        </View>
+        {(() => { const m = pages[page]?.match(/\$[\d,]+(?:\.\d+)?|[\d]+\.?\d*%/); return m ? <View style={s.keyStatBox}><Text style={s.keyStatNum}>{m[0]}</Text></View> : null; })()}
         <Text style={s.pageText}>{pages[page]}</Text>
       </ScrollView>
       <View style={s.nav}>
@@ -76,6 +95,10 @@ const s = StyleSheet.create({
   fill: { height: 3, backgroundColor: Colors.brandBlue, borderRadius: 2 },
   body: { flex: 1 },
   bodyPad: { padding: Spacing.xl },
+  visualWrap: { alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
+  pageEmoji: { fontSize: 64 },
+  keyStatBox: { alignSelf: 'center', backgroundColor: '#1E3A5F', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10, marginBottom: 16, borderWidth: 1, borderColor: '#3B82F6' },
+  keyStatNum: { fontSize: 28, fontWeight: '900', color: '#F59E0B', textAlign: 'center' },
   pageText: { color: Colors.textSecondary, fontSize: 17, lineHeight: 28 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, paddingBottom: 40, backgroundColor: Colors.bgCard, borderTopWidth: 1, borderTopColor: Colors.borderSubtle },
   btn: { backgroundColor: Colors.bgCardElevated, paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.md },

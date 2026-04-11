@@ -135,14 +135,14 @@ export default function GoalBucketsScreen() {
         <View style={st.modalOverlay}>
           <ScrollView contentContainerStyle={st.modalContent} keyboardShouldPersistTaps="handled">
             <Text style={st.modalTitle}>Add Goal</Text>
-            <TextInput style={st.input} placeholder="Goal name (e.g. House)" placeholderTextColor={colors.textMuted} value={name} onChangeText={setName} />
+            <TextInput style={st.input} placeholder="Goal name (e.g. House)" placeholderTextColor={colors.textMuted} value={name} onChangeText={setName} returnKeyType="done" />
             <View style={st.iconRow}>{ICONS.map(i => <TouchableOpacity key={i} style={[st.iconBtn, icon === i && st.iconBtnSel]} onPress={() => setIcon(i)}><Text style={{ fontSize: 24 }}>{i}</Text></TouchableOpacity>)}</View>
-            <TextInput style={st.input} placeholder="Target amount ($)" placeholderTextColor={colors.textMuted} value={amount} onChangeText={setAmount} keyboardType="number-pad" />
+            <TextInput style={st.input} placeholder="Target amount ($)" placeholderTextColor={colors.textMuted} value={amount} onChangeText={setAmount} keyboardType="number-pad" returnKeyType="done" />
             <View style={st.dateRow}>
-              <TextInput style={[st.input, { flex: 1 }]} placeholder="Month (01-12)" placeholderTextColor={colors.textMuted} value={month} onChangeText={setMonth} keyboardType="number-pad" maxLength={2} />
-              <TextInput style={[st.input, { flex: 1 }]} placeholder="Year" placeholderTextColor={colors.textMuted} value={year} onChangeText={setYear} keyboardType="number-pad" maxLength={4} />
+              <TextInput style={[st.input, { flex: 1 }]} placeholder="Month (01-12)" placeholderTextColor={colors.textMuted} value={month} onChangeText={setMonth} keyboardType="number-pad" returnKeyType="done" maxLength={2} />
+              <TextInput style={[st.input, { flex: 1 }]} placeholder="Year" placeholderTextColor={colors.textMuted} value={year} onChangeText={setYear} keyboardType="number-pad" returnKeyType="done" maxLength={4} />
             </View>
-            <TextInput style={st.input} placeholder="Already saved ($0)" placeholderTextColor={colors.textMuted} value={saved} onChangeText={setSaved} keyboardType="number-pad" />
+            <TextInput style={st.input} placeholder="Already saved ($0)" placeholderTextColor={colors.textMuted} value={saved} onChangeText={setSaved} keyboardType="number-pad" returnKeyType="done" />
             <View style={st.riskRow}>{RISK_OPTS.map(r => <TouchableOpacity key={r} style={[st.riskBtn, risk === r && st.riskBtnSel]} onPress={() => setRisk(r)}><Text style={[st.riskTxt, risk === r && st.riskTxtSel]}>{r}</Text></TouchableOpacity>)}</View>
             <TouchableOpacity style={st.saveBtn} onPress={addGoal}><Text style={st.saveTxt}>Save Goal</Text></TouchableOpacity>
             <TouchableOpacity onPress={() => setModal(false)} style={{ marginTop: spacing.sm }}><Text style={{ color: colors.textMuted, textAlign: 'center' }}>Cancel</Text></TouchableOpacity>

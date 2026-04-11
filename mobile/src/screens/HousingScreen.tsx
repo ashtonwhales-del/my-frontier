@@ -92,7 +92,7 @@ export default function HousingScreen() {
             </View>
           ))}
           <Text style={s.inputLabel}>Your current rent/mortgage:</Text>
-          <TextInput style={s.input} value={rent} onChangeText={t => { setRent(t); save(); }} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.textMuted} />
+          <TextInput style={s.input} value={rent} onChangeText={t => { setRent(t); save(); }} keyboardType="number-pad" returnKeyType="done" placeholder="0" placeholderTextColor={colors.textMuted} />
           {curRent > 0 && income > 0 && (
             <View style={[s.card, { borderLeftWidth: 4, borderLeftColor: curRent > income * 0.30 ? '#EF4444' : '#10B981' }]}>
               <Text style={{ fontSize: 14, color: curRent > income * 0.30 ? '#EF4444' : '#10B981', fontWeight: '600' }}>
@@ -120,11 +120,11 @@ export default function HousingScreen() {
         </>)}
         {tab === 'Buy vs Rent' && (<>
           <Text style={s.inputLabel}>Home price:</Text>
-          <TextInput style={s.input} value={homePrice} onChangeText={t => { setHomePrice(t); save(); }} keyboardType="number-pad" />
+          <TextInput style={s.input} value={homePrice} onChangeText={t => { setHomePrice(t); save(); }} keyboardType="number-pad" returnKeyType="done" />
           <Text style={s.inputLabel}>Down payment %:</Text>
-          <TextInput style={s.input} value={downPct} onChangeText={setDownPct} keyboardType="decimal-pad" />
+          <TextInput style={s.input} value={downPct} onChangeText={setDownPct} keyboardType="decimal-pad" returnKeyType="done" />
           <Text style={s.inputLabel}>Interest rate %:</Text>
-          <TextInput style={s.input} value={rate} onChangeText={setRate} keyboardType="decimal-pad" />
+          <TextInput style={s.input} value={rate} onChangeText={setRate} keyboardType="decimal-pad" returnKeyType="done" />
           <View style={s.card}>
             <Text style={s.compareLabel}>Monthly Mortgage (est.)</Text>
             <Text style={s.compareVal}>{fmt(totalOwn)}</Text>
