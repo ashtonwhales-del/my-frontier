@@ -1,8 +1,9 @@
 /**
  * HousingScreen.tsx — Affordability calculator, market data, buy vs rent, resources
  */
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Linking, Keyboard, SafeAreaView, } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Linking, SafeAreaView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -50,7 +51,7 @@ export default function HousingScreen() {
   const [downPct, setDownPct] = useState('20');
   const [rate, setRate] = useState('7.0');
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     const month = new Date().toISOString().slice(0, 7);
     AsyncStorage.getItem('budgetData_' + month).then(raw => {
       if (raw) try { setIncome(JSON.parse(raw).income ?? 0); } catch {}
@@ -58,9 +59,14 @@ export default function HousingScreen() {
     AsyncStorage.getItem('housingData').then(raw => {
       if (raw) try { const d = JSON.parse(raw); setRent(d.rent ?? ''); setHomePrice(d.homePrice ?? '300000'); } catch {}
     });
-  }, []);
+  }, []));
 
-  const save = () => AsyncStorage.setItem('housingData', JSON.stringify({ rent, homePrice }));
+  const saveField = (field: string, val: string) => {
+    AsyncStorage.getItem('housingData').then(raw => {
+      const prev = raw ? JSON.parse(raw) : {};
+      AsyncStorage.setItem('housingData', JSON.stringify({ ...prev, [field]: val }));
+    });
+  };
 
   const curRent = parseFloat(rent) || 0;
   const hp = parseFloat(homePrice) || 300000;
@@ -99,7 +105,7 @@ export default function HousingScreen() {
             </View>
           )}
           <Text style={s.inputLabel}>Your current rent/mortgage:</Text>
-          <TextInput style={s.input} value={rent} onChangeText={t => { setRent(t); save(); }} keyboardType="number-pad" returnKeyType="done" placeholder="0" placeholderTextColor={colors.textMuted} />
+          <TextInput style={s.input} value={rent} onChangeText={t => { setRent(t); saveField('rent', t); }} keyboardType="number-pad" returnKeyType="done" placeholder="0" placeholderTextColor={colors.textMuted} />
           {curRent > 0 && income > 0 && (
             <View style={[s.card, { borderLeftWidth: 4, borderLeftColor: curRent > income * 0.30 ? '#EF4444' : '#10B981' }]}>
               <Text style={{ fontSize: 14, color: curRent > income * 0.30 ? '#EF4444' : '#10B981', fontWeight: '600' }}>
@@ -132,7 +138,7 @@ export default function HousingScreen() {
         </>)}
         {tab === 'Buy vs Rent' && (<>
           <Text style={s.inputLabel}>Home price:</Text>
-          <TextInput style={s.input} value={homePrice} onChangeText={t => { setHomePrice(t); save(); }} keyboardType="number-pad" returnKeyType="done" />
+          <TextInput style={s.input} value={homePrice} onChangeText={t => { setHomePrice(t); saveField('homePrice', t); }} keyboardType="number-pad" returnKeyType="done" />
           <Text style={s.inputLabel}>Down payment %:</Text>
           <TextInput style={s.input} value={downPct} onChangeText={setDownPct} keyboardType="decimal-pad" returnKeyType="done" />
           <Text style={s.inputLabel}>Interest rate %:</Text>

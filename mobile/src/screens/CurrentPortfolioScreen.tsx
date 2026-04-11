@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   Keyboard,
 SafeAreaView, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, radius, shadow } from '../theme';
 import HoldingCard from '../components/portfolio/HoldingCard';
 
@@ -53,9 +53,7 @@ export default function CurrentPortfolioScreen() {
     } catch { /* silent */ }
   };
 
-  useEffect(() => {
-    loadHoldings();
-  }, []);
+  useFocusEffect(useCallback(() => { loadHoldings(); }, []));
 
   useEffect(() => {
     if (holdings.length === 0) return;

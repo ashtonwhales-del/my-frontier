@@ -1,14 +1,14 @@
 /**
  * GoalBucketsScreen.tsx — Named savings goals with ETF recommendations
  */
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   TextInput, Modal, Alert, Keyboard,
 SafeAreaView, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, radius, shadow } from '../theme';
 
 const ICONS = ['🏠', '🚗', '💒', '🎓', '✈️', '💰', '🏖️', '💼'] as const;
@@ -56,11 +56,11 @@ export default function GoalBucketsScreen() {
   const [risk, setRisk] = useState<RiskProfile>('moderate');
   const [detail, setDetail] = useState<Goal | null>(null);
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     AsyncStorage.getItem('goalBuckets').then(raw => {
       if (raw) try { setGoals(JSON.parse(raw)); } catch {}
     });
-  }, []);
+  }, []));
 
   const fmtDate = (ym: string) => { const [y, m] = ym.split('-'); const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${mn[parseInt(m) - 1] ?? ''} ${y}`; };
   const persist = (next: Goal[]) => { setGoals(next); AsyncStorage.setItem('goalBuckets', JSON.stringify(next)); };
