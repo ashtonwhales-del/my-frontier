@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Modal, Dimensions, PanResponder, Keyboard, SafeAreaView, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Polyline, Line, Text as SvgText, Circle } from 'react-native-svg';
@@ -25,6 +25,8 @@ export default function NetWorthTimelineScreen() {
   const [optimized, setOptimized] = useState<number[]>([]);
   const [chartW, setChartW] = useState(300);
   const [scrubIdx, setScrubIdx] = useState<number | null>(null);
+  const currentRef = useRef<number[]>([]);
+  const chartWRef = useRef(300);
 
   useEffect(() => {
     (async () => {
@@ -73,6 +75,7 @@ export default function NetWorthTimelineScreen() {
       }
       setCurrent(cur);
       setOptimized(opt);
+      currentRef.current = cur;
     })();
   }, []);
 
@@ -93,12 +96,16 @@ export default function NetWorthTimelineScreen() {
   const curPts = current.map((v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
   const optPts = optimized.map((v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
 
-  const updateScrub = (x: number) => {
-    const adj = x - PAD.l;
-    if (current.length === 0 || plotW === 0) return;
-    setScrubIdx(Math.min(Math.max(0, Math.floor((adj / plotW) * current.length)), current.length - 1));
-  };
-  const panRef = useRef(PanResponder.create({
+  const updateScrub = useCallback((x: number) => {
+    const data = currentRef.current;
+    const w = chartWRef.current;
+    if (data.length === 0 || w === 0) return;
+    const pw = w - PAD.l - PAD.r;
+    const adj = Math.max(0, Math.min(x - PAD.l, pw));
+    setScrubIdx(Math.min(Math.max(0, Math.floor((adj / pw) * data.length)), data.length - 1));
+  }, []);
+
+  const panRef = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onStartShouldSetPanResponderCapture: () => true,
     onMoveShouldSetPanResponder: () => true,
@@ -106,7 +113,7 @@ export default function NetWorthTimelineScreen() {
     onPanResponderGrant: (e) => updateScrub(e.nativeEvent.locationX),
     onPanResponderMove: (e) => updateScrub(e.nativeEvent.locationX),
     onPanResponderRelease: () => setScrubIdx(null),
-  })).current;
+  }), [updateScrub]);
 
   const milestones = [100000, 500000, 1000000].map(target => {
     const yr = current.findIndex(v => v >= target);
@@ -127,9 +134,9 @@ export default function NetWorthTimelineScreen() {
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         <Text style={s.subtitle}>Projected from age {startAge} to {startAge + current.length}</Text>
 
-        <View onLayout={e => setChartW(e.nativeEvent.layout.width)} style={s.chartWrap}>
+        <View onLayout={e => { const w = e.nativeEvent.layout.width; setChartW(w); chartWRef.current = w; }} style={s.chartWrap}>
           {scrubIdx !== null && current[scrubIdx] !== undefined && (
-            <View style={s.scrubCard}>
+            <View style={[s.scrubCard, { left: Math.max(4, Math.min(((scrubIdx / Math.max(current.length, 1)) * (chartW - 60)) + 20 - 40, chartW - 100)) }]}>
               <Text style={s.scrubAge}>Age {startAge + scrubIdx}</Text>
               <Text style={s.scrubVal}>Current: {fmtD(current[scrubIdx])}</Text>
               <Text style={[s.scrubVal, { color: '#10B981' }]}>Optimized: {fmtD(optimized[scrubIdx] ?? 0)}</Text>
@@ -192,7 +199,7 @@ const s = StyleSheet.create({
   scroll: { padding: spacing.lg },
   subtitle: { fontSize: 13, color: colors.textSecondary, marginBottom: spacing.md },
   chartWrap: { backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.sm, marginBottom: spacing.md, position: 'relative' },
-  scrubCard: { position: 'absolute', top: 4, right: 8, backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: 8, zIndex: 10 },
+  scrubCard: { position: 'absolute', top: 4, backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: 8, zIndex: 10, minWidth: 80 },
   scrubAge: { fontSize: 12, fontWeight: '700', color: colors.textPrimary },
   scrubVal: { fontSize: 11, color: colors.textSecondary },
   legend: { flexDirection: 'row', gap: spacing.lg, marginBottom: spacing.lg },
