@@ -8,26 +8,27 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Animated, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Polyline, Defs, LinearGradient as SvgGradient, Stop, Path, Text as SvgText, Circle } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { RootStackParamList, SavedPortfolio, MarketPulseData } from '../types';
 import { STORAGE } from '../constants';
-import { Colors } from '../theme/colors';
 import { Spacing, Radius } from '../theme/spacing';
 import { BodyScale } from '../theme/typography';
+import { getSemanticDataColor } from '../theme/chartColors';
 import { fetchMarketPulse } from '../api';
 import { useTheme } from '../context/ThemeContext';
+import { haptic } from '../utils/haptic';
 import TabShell from '../components/TabShell';
 import MarketTicker from '../components/MarketTicker';
-// No ads on home screen
+import Sparkline from '../components/charts/Sparkline';
 import { DailyChallenge, QuickStats } from '../components/home/HomeWidgets';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Welcome'> };
+
+const tabularNumbers = { fontVariant: ['tabular-nums' as const] };
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -36,6 +37,91 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
+function fmtCurrency(n: number): string {
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+  return '$' + Math.round(n).toString();
+}
+
+// ── HeroNumber — large animated count-up ───────────────────────────────────
+function HeroNumber({ value, color }: { value: number; color: string }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    anim.setValue(0);
+    const id = anim.addListener(({ value: v }) => setDisplay(v * value));
+    Animated.timing(anim, { toValue: 1, duration: 900, useNativeDriver: false }).start();
+    return () => anim.removeListener(id);
+  }, [value, anim]);
+
+  return (
+    <Text style={[heroStyles.hero, tabularNumbers, { color }]}>{fmtCurrency(display)}</Text>
+  );
+}
+
+const heroStyles = StyleSheet.create({
+  hero: { fontSize: 56, fontWeight: '700', letterSpacing: -1.5, marginTop: 4 },
+});
+
+// ── StatCard — compact labelled metric ─────────────────────────────────────
+function StatCard({ label, value, palette }: { label: string; value: string; palette: any }) {
+  return (
+    <View style={[statStyles.card, { backgroundColor: palette.bgMuted }]}>
+      <Text style={[statStyles.label, { color: palette.textTertiary }]}>{label}</Text>
+      <Text style={[statStyles.value, tabularNumbers, { color: palette.accent }]}>{value}</Text>
+    </View>
+  );
+}
+
+const statStyles = StyleSheet.create({
+  card:  { flex: 1, borderRadius: Radius.md, paddingVertical: 10, paddingHorizontal: 10, alignItems: 'center' },
+  label: { fontSize: 10, fontWeight: '700', letterSpacing: 1.2, marginBottom: 4, textTransform: 'uppercase' },
+  value: { fontSize: 16, fontWeight: '700' },
+});
+
+// ── Tile — stacked row with icon, label, value, subline ────────────────────
+function Tile({
+  icon, label, value, subline, onPress, palette, children,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+  subline: string;
+  onPress: () => void;
+  palette: any;
+  children?: React.ReactNode;
+}) {
+  return (
+    <TouchableOpacity
+      style={[tileStyles.tile, { backgroundColor: palette.bgElevated, borderColor: palette.borderSubtle }]}
+      onPress={() => { haptic.selection(); onPress(); }}
+      activeOpacity={0.8}
+    >
+      <View style={[tileStyles.iconWrap, { backgroundColor: palette.accentSoft }]}>
+        <Ionicons name={icon} size={20} color={palette.accent} />
+      </View>
+      <View style={tileStyles.body}>
+        <Text style={[tileStyles.label, { color: palette.textTertiary }]}>{label}</Text>
+        <Text style={[tileStyles.value, { color: palette.textPrimary }]}>{value}</Text>
+        <Text style={[tileStyles.sub, { color: palette.textSecondary }]}>{subline}</Text>
+        {children}
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={palette.textTertiary} />
+    </TouchableOpacity>
+  );
+}
+
+const tileStyles = StyleSheet.create({
+  tile:    { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.sm },
+  iconWrap:{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: Spacing.md },
+  body:    { flex: 1 },
+  label:   { fontSize: 10, fontWeight: '700', letterSpacing: 1.2, marginBottom: 2, textTransform: 'uppercase' },
+  value:   { fontSize: 16, fontWeight: '700' },
+  sub:     { fontSize: 12, marginTop: 2 },
+});
+
+// ── Component ──────────────────────────────────────────────────────────────
 export default function WelcomeScreen({ navigation }: Props) {
   const { palette } = useTheme();
   const [savedName, setSavedName]       = useState('Investor');
@@ -43,9 +129,7 @@ export default function WelcomeScreen({ navigation }: Props) {
   const [pulse, setPulse]               = useState<MarketPulseData | null>(null);
   const [lessonsComplete, setLessons]   = useState(0);
   const [streak, setStreak]             = useState(0);
-  // What's New banner removed — features are discoverable via tabs
 
-  // Reload data every time screen is focused
   useFocusEffect(useCallback(() => {
     (async () => {
       const [name, portfoliosRaw, lessonsRaw, streakRaw] = await Promise.all([
@@ -64,8 +148,6 @@ export default function WelcomeScreen({ navigation }: Props) {
       if (lessonsRaw) {
         try { setLessons(JSON.parse(lessonsRaw).length); } catch {}
       }
-      // What's New banner removed
-      // Streak tracking
       const today = new Date().toISOString().slice(0, 10);
       const streakData = streakRaw ? JSON.parse(streakRaw) : { lastDate: '', count: 0 };
       if (streakData.lastDate === today) {
@@ -75,16 +157,17 @@ export default function WelcomeScreen({ navigation }: Props) {
         const newCount = streakData.lastDate === yesterday ? streakData.count + 1 : 1;
         setStreak(newCount);
         await AsyncStorage.setItem('appStreak', JSON.stringify({ lastDate: today, count: newCount }));
-        // Streak milestone check
         const milestones = [{ d: 3, b: '🌱', t: 'Seedling', m: '3-day streak! Building a habit.' }, { d: 7, b: '🔥', t: 'On Fire', m: '1 week! Consistent investors win.' }, { d: 14, b: '⚡', t: 'Momentum', m: '2 weeks! More momentum than 90% of investors.' }, { d: 30, b: '💎', t: 'Diamond', m: '30 days! Top 5% of all users.' }, { d: 100, b: '🚀', t: 'Legend', m: '100 days! Daily wealth habit mastered.' }];
         const hit = milestones.filter(m => newCount >= m.d).pop();
         const prevShown = await AsyncStorage.getItem('lastStreakMilestoneShown');
-        if (hit && prevShown !== String(hit.d)) { await AsyncStorage.setItem('lastStreakMilestoneShown', String(hit.d)); Alert.alert(hit.b + ' ' + hit.t, hit.m); }
+        if (hit && prevShown !== String(hit.d)) {
+          await AsyncStorage.setItem('lastStreakMilestoneShown', String(hit.d));
+          Alert.alert(hit.b + ' ' + hit.t, hit.m);
+        }
       }
     })();
   }, []));
 
-  // Market pulse — fetch once, light cache
   useEffect(() => {
     fetchMarketPulse().then(setPulse).catch(() => null);
   }, []);
@@ -92,6 +175,32 @@ export default function WelcomeScreen({ navigation }: Props) {
   const bestScore = portfolios.length > 0
     ? Math.max(...portfolios.map(p => p.result.scores.smart_score))
     : null;
+
+  // ── Projection math (returning users) ────────────────────────────────────
+  const best = portfolios[0];
+  const ret = best?.result?.performance?.expected_annual_return ?? 0.08;
+  const weekly = best?.result?.profile?.weekly_contribution ?? 100;
+  const monthlyRate = Math.pow(1 + Math.min(ret, 0.20), 1 / 12) - 1;
+  const monthly = weekly * 4.33;
+  const yearly: number[] = [];
+  let val = 0;
+  for (let yr = 0; yr <= 30; yr++) {
+    if (yr > 0) for (let m = 0; m < 12; m++) val = val * (1 + monthlyRate) + monthly;
+    yearly.push(val);
+  }
+  const finalVal = yearly[30];
+  const yr10 = yearly[10];
+  const yr20 = yearly[20];
+
+  const bestGrade = portfolios.length > 0
+    ? portfolios.reduce((acc, p) => {
+        const order = ['A', 'B', 'C', 'D', 'F'];
+        return order.indexOf(p.result.scores.grade) < order.indexOf(acc) ? p.result.scores.grade : acc;
+      }, portfolios[0].result.scores.grade)
+    : 'N/A';
+
+  const screenW = Dimensions.get('window').width;
+  const sparkWidth = screenW - Spacing.lg * 2 - 48; // page pad × 2 + card pad × 2
 
   return (
     <TabShell active="Home" navigation={navigation}>
@@ -101,7 +210,10 @@ export default function WelcomeScreen({ navigation }: Props) {
         {/* Header bar */}
         <View style={[styles.header, { borderBottomColor: palette.borderSubtle }]}>
           <Text style={[styles.brandName, { color: palette.signalAmber }]}>MY FRONTIER</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')} activeOpacity={0.7}>
+          <TouchableOpacity
+            onPress={() => { haptic.selection(); navigation.navigate('Profile'); }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="notifications-outline" size={22} color={palette.textTertiary} />
           </TouchableOpacity>
         </View>
@@ -112,13 +224,17 @@ export default function WelcomeScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
         >
           {portfolios.length === 0 ? (
-            /* NEW USER — hero CTA */
+            /* NEW USER — hero CTA (unchanged) */
             <>
               <View style={[styles.heroCard, { backgroundColor: palette.bgElevated, borderColor: palette.brandBlue }]}>
                 <Text style={styles.heroEmoji}>📊</Text>
                 <Text style={[styles.heroTitle, { color: palette.textPrimary }]}>Welcome to My Frontier</Text>
                 <Text style={[styles.heroSub, { color: palette.textSecondary }]}>Build your first optimized portfolio using the same math as hedge funds</Text>
-                <TouchableOpacity style={[styles.heroCta, { backgroundColor: palette.brandBlue }]} onPress={() => navigation.navigate('Categories', { name: savedName })} activeOpacity={0.85}>
+                <TouchableOpacity
+                  style={[styles.heroCta, { backgroundColor: palette.brandBlue }]}
+                  onPress={() => { haptic.medium(); navigation.navigate('Categories', { name: savedName }); }}
+                  activeOpacity={0.85}
+                >
                   <Text style={styles.heroCtaText}>Build My First Portfolio</Text>
                 </TouchableOpacity>
               </View>
@@ -132,10 +248,85 @@ export default function WelcomeScreen({ navigation }: Props) {
               </View>
             </>
           ) : (
-            /* RETURNING USER — dashboard */
+            /* RETURNING USER — redesigned dashboard */
             <>
-              <Text style={[styles.greeting, { color: palette.textSecondary }]}>{getGreeting()},</Text>
-              <Text style={[styles.userName, { color: palette.textPrimary }]}>{savedName}</Text>
+              {/* Greeting row */}
+              <View style={styles.greetingBlock}>
+                <Text style={[styles.greetingLabel, { color: palette.textSecondary }]}>{getGreeting()},</Text>
+                <Text style={[styles.greetingName, { color: palette.textPrimary }]}>{savedName}</Text>
+              </View>
+
+              {/* Net Worth hero card */}
+              <TouchableOpacity
+                onPress={() => { haptic.selection(); navigation.navigate('WealthTracker'); }}
+                activeOpacity={0.9}
+                style={[styles.heroWealthCard, { backgroundColor: palette.bgElevated, borderColor: palette.borderSubtle }]}
+              >
+                <Text style={[styles.heroLabel, { color: palette.textTertiary }]}>YOUR PROJECTED NET WORTH</Text>
+                <HeroNumber value={finalVal} color={palette.textPrimary} />
+                <Text style={[styles.heroSubline, { color: palette.textSecondary }]}>
+                  in 30 years at {(ret * 100).toFixed(1)}%/yr
+                </Text>
+
+                <View style={styles.sparkWrap}>
+                  <Sparkline
+                    data={yearly}
+                    width={sparkWidth}
+                    height={56}
+                    tone="positive"
+                    fillGradient
+                  />
+                </View>
+
+                <View style={styles.statRow}>
+                  <StatCard label="10 YR" value={fmtCurrency(yr10)} palette={palette} />
+                  <View style={{ width: 8 }} />
+                  <StatCard label="20 YR" value={fmtCurrency(yr20)} palette={palette} />
+                  <View style={{ width: 8 }} />
+                  <StatCard label="30 YR" value={fmtCurrency(finalVal)} palette={palette} />
+                </View>
+              </TouchableOpacity>
+
+              {/* Three-tile stack */}
+              <Tile
+                icon="stats-chart"
+                label="PORTFOLIOS"
+                value={`${portfolios.length}`}
+                subline={`Best grade: ${bestGrade}`}
+                palette={palette}
+                onPress={() => navigation.navigate('WealthTracker')}
+              >
+                {portfolios.length >= 2 && (
+                  <View style={{ marginTop: 6 }}>
+                    <Sparkline
+                      data={portfolios.slice().reverse().map(p => p.result.scores.smart_score)}
+                      width={140}
+                      height={24}
+                      tone="positive"
+                      fillGradient={false}
+                      strokeWidth={1.5}
+                    />
+                  </View>
+                )}
+              </Tile>
+
+              <Tile
+                icon="card-outline"
+                label="DEBT PLAN"
+                value="View"
+                subline="Plan your payoff"
+                palette={palette}
+                onPress={() => navigation.navigate('DebtPlanner')}
+              />
+
+              <Tile
+                icon="add-circle"
+                label="BUILD NEW"
+                value="Start"
+                subline="Optimized for your goals"
+                palette={palette}
+                onPress={() => navigation.navigate('Categories', { name: savedName })}
+              />
 
               {/* Daily Quote */}
               {(() => {
@@ -149,122 +340,35 @@ export default function WelcomeScreen({ navigation }: Props) {
                 const doy = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
                 const tq = Q[doy % Q.length];
                 return (
-                  <View style={[styles.quoteCard, { backgroundColor: palette.bgElevated, borderColor: palette.borderSubtle }]}>
-                    <Text style={[styles.quoteText, { color: palette.textSecondary }]}>"{tq.q}"</Text>
+                  <View style={[styles.quoteCard, { backgroundColor: palette.bgMuted }]}>
+                    <Text style={[styles.quoteText, { color: palette.textSecondary }]}>{tq.q}</Text>
                     <Text style={[styles.quoteAuthor, { color: palette.textTertiary }]}>{tq.a}</Text>
                   </View>
                 );
               })()}
 
-              {/* Wealth Projection Chart — tap to open Portfolio tracker */}
-              {(() => {
-                const best = portfolios[0];
-                const ret = best?.result?.performance?.expected_annual_return ?? 0.08;
-                const weekly = best?.result?.profile?.weekly_contribution ?? 100;
-                const monthlyRate = Math.pow(1 + Math.min(ret, 0.20), 1 / 12) - 1;
-                const monthly = weekly * 4.33;
-                const CW = Dimensions.get('window').width - 64;
-                const CH = 130;
-                const PAD = { l: 8, r: 8, t: 10, b: 22 };
-                const pts: { x: number; y: number; val: number }[] = [];
-                let val = 0;
-                for (let yr = 0; yr <= 30; yr++) {
-                  if (yr > 0) for (let m = 0; m < 12; m++) val = val * (1 + monthlyRate) + monthly;
-                  const x = PAD.l + (yr / 30) * (CW - PAD.l - PAD.r);
-                  pts.push({ x, y: 0, val });
-                }
-                const maxVal = Math.max(...pts.map(p => p.val), 1);
-                pts.forEach(p => { p.y = PAD.t + (CH - PAD.t - PAD.b) * (1 - p.val / maxVal); });
-                const linePts = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-                const fillPath = `M${pts[0].x},${CH - PAD.b} ` + pts.map(p => `L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ` L${pts[30].x},${CH - PAD.b} Z`;
-                const fmtK = (n: number) => n >= 1e6 ? '$' + (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? '$' + (n / 1e3).toFixed(0) + 'K' : '$' + Math.round(n);
-                const finalVal = pts[30].val;
-                const yr10 = pts[10];
-                const yr20 = pts[20];
-                const grade = best?.result?.scores?.grade ?? 'B';
-                const gradeC = grade === 'A' ? '#10B981' : grade === 'B' ? '#3B82F6' : '#F59E0B';
-                return (
-                  <TouchableOpacity onPress={() => navigation.navigate('WealthTracker')} activeOpacity={0.85}>
-                  <View style={[styles.wealthCard, { backgroundColor: palette.bgElevated, borderColor: palette.brandBlue + '40' }]}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <View>
-                        <Text style={[styles.wealthLabel, { color: palette.textTertiary }]}>PROJECTED WEALTH</Text>
-                        <Text style={[styles.wealthValue, { color: palette.textPrimary }]}>{fmtK(finalVal)}</Text>
-                      </View>
-                      <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={[styles.wealthGrade, { color: gradeC }]}>{grade}</Text>
-                        <Text style={[styles.wealthRet, { color: palette.textSecondary }]}>{(ret * 100).toFixed(1)}%/yr</Text>
-                      </View>
-                    </View>
-                    <Svg width={CW} height={CH}>
-                      <Defs>
-                        <SvgGradient id="wealthFill" x1="0" y1="0" x2="0" y2="1">
-                          <Stop offset="0" stopColor="#3B82F6" stopOpacity="0.3" />
-                          <Stop offset="1" stopColor="#3B82F6" stopOpacity="0" />
-                        </SvgGradient>
-                      </Defs>
-                      <Path d={fillPath} fill="url(#wealthFill)" />
-                      <Polyline points={linePts} fill="none" stroke="#3B82F6" strokeWidth={2.5} strokeLinecap="round" />
-                      <Circle cx={yr10.x} cy={yr10.y} r={3} fill="#F59E0B" />
-                      <Circle cx={yr20.x} cy={yr20.y} r={3} fill="#F59E0B" />
-                      <SvgText x={PAD.l} y={CH - 4} fontSize={9} fill={palette.textTertiary}>Now</SvgText>
-                      <SvgText x={yr10.x} y={CH - 4} fontSize={9} fill={palette.textTertiary} textAnchor="middle">10yr</SvgText>
-                      <SvgText x={yr20.x} y={CH - 4} fontSize={9} fill={palette.textTertiary} textAnchor="middle">20yr</SvgText>
-                      <SvgText x={CW - PAD.r} y={CH - 4} fontSize={9} fill={palette.textTertiary} textAnchor="end">30yr</SvgText>
-                      <SvgText x={yr10.x} y={yr10.y - 8} fontSize={9} fill="#F59E0B" textAnchor="middle">{fmtK(yr10.val)}</SvgText>
-                      <SvgText x={yr20.x} y={yr20.y - 8} fontSize={9} fill="#F59E0B" textAnchor="middle">{fmtK(yr20.val)}</SvgText>
-                    </Svg>
-                    <Text style={[styles.wealthSub, { color: palette.textTertiary }]}>{fmtK(weekly * 52)}/yr invested · Best portfolio</Text>
-                  </View>
-                  </TouchableOpacity>
-                );
-              })()}
-
+              {/* Market Pulse */}
               {pulse && (
                 <View style={[styles.pulseCard, { backgroundColor: palette.bgElevated, borderColor: palette.borderSubtle }]}>
                   {[{ s: 'SPY', v: pulse.spy_change }, { s: 'QQQ', v: pulse.qqq_change }, { s: 'AGG', v: pulse.agg_change }].map(t => (
                     <View key={t.s} style={styles.pulseCol}>
                       <Text style={[styles.pulseSym, { color: palette.textSecondary }]}>{t.s}</Text>
-                      <Text style={[styles.pulseVal, { color: t.v >= 0 ? '#10B981' : '#EF4444' }]}>{t.v >= 0 ? '+' : ''}{t.v.toFixed(2)}%</Text>
+                      <Text style={[styles.pulseVal, tabularNumbers, { color: getSemanticDataColor(palette, t.v) }]}>
+                        {t.v >= 0 ? '+' : ''}{t.v.toFixed(2)}%
+                      </Text>
                     </View>
                   ))}
                 </View>
               )}
-
-              {/* Build new portfolio CTA */}
-              <TouchableOpacity
-                style={[styles.buildNewCta, { backgroundColor: palette.bgElevated, borderColor: palette.brandBlue + '60' }]}
-                onPress={() => navigation.navigate('Categories', { name: savedName })}
-                activeOpacity={0.8}
-              >
-                <Text style={{ fontSize: 22 }}>📊</Text>
-                <View style={{ flex: 1, marginLeft: Spacing.sm }}>
-                  <Text style={[styles.buildNewCtaTitle, { color: palette.textPrimary }]}>Build New Portfolio</Text>
-                  <Text style={[styles.buildNewCtaSub, { color: palette.textSecondary }]}>Optimized for your goals</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={palette.textTertiary} />
-              </TouchableOpacity>
-
-              {/* Debt planning CTA */}
-              <TouchableOpacity
-                style={[styles.debtCta, { backgroundColor: palette.bgElevated, borderColor: palette.signalAmber + '60' }]}
-                onPress={() => navigation.navigate('DebtPlanner')}
-                activeOpacity={0.8}
-              >
-                <Text style={{ fontSize: 22 }}>💳</Text>
-                <View style={{ flex: 1, marginLeft: Spacing.sm }}>
-                  <Text style={[styles.debtCtaTitle, { color: palette.textPrimary }]}>Debt Repayment Plan</Text>
-                  <Text style={[styles.debtCtaSub, { color: palette.textSecondary }]}>See when you could be debt-free</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={palette.textTertiary} />
-              </TouchableOpacity>
 
               <DailyChallenge navigation={navigation} />
               <QuickStats portfolioCount={portfolios.length} bestScore={bestScore} streak={streak} />
             </>
           )}
 
-          <Text style={[styles.disclaimer, { color: palette.textTertiary }]}>For educational purposes only. Not financial advice.</Text>
+          <Text style={[styles.disclaimer, { color: palette.textTertiary }]}>
+            For educational purposes only. Not financial advice.
+          </Text>
         </ScrollView>
       </SafeAreaView>
     </TabShell>
@@ -272,9 +376,9 @@ export default function WelcomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe:     { flex: 1 },
-  scroll:   { flex: 1 },
-  content:  { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
+  safe:    { flex: 1 },
+  scroll:  { flex: 1 },
+  content: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
 
   header: {
     flexDirection: 'row',
@@ -284,54 +388,39 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
   },
-  brandName: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
+  brandName: { fontSize: 13, fontWeight: '700', letterSpacing: 2 },
 
-  greeting: { ...BodyScale.lg, marginTop: Spacing.lg },
-  userName: { fontSize: 28, fontWeight: '800', marginBottom: Spacing.lg, letterSpacing: -0.5 },
+  // Returning user
+  greetingBlock:   { marginTop: Spacing.xxl, marginBottom: Spacing.lg },
+  greetingLabel:   { fontSize: 13, fontWeight: '600', letterSpacing: 0.3, marginBottom: 4 },
+  greetingName:    { fontSize: 32, fontWeight: '700', letterSpacing: -0.5 },
 
-  buildBtn:      { marginBottom: Spacing.sm, borderRadius: Radius.xl, overflow: 'hidden' },
-  buildGradient: { paddingVertical: 17, alignItems: 'center', borderRadius: Radius.xl },
-  buildText:     { fontSize: 16, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.3 },
+  heroWealthCard:  { borderRadius: Radius.xl, borderWidth: 1, padding: Spacing.xxl, marginBottom: Spacing.lg },
+  heroLabel:       { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
+  heroSubline:     { ...BodyScale.md, marginTop: 4 },
+  sparkWrap:       { marginTop: Spacing.md, marginBottom: Spacing.md },
+  statRow:         { flexDirection: 'row', marginTop: Spacing.sm },
 
-  heroCard:      { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, alignItems: 'center', marginBottom: Spacing.lg },
-  heroEmoji:     { fontSize: 56, marginBottom: Spacing.md },
-  heroTitle:     { fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: Spacing.sm },
-  heroSub:       { fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: Spacing.lg },
-  heroCta:       { borderRadius: Radius.xl, paddingVertical: 14, paddingHorizontal: Spacing.xl, marginTop: Spacing.sm },
-  heroCtaText:   { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
+  quoteCard:   { borderRadius: Radius.lg, padding: Spacing.lg, marginTop: Spacing.md, marginBottom: Spacing.md },
+  quoteText:   { fontSize: 14, lineHeight: 22, fontStyle: 'italic', marginBottom: Spacing.sm },
+  quoteAuthor: { fontSize: 11, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase' },
+
+  pulseCard: { flexDirection: 'row', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, marginBottom: Spacing.lg, justifyContent: 'space-around' },
+  pulseCol:  { alignItems: 'center' },
+  pulseSym:  { fontSize: 11, fontWeight: '600', letterSpacing: 0.8, marginBottom: 4, textTransform: 'uppercase' },
+  pulseVal:  { fontSize: 18, fontWeight: '600' },
+
+  // New-user view (unchanged)
+  heroCard:    { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.xl, alignItems: 'center', marginBottom: Spacing.lg },
+  heroEmoji:   { fontSize: 56, marginBottom: Spacing.md },
+  heroTitle:   { fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: Spacing.sm },
+  heroSub:     { fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: Spacing.lg },
+  heroCta:     { borderRadius: Radius.xl, paddingVertical: 14, paddingHorizontal: Spacing.xl, marginTop: Spacing.sm },
+  heroCtaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
 
   featureRow:      { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.lg },
   featurePill:     { flex: 1, marginHorizontal: 4, borderRadius: Radius.lg, borderWidth: 1, paddingVertical: Spacing.sm, alignItems: 'center', gap: 4 },
   featurePillText: { fontSize: 11, fontWeight: '600', marginTop: 2 },
-
-  quoteCard:   { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.md },
-  quoteText:   { fontSize: 13, lineHeight: 20, fontStyle: 'italic', marginBottom: 4 },
-  quoteAuthor: { fontSize: 11, fontWeight: '600' },
-
-  wealthCard:  { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.md },
-  wealthLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-  wealthValue: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  wealthGrade: { fontSize: 22, fontWeight: '800' },
-  wealthRet:   { fontSize: 12, marginTop: 2 },
-  wealthSub:   { fontSize: 11, marginTop: 6 },
-
-  pulseCard: { flexDirection: 'row', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.md, justifyContent: 'space-around' },
-  pulseCol:  { alignItems: 'center' },
-  pulseSym:  { fontSize: 11, fontWeight: '600', marginBottom: 2 },
-  pulseVal:  { fontSize: 14, fontWeight: '700' },
-
-  buildNewCta:      { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.sm },
-  buildNewCtaTitle: { fontSize: 15, fontWeight: '700' },
-  buildNewCtaSub:   { fontSize: 12, marginTop: 2 },
-
-  debtCta:      { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.lg },
-  debtCtaTitle: { fontSize: 15, fontWeight: '700' },
-  debtCtaSub:   { fontSize: 12, marginTop: 2 },
 
   disclaimer: { fontSize: 11, textAlign: 'center', marginTop: Spacing.lg, lineHeight: 16 },
 });

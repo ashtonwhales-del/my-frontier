@@ -41,11 +41,7 @@ function AppNavigator({ initialRoute }: { initialRoute: keyof RootStackParamList
           initialRouteName={initialRoute}
           screenOptions={{ headerShown: false, cardStyle: { backgroundColor: palette.bgPrimary } }}
         >
-          <Stack.Screen
-            name="Disclaimer"
-            component={DisclaimerScreen}
-            options={{ gestureEnabled: false }}
-          />
+          <Stack.Screen name="Disclaimer" component={DisclaimerScreen} options={{ gestureEnabled: false }} />
           <Stack.Screen name="Onboarding"        component={OnboardingScreen} />
           <Stack.Screen name="NewOnboarding"     component={NewOnboardingScreen} options={{ gestureEnabled: false }} />
           <Stack.Screen name="Welcome"           component={WelcomeScreen} />

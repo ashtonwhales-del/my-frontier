@@ -1,18 +1,16 @@
 /**
  * HomeWidgets.tsx
  * Dashboard components for WelcomeScreen:
- *   - PortfolioSnapshot — best portfolio card or empty state
- *   - WeeklyInsight     — daily investing tip
- *   - QuickStats        — 3-card horizontal row
- *   - LearningProgress  — progress bar with continue link
+ *   - DailyChallenge — rotating challenge card
+ *   - QuickStats     — 3-card horizontal row
  */
 import React from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
 } from 'react-native';
-import { Colors } from '../../theme/colors';
 import { Spacing, Radius } from '../../theme/spacing';
 import { BodyScale } from '../../theme/typography';
+import { useTheme } from '../../context/ThemeContext';
 
 // ── DailyChallenge ─────────────────────────────────────────────────────────
 const CHALLENGES = [
@@ -26,14 +24,19 @@ const CHALLENGES = [
 ];
 
 export function DailyChallenge({ navigation }: { navigation: any }) {
+  const { palette } = useTheme();
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
   const ch = CHALLENGES[dayOfYear % CHALLENGES.length];
   return (
-    <TouchableOpacity style={dc.card} onPress={() => navigation.navigate(ch.screen as any, ch.params)} activeOpacity={0.8}>
-      <Text style={dc.label}>DAILY CHALLENGE</Text>
-      <Text style={dc.text}>{ch.title}</Text>
-      <Text style={dc.explain}>{ch.explain}</Text>
-      <Text style={dc.cta}>Accept Challenge  ›</Text>
+    <TouchableOpacity
+      style={[dc.card, { backgroundColor: palette.signalAmberSoft, borderColor: palette.signalAmber }]}
+      onPress={() => navigation.navigate(ch.screen as any, ch.params)}
+      activeOpacity={0.8}
+    >
+      <Text style={[dc.label, { color: palette.signalAmber }]}>DAILY CHALLENGE</Text>
+      <Text style={[dc.text, { color: palette.textPrimary }]}>{ch.title}</Text>
+      <Text style={[dc.explain, { color: palette.textSecondary }]}>{ch.explain}</Text>
+      <Text style={[dc.cta, { color: palette.signalAmber }]}>Accept Challenge  ›</Text>
     </TouchableOpacity>
   );
 }
@@ -42,6 +45,7 @@ export function DailyChallenge({ navigation }: { navigation: any }) {
 interface StatsProps { portfolioCount: number; bestScore: number | null; streak: number }
 
 export function QuickStats({ portfolioCount, bestScore, streak }: StatsProps) {
+  const { palette } = useTheme();
   const stats = [
     { label: 'Portfolios', value: String(portfolioCount) },
     { label: 'Best Score', value: bestScore ? bestScore.toFixed(1) : '---' },
@@ -51,29 +55,30 @@ export function QuickStats({ portfolioCount, bestScore, streak }: StatsProps) {
   return (
     <View style={qs.row}>
       {stats.map(s => (
-        <View key={s.label} style={qs.card}>
-          <Text style={qs.value}>{s.value}</Text>
-          <Text style={qs.label}>{s.label}</Text>
+        <View
+          key={s.label}
+          style={[qs.card, { backgroundColor: palette.bgElevated, borderColor: palette.borderSubtle }]}
+        >
+          <Text style={[qs.value, { color: palette.accent }]}>{s.value}</Text>
+          <Text style={[qs.label, { color: palette.textTertiary }]}>{s.label}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-// ── Styles ──────────────────────────────────────────────────────────────────
+// ── Styles (non-color only) ─────────────────────────────────────────────────
 const dc = StyleSheet.create({
-  card: { backgroundColor: '#F59E0B12', borderRadius: Radius.lg, borderWidth: 1, borderColor: '#F59E0B', padding: Spacing.lg, marginBottom: Spacing.lg },
-  label: { fontSize: 10, fontWeight: '700', color: '#F59E0B', letterSpacing: 1.2, marginBottom: Spacing.sm },
-  text: { ...BodyScale.md, color: Colors.textPrimary, fontWeight: '600', lineHeight: 22, marginBottom: 4 },
-  explain: { ...BodyScale.sm, color: Colors.textSecondary, lineHeight: 18, marginBottom: Spacing.sm },
-  cta: { ...BodyScale.sm, color: '#F59E0B', fontWeight: '600' },
+  card:    { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, marginBottom: Spacing.lg },
+  label:   { fontSize: 10, fontWeight: '700', letterSpacing: 1.2, marginBottom: Spacing.sm },
+  text:    { ...BodyScale.md, fontWeight: '600', lineHeight: 22, marginBottom: 4 },
+  explain: { ...BodyScale.sm, lineHeight: 18, marginBottom: Spacing.sm },
+  cta:     { ...BodyScale.sm, fontWeight: '600' },
 });
 
 const qs = StyleSheet.create({
   row:   { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.lg },
-  card:  { flex: 1, backgroundColor: Colors.bgCard, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.borderSubtle, padding: Spacing.md, alignItems: 'center' },
-  value: { fontSize: 24, fontWeight: '900', color: Colors.brandGold, marginBottom: 2 },
-  label: { ...BodyScale.sm, color: Colors.textTertiary },
+  card:  { flex: 1, borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, alignItems: 'center' },
+  value: { fontSize: 24, fontWeight: '900', marginBottom: 2, fontVariant: ['tabular-nums'] },
+  label: { ...BodyScale.sm },
 });
-
-// LearningProgress and PortfolioSnapshot styles removed (dead code)
