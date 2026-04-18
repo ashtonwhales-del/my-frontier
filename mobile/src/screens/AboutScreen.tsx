@@ -7,9 +7,11 @@ import {
   StyleSheet,
   Linking,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'About'>;
@@ -19,6 +21,9 @@ const APP_VERSION = '1.0.0';
 const APP_BUILD = '1';
 
 export default function AboutScreen({ navigation }: Props) {
+  const { palette } = useTheme();
+  const insets = useSafeAreaInsets();
+
   function openFeedback() {
     Linking.openURL('mailto:support@myfrontierapp.com?subject=My%20Frontier%20Feedback');
   }
@@ -33,51 +38,51 @@ export default function AboutScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
+    <View style={[styles.screen, { backgroundColor: palette.bgPrimary }]}>
+      <View style={[styles.header, { backgroundColor: palette.bgElevated, borderBottomColor: palette.borderSubtle, paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>←</Text>
+          <Text style={[styles.backText, { color: palette.brandBlue }]}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>About</Text>
+        <Text style={[styles.headerTitle, { color: palette.textPrimary }]}>About</Text>
         <View style={styles.backBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* App identity */}
-        <View style={styles.heroCard}>
+        <View style={[styles.heroCard, { backgroundColor: palette.bgElevated }]}>
           <Text style={styles.appName}>
-            <Text style={{ color: colors.primary }}>My </Text>
-            <Text style={{ color: colors.textPrimary }}>Frontier</Text>
+            <Text style={{ color: palette.brandBlue }}>My </Text>
+            <Text style={{ color: palette.textPrimary }}>Frontier</Text>
           </Text>
-          <Text style={styles.version}>Version {APP_VERSION} (Build {APP_BUILD})</Text>
-          <Text style={styles.tagline}>Made with ❤️ in North Carolina</Text>
+          <Text style={[styles.version, { color: palette.textTertiary }]}>Version {APP_VERSION} (Build {APP_BUILD})</Text>
+          <Text style={[styles.tagline, { color: palette.textSecondary }]}>Made with ❤️ in North Carolina</Text>
         </View>
 
         {/* Action buttons */}
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.actionBtn} onPress={openRating} activeOpacity={0.8}>
+        <View style={[styles.section, { backgroundColor: palette.bgElevated }]}>
+          <TouchableOpacity style={[styles.actionBtn, { borderBottomColor: palette.borderSubtle }]} onPress={openRating} activeOpacity={0.8}>
             <Text style={styles.actionEmoji}>⭐</Text>
             <View style={styles.actionTextWrap}>
-              <Text style={styles.actionTitle}>Rate My Frontier</Text>
-              <Text style={styles.actionSub}>Enjoying the app? Leave us a review</Text>
+              <Text style={[styles.actionTitle, { color: palette.textPrimary }]}>Rate My Frontier</Text>
+              <Text style={[styles.actionSub, { color: palette.textTertiary }]}>Enjoying the app? Leave us a review</Text>
             </View>
-            <Text style={styles.chevron}>›</Text>
+            <Text style={[styles.chevron, { color: palette.textTertiary }]}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionBtn} onPress={openFeedback} activeOpacity={0.8}>
+          <TouchableOpacity style={[styles.actionBtn, { borderBottomColor: palette.borderSubtle }]} onPress={openFeedback} activeOpacity={0.8}>
             <Text style={styles.actionEmoji}>✉️</Text>
             <View style={styles.actionTextWrap}>
-              <Text style={styles.actionTitle}>Send Feedback</Text>
-              <Text style={styles.actionSub}>Report a bug or share an idea</Text>
+              <Text style={[styles.actionTitle, { color: palette.textPrimary }]}>Send Feedback</Text>
+              <Text style={[styles.actionSub, { color: palette.textTertiary }]}>Report a bug or share an idea</Text>
             </View>
-            <Text style={styles.chevron}>›</Text>
+            <Text style={[styles.chevron, { color: palette.textTertiary }]}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.actionBtn, styles.proBtn]} onPress={openWaitlist} activeOpacity={0.8}>
+          <TouchableOpacity style={[styles.actionBtn, styles.proBtn, { borderBottomColor: palette.borderSubtle }]} onPress={openWaitlist} activeOpacity={0.8}>
             <Text style={styles.actionEmoji}>🚀</Text>
             <View style={styles.actionTextWrap}>
               <Text style={[styles.actionTitle, { color: colors.accent }]}>Join the Waitlist for Pro</Text>
-              <Text style={styles.actionSub}>Advanced features coming soon</Text>
+              <Text style={[styles.actionSub, { color: palette.textTertiary }]}>Advanced features coming soon</Text>
             </View>
             <Text style={[styles.chevron, { color: colors.accent }]}>›</Text>
           </TouchableOpacity>
@@ -86,15 +91,15 @@ export default function AboutScreen({ navigation }: Props) {
         {/* Legal links */}
         <View style={styles.legalRow}>
           <TouchableOpacity onPress={() => navigation.navigate('Privacy')} activeOpacity={0.7}>
-            <Text style={styles.legalLink}>Privacy Policy</Text>
+            <Text style={[styles.legalLink, { color: palette.brandBlue }]}>Privacy Policy</Text>
           </TouchableOpacity>
-          <Text style={styles.legalSep}>·</Text>
+          <Text style={[styles.legalSep, { color: palette.textTertiary }]}>·</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Terms')} activeOpacity={0.7}>
-            <Text style={styles.legalLink}>Terms of Service</Text>
+            <Text style={[styles.legalLink, { color: palette.brandBlue }]}>Terms of Service</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.copyright}>
+        <Text style={[styles.copyright, { color: palette.textTertiary }]}>
           © 2026 My Frontier. For educational purposes only.{'\n'}Not financial advice.
         </Text>
       </ScrollView>
@@ -103,26 +108,22 @@ export default function AboutScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
+  screen: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingTop: 56,
     paddingBottom: spacing.md,
-    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   backBtn: { width: 44, padding: spacing.sm },
-  backText: { fontSize: 22, color: colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: colors.textPrimary },
+  backText: { fontSize: 22, fontWeight: '700' },
+  headerTitle: { fontSize: 17, fontWeight: '800' },
 
   content: { padding: spacing.lg, paddingBottom: 48 },
 
   heroCard: {
-    backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: spacing.xl,
     alignItems: 'center',
@@ -130,11 +131,10 @@ const styles = StyleSheet.create({
     ...shadow.md,
   },
   appName: { fontSize: 32, fontWeight: '900', letterSpacing: -0.5, marginBottom: 4 },
-  version: { fontSize: 13, color: colors.textMuted, marginBottom: spacing.sm },
-  tagline: { fontSize: 15, color: colors.textSecondary, fontWeight: '500' },
+  version: { fontSize: 13, marginBottom: spacing.sm },
+  tagline: { fontSize: 15, fontWeight: '500' },
 
   section: {
-    backgroundColor: colors.card,
     borderRadius: radius.xl,
     overflow: 'hidden',
     marginBottom: spacing.lg,
@@ -146,15 +146,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     gap: spacing.md,
   },
   proBtn: { borderBottomWidth: 0 },
   actionEmoji: { fontSize: 22, width: 30, textAlign: 'center' },
   actionTextWrap: { flex: 1 },
-  actionTitle: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
-  actionSub: { fontSize: 12, color: colors.textMuted, marginTop: 1 },
-  chevron: { fontSize: 20, color: colors.textMuted, fontWeight: '300' },
+  actionTitle: { fontSize: 15, fontWeight: '600' },
+  actionSub: { fontSize: 12, marginTop: 1 },
+  chevron: { fontSize: 20, fontWeight: '300' },
 
   legalRow: {
     flexDirection: 'row',
@@ -163,12 +162,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  legalLink: { fontSize: 13, color: colors.primary, fontWeight: '500' },
-  legalSep: { fontSize: 13, color: colors.textMuted },
+  legalLink: { fontSize: 13, fontWeight: '500' },
+  legalSep: { fontSize: 13 },
 
   copyright: {
     fontSize: 11,
-    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 17,
   },

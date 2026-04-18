@@ -90,47 +90,20 @@ export interface LeaderboardRank {
   total_submissions: number;
 }
 
-export interface BudgetContext {
-  monthlyIncome: number;
-  totalExpenses: number;
-  surplus: number;
-  spendingDNA: string;
-}
-
 export type RootStackParamList = {
-  Disclaimer:        undefined;
-  Onboarding:        undefined;
-  NewOnboarding:     undefined;
-  Welcome:           undefined;
-  Categories:        { name: string };
-  RiskTolerance:     { name: string; categories: string[] };
-  Investment:        { name: string; categories: string[]; riskTolerance: number };
-  Results:           { data: OnboardingData };
-  Advisor:           { portfolio?: OptimizeResponse; budgetContext?: BudgetContext };
-  WealthTracker:     undefined;
-  Premium:           undefined;
-  Privacy:           undefined;
-  Terms:             undefined;
-  About:             undefined;
-  Learning:          undefined;
-  Compare:           undefined;
-  Budget:            undefined;
-  NetWorth:          undefined;
-  DebtPayoff:        undefined;
-  DebtPlanner:       undefined;
-  SubscriptionAudit: undefined;
-  MyPortfolio:       undefined;
-  CurrentPortfolio:  undefined;
-  Community:         undefined;
-  LessonReader:      { lessonId: string; title: string; pages: string[]; tier: string };
-  ETFMatcherGame:    undefined;
-  RiskQuizGame:      undefined;
-  FinancialHealth:   undefined;
-  NetWorthTimeline:  undefined;
-  GoalBuckets:       undefined;
-  BillNegotiation:   undefined;
-  Housing:           undefined;
-  FinanceHub:        undefined;
-  InvestHub:         undefined;
-  Profile:           undefined;
+  Disclaimer:       undefined;
+  Onboarding:       undefined;
+  NewOnboarding:    undefined;
+  Welcome:          undefined;
+  Categories:       { name: string };
+  Results:          { data: OnboardingData };
+  WealthTracker:    undefined;
+  Premium:          undefined;
+  Privacy:          undefined;
+  Terms:            undefined;
+  About:            undefined;
+  Compare:          undefined;
+  DebtPlanner:      undefined;
+  CurrentPortfolio: undefined;
+  Profile:          undefined;
 };

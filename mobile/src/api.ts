@@ -192,7 +192,7 @@ export async function optimizePortfolio(data: OnboardingData): Promise<OptimizeR
 }
 
 // ---------------------------------------------------------------------------
-// callAdvisor — legacy proxy; kept for backward compat (used by AdvisorScreen)
+// callAdvisor — legacy proxy for callAlex
 // ---------------------------------------------------------------------------
 export async function callAdvisor(
   messages: { role: string; content: string }[],

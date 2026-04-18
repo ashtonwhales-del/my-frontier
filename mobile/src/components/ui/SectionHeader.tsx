@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors as Colors } from '../../theme';
 import { LabelStyle } from '../../theme/typography';
+import { useTheme } from '../../context/ThemeContext';
 
 interface SectionHeaderProps {
   title: string;
@@ -10,12 +11,13 @@ interface SectionHeaderProps {
 }
 
 export default function SectionHeader({ title, action, onAction }: SectionHeaderProps) {
+  const { palette } = useTheme();
   return (
     <View style={styles.row}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, { color: palette.textSecondary }]}>{title}</Text>
       {action && onAction && (
         <TouchableOpacity onPress={onAction} activeOpacity={0.7}>
-          <Text style={styles.action}>{action}</Text>
+          <Text style={[styles.action, { color: palette.brandBlue }]}>{action}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -24,6 +26,6 @@ export default function SectionHeader({ title, action, onAction }: SectionHeader
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  title: { ...LabelStyle, color: Colors.textSecondary },
-  action: { fontSize: 12, fontWeight: '600', color: Colors.brandBlue },
+  title: { ...LabelStyle },
+  action: { fontSize: 12, fontWeight: '600' },
 });

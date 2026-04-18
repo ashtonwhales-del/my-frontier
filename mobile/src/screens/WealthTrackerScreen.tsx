@@ -9,8 +9,8 @@ import {
   TextInput,
   Dimensions,
   Modal,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Polyline, Line, Text as SvgText, Circle as SvgCircle } from 'react-native-svg';
 import { RootStackParamList, SavedPortfolio } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { STORAGE } from '../constants';
 import { calcFrontierScore } from '../components/PortfolioScoreCard';
 import TabShell from '../components/TabShell';
@@ -59,10 +60,10 @@ interface ProjectionChartProps {
 }
 
 function ProjectionChart({ portfolios, selectedIds }: ProjectionChartProps) {
+  const { palette } = useTheme();
   const selected = portfolios.filter(p => selectedIds.includes(p.id));
   if (!selected.length) return null;
 
-  // Collect all projection data across selected portfolios
   const allYears = selected.flatMap(p => p.result.projections.map(pt => pt.years));
   const allValues = selected.flatMap(p => p.result.projections.map(pt => pt.optimistic));
   const maxYears = Math.max(...allYears, 5);
@@ -73,48 +74,43 @@ function ProjectionChart({ portfolios, selectedIds }: ProjectionChartProps) {
   function toY(val: number) { return PAD_T + PLOT_H - (val / maxVal) * PLOT_H; }
 
   return (
-    <View style={chartStyles.container}>
-      <Text style={chartStyles.title}>Projected Wealth at Retirement (Optimistic)</Text>
+    <View style={[chartStyles.container, { backgroundColor: palette.bgElevated }]}>
+      <Text style={[chartStyles.title, { color: palette.textPrimary }]}>Projected Wealth at Retirement (Optimistic)</Text>
       <Svg width={CHART_W} height={CHART_H}>
-        {/* Y-axis ticks */}
         {yTicks.map((v, i) => (
           <SvgText
             key={i}
             x={PAD_L - 4}
             y={toY(v) + 4}
             fontSize={9}
-            fill={colors.textMuted}
+            fill={palette.textTertiary}
             textAnchor="end"
           >
             {fmt(v)}
           </SvgText>
         ))}
-        {/* X-axis */}
         <Line
           x1={PAD_L} y1={PAD_T + PLOT_H}
           x2={PAD_L + PLOT_W} y2={PAD_T + PLOT_H}
-          stroke={colors.border} strokeWidth={1}
+          stroke={palette.borderSubtle} strokeWidth={1}
         />
-        {/* Y-axis */}
         <Line
           x1={PAD_L} y1={PAD_T}
           x2={PAD_L} y2={PAD_T + PLOT_H}
-          stroke={colors.border} strokeWidth={1}
+          stroke={palette.borderSubtle} strokeWidth={1}
         />
-        {/* X-axis year labels */}
         {[0, Math.round(maxYears * 0.33), Math.round(maxYears * 0.66), Math.round(maxYears)].map((yr, i) => (
           <SvgText
             key={i}
             x={toX(yr)}
             y={PAD_T + PLOT_H + 14}
             fontSize={9}
-            fill={colors.textMuted}
+            fill={palette.textTertiary}
             textAnchor="middle"
           >
             {yr}yr
           </SvgText>
         ))}
-        {/* Portfolio lines */}
         {selected.map((p, idx) => {
           const pts = p.result.projections
             .map(pt => `${toX(pt.years)},${toY(pt.optimistic)}`)
@@ -130,7 +126,6 @@ function ProjectionChart({ portfolios, selectedIds }: ProjectionChartProps) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-              {/* Last point dot */}
               {p.result.projections.length > 0 && (() => {
                 const last = p.result.projections[p.result.projections.length - 1];
                 return (
@@ -146,7 +141,6 @@ function ProjectionChart({ portfolios, selectedIds }: ProjectionChartProps) {
           );
         })}
       </Svg>
-      {/* Legend */}
       <View style={chartStyles.legend}>
         {(() => {
           const nameCounts: Record<string, number> = {};
@@ -163,7 +157,7 @@ function ProjectionChart({ portfolios, selectedIds }: ProjectionChartProps) {
             return (
               <View key={p.id} style={chartStyles.legendItem}>
                 <View style={[chartStyles.legendDot, { backgroundColor: LINE_COLORS[idx % LINE_COLORS.length] }]} />
-                <Text style={chartStyles.legendLabel}>{label}</Text>
+                <Text style={[chartStyles.legendLabel, { color: palette.textSecondary }]}>{label}</Text>
               </View>
             );
           });
@@ -175,17 +169,16 @@ function ProjectionChart({ portfolios, selectedIds }: ProjectionChartProps) {
 
 const chartStyles = StyleSheet.create({
   container: {
-    backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: spacing.md,
     marginBottom: spacing.lg,
     ...shadow.sm,
   },
-  title: { fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.sm },
+  title: { fontSize: 13, fontWeight: '700', marginBottom: spacing.sm },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendLabel: { fontSize: 11, color: colors.textSecondary },
+  legendLabel: { fontSize: 11 },
 });
 
 // ── Portfolio Detail Modal ──────────────────────────────────────────────────
@@ -196,6 +189,8 @@ interface DetailModalProps {
 }
 
 function PortfolioDetailModal({ portfolio, onClose }: DetailModalProps) {
+  const { palette } = useTheme();
+  const insets = useSafeAreaInsets();
   if (!portfolio) return null;
   const score = calcFrontierScore(portfolio.result);
   const grade = portfolio.result.scores.grade;
@@ -205,65 +200,61 @@ function PortfolioDetailModal({ portfolio, onClose }: DetailModalProps) {
 
   return (
     <Modal visible={!!portfolio} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={detailStyles.container}>
-        {/* Header */}
-        <View style={detailStyles.header}>
+      <View style={[detailStyles.container, { backgroundColor: palette.bgPrimary }]}>
+        <View style={[detailStyles.header, { paddingTop: insets.top + 8, backgroundColor: palette.bgElevated, borderBottomColor: palette.borderSubtle }]}>
           <View style={detailStyles.headerLeft}>
-            <Text style={detailStyles.headerName}>{portfolio.name}</Text>
-            <Text style={detailStyles.headerMeta}>
+            <Text style={[detailStyles.headerName, { color: palette.textPrimary }]}>{portfolio.name}</Text>
+            <Text style={[detailStyles.headerMeta, { color: palette.textTertiary }]}>
               {days === 0 ? 'Today' : `${days} day${days !== 1 ? 's' : ''} ago`} · {portfolio.result.profile.risk_label}
             </Text>
           </View>
           <TouchableOpacity onPress={onClose} style={detailStyles.closeBtn} activeOpacity={0.7}>
-            <Text style={detailStyles.closeText}>✕ Close</Text>
+            <Text style={[detailStyles.closeText, { color: palette.textSecondary }]}>✕ Close</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView style={detailStyles.scroll} contentContainerStyle={detailStyles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Grade hero */}
-          <View style={detailStyles.gradeHero}>
+          <View style={[detailStyles.gradeHero, { backgroundColor: palette.bgElevated }]}>
             <Text style={[detailStyles.gradeHeroLetter, { color: gradeColor(grade) }]}>{grade}</Text>
             <View style={detailStyles.gradeHeroRight}>
-              <Text style={detailStyles.gradeHeroScore}>{score}/10</Text>
-              <Text style={detailStyles.gradeHeroLabel}>Frontier Score</Text>
-              <Text style={detailStyles.gradeHeroGrade}>{grade} Portfolio</Text>
+              <Text style={[detailStyles.gradeHeroScore, { color: palette.textPrimary }]}>{score}/10</Text>
+              <Text style={[detailStyles.gradeHeroLabel, { color: palette.textTertiary }]}>Frontier Score</Text>
+              <Text style={[detailStyles.gradeHeroGrade, { color: palette.textSecondary }]}>{grade} Portfolio</Text>
             </View>
           </View>
 
-          {/* Key stats */}
-          <View style={detailStyles.statsCard}>
+          <View style={[detailStyles.statsCard, { backgroundColor: palette.bgElevated }]}>
             <View style={detailStyles.statBox}>
-              <Text style={detailStyles.statValue}>{(perf.expected_annual_return * 100).toFixed(1)}%</Text>
-              <Text style={detailStyles.statLabel}>Exp. Return / yr</Text>
+              <Text style={[detailStyles.statValue, { color: palette.textPrimary }]}>{(perf.expected_annual_return * 100).toFixed(1)}%</Text>
+              <Text style={[detailStyles.statLabel, { color: palette.textTertiary }]}>Exp. Return / yr</Text>
             </View>
-            <View style={detailStyles.statDivider} />
+            <View style={[detailStyles.statDivider, { backgroundColor: palette.borderSubtle }]} />
             <View style={detailStyles.statBox}>
-              <Text style={detailStyles.statValue}>{(perf.annual_volatility * 100).toFixed(1)}%</Text>
-              <Text style={detailStyles.statLabel}>Volatility</Text>
+              <Text style={[detailStyles.statValue, { color: palette.textPrimary }]}>{(perf.annual_volatility * 100).toFixed(1)}%</Text>
+              <Text style={[detailStyles.statLabel, { color: palette.textTertiary }]}>Volatility</Text>
             </View>
-            <View style={detailStyles.statDivider} />
+            <View style={[detailStyles.statDivider, { backgroundColor: palette.borderSubtle }]} />
             <View style={detailStyles.statBox}>
-              <Text style={detailStyles.statValue}>{perf.sharpe_ratio.toFixed(2)}</Text>
-              <Text style={detailStyles.statLabel}>Sharpe Ratio</Text>
+              <Text style={[detailStyles.statValue, { color: palette.textPrimary }]}>{perf.sharpe_ratio.toFixed(2)}</Text>
+              <Text style={[detailStyles.statLabel, { color: palette.textTertiary }]}>Sharpe Ratio</Text>
             </View>
           </View>
 
-          {/* Holdings */}
-          <Text style={detailStyles.sectionTitle}>Holdings ({sortedHoldings.length} ETFs)</Text>
+          <Text style={[detailStyles.sectionTitle, { color: palette.textPrimary }]}>Holdings ({sortedHoldings.length} ETFs)</Text>
           {sortedHoldings.map((h, i) => (
-            <View key={i} style={detailStyles.holdingRow}>
-              <Text style={detailStyles.holdingTicker}>{h.ticker}</Text>
+            <View key={i} style={[detailStyles.holdingRow, { borderBottomColor: palette.borderSubtle }]}>
+              <Text style={[detailStyles.holdingTicker, { color: palette.brandBlue }]}>{h.ticker}</Text>
               <View style={detailStyles.holdingBarWrap}>
-                <View style={detailStyles.holdingBarTrack}>
+                <View style={[detailStyles.holdingBarTrack, { backgroundColor: palette.borderSubtle }]}>
                   <View
                     style={[
                       detailStyles.holdingBarFill,
-                      { width: `${Math.min(100, Math.round(h.weight * 100))}%` as any },
+                      { width: `${Math.min(100, Math.round(h.weight * 100))}%` as any, backgroundColor: palette.brandBlue },
                     ]}
                   />
                 </View>
               </View>
-              <Text style={detailStyles.holdingWeight}>{(h.weight * 100).toFixed(1)}%</Text>
+              <Text style={[detailStyles.holdingWeight, { color: palette.textPrimary }]}>{(h.weight * 100).toFixed(1)}%</Text>
             </View>
           ))}
 
@@ -275,29 +266,25 @@ function PortfolioDetailModal({ portfolio, onClose }: DetailModalProps) {
 }
 
 const detailStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: 56,
     paddingBottom: spacing.md,
-    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   headerLeft: { flex: 1 },
-  headerName: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
-  headerMeta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  headerName: { fontSize: 18, fontWeight: '800' },
+  headerMeta: { fontSize: 12, marginTop: 2 },
   closeBtn: {},
-  closeText: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
+  closeText: { fontSize: 14, fontWeight: '600' },
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg },
   gradeHero: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: spacing.lg,
     marginBottom: spacing.lg,
@@ -305,37 +292,36 @@ const detailStyles = StyleSheet.create({
   },
   gradeHeroLetter: { fontSize: 72, fontWeight: '900', lineHeight: 76, marginRight: spacing.lg },
   gradeHeroRight: {},
-  gradeHeroScore: { fontSize: 28, fontWeight: '900', color: colors.textPrimary },
-  gradeHeroLabel: { fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 },
-  gradeHeroGrade: { fontSize: 13, color: colors.textSecondary, marginTop: spacing.xs },
+  gradeHeroScore: { fontSize: 28, fontWeight: '900' },
+  gradeHeroLabel: { fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 },
+  gradeHeroGrade: { fontSize: 13, marginTop: spacing.xs },
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: spacing.lg,
     marginBottom: spacing.lg,
     ...shadow.sm,
   },
   statBox: { flex: 1, alignItems: 'center' },
-  statDivider: { width: 1, backgroundColor: colors.border },
-  statValue: { fontSize: 20, fontWeight: '900', color: colors.textPrimary, marginBottom: 4 },
-  statLabel: { fontSize: 10, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.4, textAlign: 'center' },
-  sectionTitle: { fontSize: 15, fontWeight: '800', color: colors.textPrimary, marginBottom: spacing.md },
+  statDivider: { width: 1 },
+  statValue: { fontSize: 20, fontWeight: '900', marginBottom: 4 },
+  statLabel: { fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.4, textAlign: 'center' },
+  sectionTitle: { fontSize: 15, fontWeight: '800', marginBottom: spacing.md },
   holdingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
-  holdingTicker: { width: 60, fontSize: 13, fontWeight: '800', color: colors.primary },
+  holdingTicker: { width: 60, fontSize: 13, fontWeight: '800' },
   holdingBarWrap: { flex: 1, marginHorizontal: spacing.sm },
-  holdingBarTrack: { height: 8, backgroundColor: colors.border, borderRadius: 4, overflow: 'hidden' },
-  holdingBarFill: { height: 8, backgroundColor: colors.primary, borderRadius: 4 },
-  holdingWeight: { width: 48, fontSize: 13, fontWeight: '700', color: colors.textPrimary, textAlign: 'right' },
+  holdingBarTrack: { height: 8, borderRadius: 4, overflow: 'hidden' },
+  holdingBarFill: { height: 8, borderRadius: 4 },
+  holdingWeight: { width: 48, fontSize: 13, fontWeight: '700', textAlign: 'right' },
 });
 
 export default function WealthTrackerScreen({ navigation }: Props) {
+  const { palette } = useTheme();
   const [portfolios, setPortfolios] = useState<SavedPortfolio[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -349,7 +335,6 @@ export default function WealthTrackerScreen({ navigation }: Props) {
         const saved: SavedPortfolio[] = JSON.parse(raw);
         const sorted = saved.sort((a, b) => b.createdAt - a.createdAt);
         setPortfolios(sorted);
-        // Auto-select the 2 most recent for comparison
         setSelectedIds(prev => prev.length === 0 ? sorted.map(p => p.id) : prev);
       } catch {}
     }
@@ -360,7 +345,6 @@ export default function WealthTrackerScreen({ navigation }: Props) {
   function toggleSelect(id: string) {
     setSelectedIds(prev => {
       if (prev.includes(id)) return prev.filter(x => x !== id);
-      // No limit — show all selected portfolios
       return [...prev, id];
     });
   }
@@ -394,17 +378,17 @@ export default function WealthTrackerScreen({ navigation }: Props) {
   const userName = portfolios[0]?.name ?? 'Your';
 
   return (
-    <TabShell active="Invest" navigation={navigation}>
-    <SafeAreaView style={styles.screen}>
+    <TabShell active="Portfolio" navigation={navigation}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: palette.bgPrimary }]} edges={['top', 'bottom']}>
       <PortfolioDetailModal portfolio={detailPortfolio} onClose={() => setDetailPortfolio(null)} />
 
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: palette.bgElevated, borderBottomColor: palette.borderSubtle }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          <Ionicons name="chevron-back" size={24} color={palette.brandBlue} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{userName}'s Wealth Journey</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Compare')} style={styles.headerCompareBtn}>
-          <Text style={styles.headerCompareBtnText}>⚖️ Compare</Text>
+        <Text style={[styles.headerTitle, { color: palette.textPrimary }]}>{userName}'s Wealth Journey</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Compare')} style={[styles.headerCompareBtn, { borderColor: palette.brandBlue }]}>
+          <Text style={[styles.headerCompareBtnText, { color: palette.brandBlue }]}>⚖️ Compare</Text>
         </TouchableOpacity>
       </View>
 
@@ -412,8 +396,8 @@ export default function WealthTrackerScreen({ navigation }: Props) {
         {portfolios.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>📂</Text>
-            <Text style={styles.emptyTitle}>No saved portfolios yet</Text>
-            <Text style={styles.emptySub}>
+            <Text style={[styles.emptyTitle, { color: palette.textPrimary }]}>No saved portfolios yet</Text>
+            <Text style={[styles.emptySub, { color: palette.textSecondary }]}>
               Run your first optimization to see your wealth projections here.
             </Text>
           </View>
@@ -424,8 +408,8 @@ export default function WealthTrackerScreen({ navigation }: Props) {
             )}
 
             <Text style={styles.sectionTitle}>
-              Your Portfolios{' '}
-              <Text style={styles.sectionHint}>(tap for details · 📊 to compare)</Text>
+              <Text style={[styles.sectionTitleText, { color: palette.textPrimary }]}>Your Portfolios </Text>
+              <Text style={[styles.sectionHint, { color: palette.textTertiary }]}>(tap for details · 📊 to compare)</Text>
             </Text>
 
             {portfolios.map(portfolio => {
@@ -438,23 +422,20 @@ export default function WealthTrackerScreen({ navigation }: Props) {
               return (
                 <View
                   key={portfolio.id}
-                  style={[styles.portfolioCard, isSelected && styles.portfolioCardSelected]}
+                  style={[styles.portfolioCard, { backgroundColor: palette.bgElevated, borderColor: isSelected ? palette.brandBlue : 'transparent' }]}
                 >
-                  {/* Main tappable area → detail view */}
                   <TouchableOpacity
                     style={styles.portfolioCardTouchable}
                     onPress={() => setDetailPortfolio(portfolio)}
                     activeOpacity={0.85}
                   >
                     <View style={styles.cardRow}>
-                      {/* Grade — biggest element */}
                       <Text style={[styles.gradeLetterBig, { color: gradeColor(grade) }]}>{grade}</Text>
 
-                      {/* Content */}
                       <View style={styles.cardContent}>
                         {editingId === portfolio.id ? (
                           <TextInput
-                            style={styles.nameInput}
+                            style={[styles.nameInput, { color: palette.textPrimary, borderBottomColor: palette.brandBlue }]}
                             value={editingName}
                             onChangeText={setEditingName}
                             onBlur={() => saveName(portfolio.id)}
@@ -467,23 +448,23 @@ export default function WealthTrackerScreen({ navigation }: Props) {
                             onPress={(e) => { e.stopPropagation?.(); setEditingId(portfolio.id); setEditingName(portfolio.name); }}
                             activeOpacity={0.7}
                           >
-                            <Text style={styles.portfolioName}>{portfolio.name} ✏️</Text>
+                            <Text style={[styles.portfolioName, { color: palette.textPrimary }]}>{portfolio.name} ✏️</Text>
                           </TouchableOpacity>
                         )}
                         <View style={styles.chipRow}>
-                          <View style={styles.chip}>
-                            <Text style={styles.chipText}>{score}/10</Text>
+                          <View style={[styles.chip, { backgroundColor: palette.bgPrimary }]}>
+                            <Text style={[styles.chipText, { color: palette.textSecondary }]}>{score}/10</Text>
                           </View>
-                          <View style={styles.chip}>
-                            <Text style={styles.chipText}>{(portfolio.result.performance.expected_annual_return * 100).toFixed(1)}% return</Text>
+                          <View style={[styles.chip, { backgroundColor: palette.bgPrimary }]}>
+                            <Text style={[styles.chipText, { color: palette.textSecondary }]}>{(portfolio.result.performance.expected_annual_return * 100).toFixed(1)}% return</Text>
                           </View>
                           {lastProjection && (
-                            <View style={styles.chip}>
-                              <Text style={styles.chipText}>{fmt(lastProjection.optimistic)}</Text>
+                            <View style={[styles.chip, { backgroundColor: palette.bgPrimary }]}>
+                              <Text style={[styles.chipText, { color: palette.textSecondary }]}>{fmt(lastProjection.optimistic)}</Text>
                             </View>
                           )}
                         </View>
-                        <Text style={styles.daysAgo}>
+                        <Text style={[styles.daysAgo, { color: palette.textTertiary }]}>
                           {days === 0 ? 'Today' : `${days} day${days !== 1 ? 's' : ''} ago`} ·{' '}
                           {portfolio.result.profile.risk_label}
                         </Text>
@@ -491,10 +472,9 @@ export default function WealthTrackerScreen({ navigation }: Props) {
                     </View>
                   </TouchableOpacity>
 
-                  {/* Action column: compare toggle + delete */}
-                  <View style={styles.cardActions}>
+                  <View style={[styles.cardActions, { borderLeftColor: palette.borderSubtle }]}>
                     <TouchableOpacity
-                      style={[styles.compareBtn, isSelected && styles.compareBtnActive]}
+                      style={[styles.compareBtn, { borderBottomColor: palette.borderSubtle }, isSelected && styles.compareBtnActive]}
                       onPress={() => toggleSelect(portfolio.id)}
                       activeOpacity={0.7}
                     >
@@ -523,44 +503,38 @@ export default function WealthTrackerScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
+  screen: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.md,
-    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     gap: spacing.sm,
   },
   backBtn: { padding: spacing.sm },
-  headerTitle: { flex: 1, fontSize: 18, fontWeight: '800', color: colors.textPrimary },
-  headerCompareBtn: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 5 },
-  headerCompareBtnText: { fontSize: 12, color: colors.primary, fontWeight: '700' },
+  headerTitle: { flex: 1, fontSize: 18, fontWeight: '800' },
+  headerCompareBtn: { borderWidth: 1.5, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 5 },
+  headerCompareBtnText: { fontSize: 12, fontWeight: '700' },
   scroll: { flex: 1 },
   content: { padding: spacing.lg },
 
   emptyState: { alignItems: 'center', paddingTop: 80 },
   emptyEmoji: { fontSize: 56, marginBottom: spacing.md },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.sm },
-  emptySub: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 21 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: spacing.sm },
+  emptySub: { fontSize: 14, textAlign: 'center', lineHeight: 21 },
 
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.md },
-  sectionHint: { fontSize: 13, color: colors.textMuted, fontWeight: '400' },
+  sectionTitle: { marginBottom: spacing.md },
+  sectionTitleText: { fontSize: 15, fontWeight: '700' },
+  sectionHint: { fontSize: 13, fontWeight: '400' },
 
   portfolioCard: {
-    backgroundColor: colors.card,
     borderRadius: radius.xl,
     marginBottom: spacing.md,
     ...shadow.sm,
     flexDirection: 'row',
     borderWidth: 2,
-    borderColor: 'transparent',
     overflow: 'hidden',
-  },
-  portfolioCardSelected: {
-    borderColor: colors.primary,
   },
   portfolioCardTouchable: { flex: 1, padding: spacing.md },
   cardRow: { flexDirection: 'row', alignItems: 'center' },
@@ -573,30 +547,26 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   cardContent: { flex: 1 },
-  portfolioName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
+  portfolioName: { fontSize: 15, fontWeight: '700', marginBottom: 4 },
   nameInput: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.textPrimary,
     borderBottomWidth: 1.5,
-    borderBottomColor: colors.primary,
     paddingVertical: 2,
     marginBottom: 4,
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: 4 },
   chip: {
-    backgroundColor: colors.bg,
     borderRadius: radius.sm,
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
-  chipText: { fontSize: 11, fontWeight: '600', color: colors.textSecondary },
-  daysAgo: { fontSize: 11, color: colors.textMuted },
+  chipText: { fontSize: 11, fontWeight: '600' },
+  daysAgo: { fontSize: 11 },
   cardActions: {
     width: 44,
     flexDirection: 'column',
     borderLeftWidth: 1,
-    borderLeftColor: colors.border,
   },
   compareBtn: {
     flex: 1,
@@ -604,7 +574,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'transparent',
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   compareBtnActive: { backgroundColor: '#3B82F620' },
   compareBtnText: { fontSize: 16, opacity: 0.4 },

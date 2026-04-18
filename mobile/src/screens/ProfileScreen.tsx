@@ -58,7 +58,8 @@ function SettingsRow({ emoji, label, value, onPress, danger = false }: {
 }
 
 export default function ProfileScreen({ navigation }: Props) {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, setMode } = useTheme();
+  const toggleTheme = () => setMode(isDark ? 'light' : 'dark');
   const [savedName, setSavedName]   = useState('');
   const [portfolios, setPortfolios] = useState<SavedPortfolio[]>([]);
   const [badgeCount, setBadgeCount] = useState(0);
@@ -109,7 +110,7 @@ export default function ProfileScreen({ navigation }: Props) {
   }
 
   return (
-    <TabShell active="Home" navigation={navigation}>
+    <TabShell active="Profile" navigation={navigation}>
       <SafeAreaView style={styles.safe}>
 
         {/* Header */}

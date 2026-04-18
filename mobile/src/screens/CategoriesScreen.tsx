@@ -4,12 +4,14 @@
  * Step 2: ContributionStep (weekly amount + 30yr projection)
  */
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types';
 import { colors, spacing } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import StepProgressBar from '../components/StepProgressBar';
 import CategoryPicker from '../components/categories/CategoryPicker';
 import ContributionStep from '../components/categories/ContributionStep';
@@ -21,6 +23,7 @@ type Props = {
 
 export default function CategoriesScreen({ navigation, route }: Props) {
   const { name } = route.params;
+  const { palette } = useTheme();
   const [step, setStep] = useState<1 | 2>(1);
   const [categories, setCategories] = useState<string[]>([]);
   const [userAge, setUserAge] = useState(30);
@@ -37,7 +40,6 @@ export default function CategoriesScreen({ navigation, route }: Props) {
   }
 
   function handleBuild(weekly: number, lumpSum: number = 0) {
-    // Derive risk from category selections
     const aggressive = ['AI & Technology', 'Robotics & Innovation', 'Crypto & Blockchain', 'Healthcare & Biotech', 'Emerging & International Markets', 'Clean Energy & Environment', 'Quantum Computing'];
     const safe = ['Bonds & Fixed Income', 'Dividends & Income', 'Real Estate', 'Consumer & Retail', 'Money Market / Cash-like', 'Municipal Bonds', 'Preferred Stock'];
     const aggCount = categories.filter(c => aggressive.includes(c)).length;
@@ -60,7 +62,7 @@ export default function CategoriesScreen({ navigation, route }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.bgPrimary }]} edges={['top', 'bottom']}>
       <StepProgressBar
         currentStep={step}
         totalSteps={2}
@@ -85,5 +87,5 @@ export default function CategoriesScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: spacing.lg },
+  container: { flex: 1, paddingHorizontal: spacing.lg },
 });

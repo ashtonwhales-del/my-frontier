@@ -19,8 +19,7 @@ export const AD_UNITS = {
 export const AD_RULES = {
   MIN_INTERVAL_SECONDS: 120,
   MAX_BANNERS: 1,
-  AD_FREE_SCREENS: ['Welcome', 'Onboarding', 'Disclaimer', 'Categories', 'RiskTolerance'] as const,
-  COMMUNITY_AD_FREQUENCY: 5,
+  AD_FREE_SCREENS: ['Welcome', 'Onboarding', 'Disclaimer', 'Categories'] as const,
 } as const;
 
 export const AD_DEV_MODE = true; // Set false before App Store

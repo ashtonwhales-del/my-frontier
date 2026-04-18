@@ -3,13 +3,15 @@
  * Select any number of portfolios, compare all metrics side by side.
  */
 import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList, SavedPortfolio } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { STORAGE } from '../constants';
 
 type Props = { navigation: StackNavigationProp<RootStackParamList, 'Compare'> };
@@ -30,6 +32,7 @@ const METRICS: Metric[] = [
 ];
 
 export default function CompareScreen({ navigation }: Props) {
+  const { palette } = useTheme();
   const [portfolios, setPortfolios] = useState<SavedPortfolio[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
@@ -46,27 +49,37 @@ export default function CompareScreen({ navigation }: Props) {
   const sel = Array.from(selected).map(i => portfolios[i]).filter(Boolean);
   const comparing = sel.length >= 2;
 
-  // Find best portfolio by score
   const bestIdx = sel.length > 0 ? sel.reduce((best, p, i) => p.result.scores.smart_score > sel[best].result.scores.smart_score ? i : best, 0) : -1;
 
   return (
-    <SafeAreaView style={s.screen}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}><Ionicons name="chevron-back" size={24} color={colors.primary} /></TouchableOpacity>
-        <Text style={s.headerTitle}>Compare Portfolios</Text>
+    <SafeAreaView style={[s.screen, { backgroundColor: palette.bgPrimary }]} edges={['top', 'bottom']}>
+      <View style={[s.header, { borderBottomColor: palette.borderSubtle }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <Ionicons name="chevron-back" size={24} color={palette.brandBlue} />
+        </TouchableOpacity>
+        <Text style={[s.headerTitle, { color: palette.textPrimary }]}>Compare Portfolios</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        <Text style={s.label}>Select portfolios to compare (min 2)</Text>
+        <Text style={[s.label, { color: palette.textSecondary }]}>Select portfolios to compare (min 2)</Text>
         {portfolios.map((p, i) => {
           const isSel = selected.has(i);
           return (
-            <TouchableOpacity key={p.id} style={[s.pickCard, isSel && s.pickCardSel]} onPress={() => toggle(i)} activeOpacity={0.8}>
-              <View style={[s.checkbox, isSel && s.checkboxSel]}>{isSel && <Text style={s.checkmark}>✓</Text>}</View>
+            <TouchableOpacity
+              key={p.id}
+              style={[s.pickCard, { backgroundColor: palette.bgElevated, borderColor: isSel ? palette.brandBlue : palette.borderSubtle },
+                isSel && { backgroundColor: palette.brandBlue + '12' }]}
+              onPress={() => toggle(i)}
+              activeOpacity={0.8}
+            >
+              <View style={[s.checkbox, { borderColor: isSel ? palette.brandBlue : palette.borderSubtle },
+                isSel && { borderColor: palette.brandBlue, backgroundColor: palette.brandBlue }]}>
+                {isSel && <Text style={s.checkmark}>✓</Text>}
+              </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.pickName}>{p.name}</Text>
-                <Text style={s.pickMeta}>{p.result.profile.risk_label} · {new Date(p.createdAt).toLocaleDateString()}</Text>
+                <Text style={[s.pickName, { color: palette.textPrimary }]}>{p.name}</Text>
+                <Text style={[s.pickMeta, { color: palette.textTertiary }]}>{p.result.profile.risk_label} · {new Date(p.createdAt).toLocaleDateString()}</Text>
               </View>
               <Text style={[s.pickGrade, { color: gc(p.result.scores.grade) }]}>{p.result.scores.grade}</Text>
             </TouchableOpacity>
@@ -74,14 +87,18 @@ export default function CompareScreen({ navigation }: Props) {
         })}
 
         {comparing && (
-          <View style={s.tableWrap}>
+          <View style={[s.tableWrap, { backgroundColor: palette.bgElevated, ...shadow.sm }]}>
             <View style={{ flexDirection: 'row' }}>
-              {/* Fixed metric labels column */}
               <View style={s.fixedCol}>
-                <View style={s.fixedHeader}><Text style={s.metricLabel}>Metric</Text></View>
-                {METRICS.map(m => <View key={m.label} style={s.fixedRow}><Text style={s.metricText}>{m.label}</Text></View>)}
+                <View style={[s.fixedHeader, { borderBottomColor: palette.borderSubtle }]}>
+                  <Text style={[s.metricLabel, { color: palette.textTertiary }]}>Metric</Text>
+                </View>
+                {METRICS.map(m => (
+                  <View key={m.label} style={[s.fixedRow, { borderBottomColor: palette.borderSubtle }]}>
+                    <Text style={[s.metricText, { color: palette.textSecondary }]}>{m.label}</Text>
+                  </View>
+                ))}
               </View>
-              {/* Scrollable portfolio columns */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
                 <View>
                   <View style={{ flexDirection: 'row' }}>
@@ -98,8 +115,12 @@ export default function CompareScreen({ navigation }: Props) {
                     return (
                       <View key={metric.label} style={{ flexDirection: 'row' }}>
                         {sel.map((p, i) => (
-                          <View key={p.id} style={[s.valCol, s.valCell, values[i] === best && sel.length > 1 && s.valCellWin]}>
-                            <Text style={[s.valText, values[i] === best && sel.length > 1 && s.valWinner]}>{metric.format(p)}</Text>
+                          <View key={p.id} style={[s.valCol, s.valCell, { borderBottomColor: palette.borderSubtle },
+                            values[i] === best && sel.length > 1 && s.valCellWin]}>
+                            <Text style={[s.valText, { color: palette.textPrimary },
+                              values[i] === best && sel.length > 1 && s.valWinner]}>
+                              {metric.format(p)}
+                            </Text>
                           </View>
                         ))}
                       </View>
@@ -117,31 +138,29 @@ export default function CompareScreen({ navigation }: Props) {
 }
 
 const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+  screen: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1 },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
+  headerTitle: { fontSize: 18, fontWeight: '800' },
   content: { padding: spacing.md, gap: spacing.sm },
-  label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: spacing.xs },
-  pickCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border, gap: spacing.sm },
-  pickCardSel: { borderColor: colors.primary, backgroundColor: '#3B82F612' },
-  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  checkboxSel: { borderColor: colors.primary, backgroundColor: colors.primary },
+  label: { fontSize: 13, fontWeight: '600', marginBottom: spacing.xs },
+  pickCard: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, gap: spacing.sm },
+  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   checkmark: { color: '#fff', fontSize: 14, fontWeight: '900' },
-  pickName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
-  pickMeta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  pickName: { fontSize: 15, fontWeight: '700' },
+  pickMeta: { fontSize: 12, marginTop: 2 },
   pickGrade: { fontSize: 24, fontWeight: '900' },
-  tableWrap: { backgroundColor: colors.card, borderRadius: radius.xl, padding: spacing.sm, marginTop: spacing.md, ...shadow.sm, overflow: 'hidden' },
+  tableWrap: { borderRadius: radius.xl, padding: spacing.sm, marginTop: spacing.md, overflow: 'hidden' },
   fixedCol: { width: 110 },
-  fixedHeader: { height: 44, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: colors.border },
-  fixedRow: { height: 40, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: colors.border },
-  metricLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase' },
-  metricText: { fontSize: 13, color: colors.textSecondary },
+  fixedHeader: { height: 44, justifyContent: 'center', borderBottomWidth: 1 },
+  fixedRow: { height: 40, justifyContent: 'center', borderBottomWidth: 1 },
+  metricLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
+  metricText: { fontSize: 13 },
   valCol: { width: 120, alignItems: 'center', justifyContent: 'center' },
-  valCell: { height: 40, borderBottomWidth: 1, borderBottomColor: colors.border },
+  valCell: { height: 40, borderBottomWidth: 1 },
   valCellWin: { backgroundColor: '#F59E0B20', borderRadius: 4 },
   colName: { fontSize: 12, fontWeight: '800' },
   crownBadge: { fontSize: 9, fontWeight: '700', color: '#F59E0B', textTransform: 'uppercase' },
-  valText: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  valText: { fontSize: 14, fontWeight: '700' },
   valWinner: { color: '#06D6A0' },
 });

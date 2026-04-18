@@ -6,37 +6,42 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
 import { colors, spacing, radius } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Terms'>;
 };
 
 export default function TermsScreen({ navigation }: Props) {
+  const { palette } = useTheme();
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
+    <View style={[styles.screen, { backgroundColor: palette.bgPrimary }]}>
+      <View style={[styles.header, { backgroundColor: palette.bgElevated, borderBottomColor: palette.borderSubtle, paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>←</Text>
+          <Text style={[styles.backText, { color: palette.brandBlue }]}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Terms of Service</Text>
+        <Text style={[styles.headerTitle, { color: palette.textPrimary }]}>Terms of Service</Text>
         <View style={styles.backBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.lastUpdated}>Last updated: April 2, 2026</Text>
+        <Text style={[styles.lastUpdated, { color: palette.textTertiary }]}>Last updated: April 2, 2026</Text>
 
-        <Text style={styles.section}>1. Acceptance of Terms</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>1. Acceptance of Terms</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
           By downloading or using My Frontier ("the App"), you agree to these Terms of Service.
           If you do not agree, please do not use the App.
         </Text>
 
-        <Text style={styles.section}>2. Educational Purpose Only</Text>
-        <Text style={styles.body}>
-          <Text style={styles.bold}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>2. Educational Purpose Only</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
+          <Text style={[styles.bold, { color: palette.textPrimary }]}>
             My Frontier is a financial education tool. It is not a registered investment advisor,
             broker-dealer, or financial planning service.
           </Text>
@@ -47,16 +52,16 @@ export default function TermsScreen({ navigation }: Props) {
           guarantee of any financial outcome.
         </Text>
 
-        <Text style={styles.section}>3. No Guarantee of Returns</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>3. No Guarantee of Returns</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
           Past performance of any ETF or portfolio does not guarantee future results. The financial
           projections shown in the App are mathematical estimates based on historical data and
           assumed return rates. Actual investment returns will differ — potentially significantly —
           from any projection shown.
         </Text>
 
-        <Text style={styles.section}>4. User Assumes All Investment Risk</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>4. User Assumes All Investment Risk</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
           All investment decisions you make based on information from this App are entirely your own
           responsibility. My Frontier and its creators are not liable for any financial losses,
           missed gains, or other damages arising from your use of the App or any investment
@@ -64,43 +69,43 @@ export default function TermsScreen({ navigation }: Props) {
           You should consult a licensed financial advisor before making any investment decision.
         </Text>
 
-        <Text style={styles.section}>5. Accuracy of Calculations</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>5. Accuracy of Calculations</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
           The App uses market data sourced from Yahoo Finance, which may be delayed, inaccurate, or
           incomplete. Portfolio optimization calculations may contain errors or produce results that
           are not suitable for your personal financial situation. Use the App's output as a starting
           point for further research, not as a final investment plan.
         </Text>
 
-        <Text style={styles.section}>6. No Fiduciary Relationship</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>6. No Fiduciary Relationship</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
           Use of this App does not create a fiduciary relationship between you and My Frontier or
           its creators. We owe you no duty of care with respect to your investment decisions.
         </Text>
 
-        <Text style={styles.section}>7. Intellectual Property</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>7. Intellectual Property</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
           All content, design, code, and branding within the App are the property of My Frontier.
           You may not reproduce, distribute, or create derivative works from any part of the App
           without written permission.
         </Text>
 
-        <Text style={styles.section}>8. Modifications</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>8. Modifications</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
           We reserve the right to modify or discontinue the App or these Terms at any time. The
           "Last updated" date above reflects the most recent revision. Continued use of the App
           after changes constitutes acceptance of the revised Terms.
         </Text>
 
-        <Text style={styles.section}>9. Governing Law</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>9. Governing Law</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
           These Terms are governed by the laws of the State of North Carolina, USA, without regard
           to its conflict of law provisions. Any disputes arising under these Terms shall be
           resolved in the courts of North Carolina.
         </Text>
 
-        <Text style={styles.section}>10. Contact</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.section, { color: palette.textPrimary }]}>10. Contact</Text>
+        <Text style={[styles.body, { color: palette.textSecondary }]}>
           Questions about these Terms?{'\n'}
           Email: support@myfrontierapp.com{'\n'}
           My Frontier — North Carolina, USA
@@ -111,39 +116,33 @@ export default function TermsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
+  screen: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingTop: 56,
     paddingBottom: spacing.md,
-    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   backBtn: { width: 44, padding: spacing.sm },
-  backText: { fontSize: 22, color: colors.primary, fontWeight: '700' },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: colors.textPrimary },
+  backText: { fontSize: 22, fontWeight: '700' },
+  headerTitle: { fontSize: 17, fontWeight: '800' },
   content: { padding: spacing.lg, paddingBottom: 40 },
   lastUpdated: {
     fontSize: 12,
-    color: colors.textMuted,
     marginBottom: spacing.lg,
     fontStyle: 'italic',
   },
   section: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.textPrimary,
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
   body: {
     fontSize: 14,
-    color: colors.textSecondary,
     lineHeight: 22,
   },
-  bold: { fontWeight: '700', color: colors.textPrimary },
+  bold: { fontWeight: '700' },
 });

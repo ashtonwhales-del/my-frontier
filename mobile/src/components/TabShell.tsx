@@ -13,14 +13,14 @@ import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BottomNav, { NavTab } from './ui/BottomNav';
 import { Colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 
 // Maps BottomNav tab IDs to Stack screen names
 const TAB_ROUTES: Record<NavTab, string> = {
   Home:      'Welcome',
-  Finance:   'FinanceHub',
-  Invest:    'InvestHub',
-  Learn:     'Learning',
-  Community: 'Community',
+  Portfolio: 'WealthTracker',
+  Debt:      'DebtPlanner',
+  Profile:   'Profile',
 };
 
 interface TabShellProps {
@@ -33,6 +33,7 @@ interface TabShellProps {
 export default function TabShell({ active, children, navigation: navProp }: TabShellProps) {
   const hookNav = useNavigation<any>();
   const nav = navProp ?? hookNav;
+  const { palette } = useTheme();
 
   const handleSelect = (tab: NavTab) => {
     if (tab === active) return; // already here
@@ -40,7 +41,7 @@ export default function TabShell({ active, children, navigation: navProp }: TabS
   };
 
   return (
-    <View style={styles.shell}>
+    <View style={[styles.shell, { backgroundColor: palette.bgPrimary }]}>
       <View style={styles.content}>{children}</View>
       <BottomNav active={active} onSelect={handleSelect} />
     </View>
@@ -48,6 +49,6 @@ export default function TabShell({ active, children, navigation: navProp }: TabS
 }
 
 const styles = StyleSheet.create({
-  shell:   { flex: 1, backgroundColor: Colors.bgPrimary },
+  shell:   { flex: 1 },
   content: { flex: 1 },
 });

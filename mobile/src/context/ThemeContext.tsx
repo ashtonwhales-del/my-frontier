@@ -1,43 +1,52 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Appearance } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Colors, LightColors } from '../theme/colors';
+import { LightPalette, DarkPalette, AppPalette } from '../theme/colors';
 
-type ThemeMode = 'dark' | 'light';
+type ThemeMode = 'light' | 'dark' | 'system';
+const STORAGE_KEY = '@myfrontier/theme-mode';
 
-interface ThemeContextType {
+interface ThemeContextValue {
   mode: ThemeMode;
-  colors: typeof Colors;
-  toggleTheme: () => void;
+  setMode: (m: ThemeMode) => Promise<void>;
+  palette: AppPalette;
+  colors: AppPalette;
   isDark: boolean;
 }
 
-const ThemeContext = createContext<ThemeContextType>({
-  mode: 'dark',
-  colors: Colors,
-  toggleTheme: () => {},
-  isDark: true,
-});
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>('dark');
+  const [mode, setModeState] = useState<ThemeMode>('dark');
+  const [systemIsDark, setSystemIsDark] = useState(Appearance.getColorScheme() === 'dark');
 
   useEffect(() => {
-    AsyncStorage.getItem('themeMode').then(saved => {
-      if (saved === 'light' || saved === 'dark') setMode(saved);
+    AsyncStorage.getItem(STORAGE_KEY).then(val => {
+      if (val === 'light' || val === 'dark' || val === 'system') setModeState(val);
     });
+    const sub = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemIsDark(colorScheme === 'dark');
+    });
+    return () => sub.remove();
   }, []);
 
-  const toggleTheme = async () => {
-    const next: ThemeMode = mode === 'dark' ? 'light' : 'dark';
-    setMode(next);
-    await AsyncStorage.setItem('themeMode', next);
+  const setMode = async (m: ThemeMode) => {
+    setModeState(m);
+    await AsyncStorage.setItem(STORAGE_KEY, m);
   };
 
+  const isDark = mode === 'dark' || (mode === 'system' && systemIsDark);
+  const palette = isDark ? DarkPalette : LightPalette;
+
   return (
-    <ThemeContext.Provider value={{ mode, colors: mode === 'dark' ? Colors : LightColors as any, toggleTheme, isDark: mode === 'dark' }}>
+    <ThemeContext.Provider value={{ mode, setMode, palette, colors: palette, isDark }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
-export const useTheme = () => useContext(ThemeContext);
+export function useTheme(): ThemeContextValue {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  return ctx;
+}

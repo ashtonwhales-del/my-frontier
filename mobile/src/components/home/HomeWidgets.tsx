@@ -19,13 +19,10 @@ const CHALLENGES = [
   { title: 'Build a portfolio with Sharpe above 1.2', explain: 'The Sharpe ratio measures return per unit of risk. Above 1.2 is excellent.', screen: 'Categories', params: { name: 'Investor' } },
   { title: 'Add international ETFs to your portfolio', explain: 'International ETFs like VWO expose you to faster-growing economies.', screen: 'Categories', params: { name: 'Investor' } },
   { title: 'Stress test your portfolio against 2008', explain: 'The 2008 crisis dropped markets 57%. See how your portfolio survives.', screen: 'WealthTracker', params: undefined },
-  { title: 'Set a savings goal for something you want', explain: 'Goal-based investing ties your money to real milestones.', screen: 'GoalBuckets', params: undefined },
-  { title: 'Enter your bills in the Bill Negotiator', explain: 'Most people overpay $200-500/year. Negotiating saves thousands.', screen: 'BillNegotiation', params: undefined },
   { title: 'Build an aggressive portfolio and stress test it', explain: 'Aggressive portfolios can drop 40-50%. Knowing this prevents panic.', screen: 'Categories', params: { name: 'Investor' } },
-  { title: 'Add a second income source to your budget', explain: 'Multiple income streams reduce financial risk dramatically.', screen: 'Budget', params: undefined },
-  { title: 'Check your Net Worth Timeline milestone ages', explain: 'Seeing projected wealth at 40, 50, 60 makes numbers feel real.', screen: 'NetWorthTimeline', params: undefined },
   { title: 'Compare two of your portfolios side by side', explain: 'Comparing portfolios shows which decisions improved your returns.', screen: 'Compare', params: undefined },
-  { title: 'Find an affordable city in the Housing tool', explain: 'The 30% rule says housing should be under 30% of income.', screen: 'Housing', params: undefined },
+  { title: 'Create a debt repayment plan today', explain: 'Paying off high-interest debt first (Avalanche) saves the most money.', screen: 'DebtPlanner', params: undefined },
+  { title: 'Track your current holdings in the Portfolio tab', explain: 'Knowing exactly what you own helps you make better rebalancing decisions.', screen: 'WealthTracker', params: undefined },
 ];
 
 export function DailyChallenge({ navigation }: { navigation: any }) {

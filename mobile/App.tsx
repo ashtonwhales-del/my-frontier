@@ -11,43 +11,60 @@ import { STORAGE } from './src/constants';
 import { Colors } from './src/theme/colors';
 import { initializePurchases } from './src/services/purchaseService';
 import { warmupServer } from './src/api';
-import { ThemeProvider } from './src/context/ThemeContext';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import ErrorBoundary           from './src/components/ErrorBoundary';
 import DisclaimerScreen        from './src/screens/DisclaimerScreen';
 import OnboardingScreen        from './src/screens/OnboardingScreen';
 import NewOnboardingScreen     from './src/screens/NewOnboardingScreen';
 import WelcomeScreen           from './src/screens/WelcomeScreen';
 import CategoriesScreen        from './src/screens/CategoriesScreen';
-import RiskToleranceScreen     from './src/screens/RiskToleranceScreen';
-import InvestmentScreen        from './src/screens/InvestmentScreen';
 import ResultsScreen           from './src/screens/ResultsScreen';
-import AdvisorScreen           from './src/screens/AdvisorScreen';
 import WealthTrackerScreen     from './src/screens/WealthTrackerScreen';
 import PremiumScreen           from './src/screens/PremiumScreen';
 import PrivacyPolicyScreen     from './src/screens/PrivacyPolicyScreen';
 import TermsScreen             from './src/screens/TermsScreen';
 import AboutScreen             from './src/screens/AboutScreen';
-import LearningScreen          from './src/screens/LearningScreen';
 import CompareScreen           from './src/screens/CompareScreen';
-import BudgetScreen            from './src/screens/BudgetScreen';
-// Dead routes removed: NetWorthScreen, DebtPayoffScreen (replaced by Timeline + Planner)
 import DebtPlannerScreen       from './src/screens/DebtPlannerScreen';
-// Dead routes removed: SubscriptionAuditScreen, MyPortfolioScreen (replaced by CurrentPortfolio)
 import CurrentPortfolioScreen  from './src/screens/CurrentPortfolioScreen';
-import CommunityScreen         from './src/screens/CommunityScreen';
-import LessonReaderScreen      from './src/screens/LessonReaderScreen';
-import ETFMatcherGame          from './src/screens/games/ETFMatcherGame';
-import RiskQuizGame            from './src/screens/games/RiskQuizGame';
-import FinancialHealthScreen   from './src/screens/FinancialHealthScreen';
-import NetWorthTimelineScreen  from './src/screens/NetWorthTimelineScreen';
-import GoalBucketsScreen       from './src/screens/GoalBucketsScreen';
-import BillNegotiationScreen   from './src/screens/BillNegotiationScreen';
-import HousingScreen           from './src/screens/HousingScreen';
-import FinanceHubScreen        from './src/screens/FinanceHubScreen';
-import InvestHubScreen         from './src/screens/InvestHubScreen';
 import ProfileScreen           from './src/screens/ProfileScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
+
+function AppNavigator({ initialRoute }: { initialRoute: keyof RootStackParamList }) {
+  const { palette, isDark } = useTheme();
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <Stack.Navigator
+          initialRouteName={initialRoute}
+          screenOptions={{ headerShown: false, cardStyle: { backgroundColor: palette.bgPrimary } }}
+        >
+          <Stack.Screen
+            name="Disclaimer"
+            component={DisclaimerScreen}
+            options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen name="Onboarding"        component={OnboardingScreen} />
+          <Stack.Screen name="NewOnboarding"     component={NewOnboardingScreen} options={{ gestureEnabled: false }} />
+          <Stack.Screen name="Welcome"           component={WelcomeScreen} />
+          <Stack.Screen name="Categories"        component={CategoriesScreen} />
+          <Stack.Screen name="Results"           component={ResultsScreen} />
+          <Stack.Screen name="WealthTracker"     component={WealthTrackerScreen} />
+          <Stack.Screen name="Premium"           component={PremiumScreen} />
+          <Stack.Screen name="Privacy"           component={PrivacyPolicyScreen} />
+          <Stack.Screen name="Terms"             component={TermsScreen} />
+          <Stack.Screen name="About"             component={AboutScreen} />
+          <Stack.Screen name="Compare"           component={CompareScreen} />
+          <Stack.Screen name="DebtPlanner"       component={DebtPlannerScreen} />
+          <Stack.Screen name="CurrentPortfolio"  component={CurrentPortfolioScreen} />
+          <Stack.Screen name="Profile"           component={ProfileScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GestureHandlerRootView>
+  );
+}
 
 export default function App() {
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList | null>(null);
@@ -81,53 +98,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <NavigationContainer>
-          <StatusBar style="light" />
-          <Stack.Navigator
-            initialRouteName={initialRoute}
-            screenOptions={{ headerShown: false, cardStyle: { backgroundColor: Colors.bgPrimary } }}
-          >
-            <Stack.Screen
-              name="Disclaimer"
-              component={DisclaimerScreen}
-              options={{ gestureEnabled: false }}
-            />
-            <Stack.Screen name="Onboarding"        component={OnboardingScreen} />
-            <Stack.Screen name="NewOnboarding"     component={NewOnboardingScreen} options={{ gestureEnabled: false }} />
-            <Stack.Screen name="Welcome"           component={WelcomeScreen} />
-            <Stack.Screen name="Categories"        component={CategoriesScreen} />
-            <Stack.Screen name="RiskTolerance"     component={RiskToleranceScreen} />
-            <Stack.Screen name="Investment"        component={InvestmentScreen} />
-            <Stack.Screen name="Results"           component={ResultsScreen} />
-            <Stack.Screen name="Advisor"           component={AdvisorScreen} />
-            <Stack.Screen name="WealthTracker"     component={WealthTrackerScreen} />
-            <Stack.Screen name="Premium"           component={PremiumScreen} />
-            <Stack.Screen name="Privacy"           component={PrivacyPolicyScreen} />
-            <Stack.Screen name="Terms"             component={TermsScreen} />
-            <Stack.Screen name="About"             component={AboutScreen} />
-            <Stack.Screen name="Learning"          component={LearningScreen} />
-            <Stack.Screen name="Compare"           component={CompareScreen} />
-            <Stack.Screen name="Budget"            component={BudgetScreen} />
-            {/* NetWorth + DebtPayoff removed — replaced by NetWorthTimeline + DebtPlanner */}
-            <Stack.Screen name="DebtPlanner"       component={DebtPlannerScreen} />
-            {/* SubscriptionAudit + MyPortfolio removed — replaced by CurrentPortfolio */}
-            <Stack.Screen name="CurrentPortfolio"  component={CurrentPortfolioScreen} />
-            <Stack.Screen name="Community"         component={CommunityScreen} />
-            <Stack.Screen name="LessonReader"      component={LessonReaderScreen} />
-            <Stack.Screen name="ETFMatcherGame"    component={ETFMatcherGame} />
-            <Stack.Screen name="RiskQuizGame"      component={RiskQuizGame} />
-            <Stack.Screen name="FinancialHealth"   component={FinancialHealthScreen} />
-            <Stack.Screen name="NetWorthTimeline"  component={NetWorthTimelineScreen} />
-            <Stack.Screen name="GoalBuckets"       component={GoalBucketsScreen} />
-            <Stack.Screen name="BillNegotiation"   component={BillNegotiationScreen} />
-            <Stack.Screen name="Housing"           component={HousingScreen} />
-            <Stack.Screen name="FinanceHub"        component={FinanceHubScreen} />
-            <Stack.Screen name="InvestHub"         component={InvestHubScreen} />
-            <Stack.Screen name="Profile"           component={ProfileScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </GestureHandlerRootView>
+        <AppNavigator initialRoute={initialRoute} />
       </ThemeProvider>
     </ErrorBoundary>
   );

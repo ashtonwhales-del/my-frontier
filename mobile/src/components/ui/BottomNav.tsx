@@ -8,8 +8,9 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 
-export type NavTab = 'Home' | 'Finance' | 'Invest' | 'Learn' | 'Community';
+export type NavTab = 'Home' | 'Portfolio' | 'Debt' | 'Profile';
 
 interface BottomNavProps {
   active: NavTab;
@@ -24,18 +25,18 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
-  { id: 'Home',      label: 'Home',      iconActive: 'home',          iconInactive: 'home-outline' },
-  { id: 'Finance',   label: 'Finance',   iconActive: 'wallet',        iconInactive: 'wallet-outline' },
-  { id: 'Invest',    label: 'Invest',    iconActive: 'bar-chart',     iconInactive: 'bar-chart-outline' },
-  { id: 'Learn',     label: 'Learn',     iconActive: 'book',          iconInactive: 'book-outline' },
-  { id: 'Community', label: 'Community', iconActive: 'people',        iconInactive: 'people-outline' },
+  { id: 'Home',      label: 'Home',      iconActive: 'home',        iconInactive: 'home-outline' },
+  { id: 'Portfolio', label: 'Portfolio', iconActive: 'pie-chart',   iconInactive: 'pie-chart-outline' },
+  { id: 'Debt',      label: 'Debt',      iconActive: 'card',        iconInactive: 'card-outline' },
+  { id: 'Profile',   label: 'Profile',   iconActive: 'person',      iconInactive: 'person-outline' },
 ];
 
 export default function BottomNav({ active, onSelect }: BottomNavProps) {
   const insets = useSafeAreaInsets();
+  const { palette } = useTheme();
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 8), backgroundColor: palette.bgPrimary, borderTopColor: palette.borderSubtle }]}>
       {TABS.map(tab => {
         const isActive = tab.id === active;
         return (
@@ -46,14 +47,14 @@ export default function BottomNav({ active, onSelect }: BottomNavProps) {
             activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            {isActive && <View style={styles.activeLine} />}
+            {isActive && <View style={[styles.activeLine, { backgroundColor: palette.brandBlue }]} />}
             <Ionicons
               name={isActive ? tab.iconActive : tab.iconInactive}
               size={26}
-              color={isActive ? Colors.brandBlue : Colors.textTertiary}
+              color={isActive ? palette.brandBlue : palette.textTertiary}
             />
             {isActive && (
-              <Text style={styles.label}>{tab.label}</Text>
+              <Text style={[styles.label, { color: palette.brandBlue }]}>{tab.label}</Text>
             )}
           </TouchableOpacity>
         );
@@ -65,9 +66,7 @@ export default function BottomNav({ active, onSelect }: BottomNavProps) {
 const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
-    backgroundColor: Colors.bgPrimary,
     borderTopWidth: 1,
-    borderTopColor: Colors.borderSubtle,
     minHeight: 65,
     alignItems: 'flex-start',
     paddingTop: 8,
@@ -86,13 +85,11 @@ const styles = StyleSheet.create({
     left: '20%',
     right: '20%',
     height: 3,
-    backgroundColor: Colors.brandBlue,
     borderRadius: 2,
   },
   label: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.brandBlue,
     letterSpacing: 0.2,
   },
 });

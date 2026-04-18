@@ -1,7 +1,7 @@
 /**
  * RewardedMessageButton.tsx
  * Button that shows rewarded ad and grants +5 Alex messages.
- * Used in AdvisorScreen when user hits daily limit.
+ * Grants +5 messages when user watches a rewarded ad.
  */
 import React, { useState } from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';

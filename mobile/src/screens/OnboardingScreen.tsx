@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Onboarding'>;
@@ -101,6 +102,7 @@ const logo = StyleSheet.create({
 });
 
 export default function OnboardingScreen({ navigation }: Props) {
+  const { palette } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -117,14 +119,14 @@ export default function OnboardingScreen({ navigation }: Props) {
   const isLast = currentSlide === SLIDES.length - 1;
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: palette.bgPrimary }]}>
       {/* Skip button */}
       <TouchableOpacity
         style={styles.skipBtn}
         onPress={() => completeOnboarding(navigation)}
         activeOpacity={0.7}
       >
-        <Text style={styles.skipText}>Skip</Text>
+        <Text style={[styles.skipText, { color: palette.textSecondary }]}>Skip</Text>
       </TouchableOpacity>
 
       {/* Slides */}
@@ -140,8 +142,8 @@ export default function OnboardingScreen({ navigation }: Props) {
         {/* Slide 1 — The Vision */}
         <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
           <LogoMark />
-          <Text style={styles.slideTitle}>Investing, finally{'\n'}made simple.</Text>
-          <Text style={styles.slideSubtitle}>
+          <Text style={[styles.slideTitle, { color: palette.textPrimary }]}>Investing, finally{'\n'}made simple.</Text>
+          <Text style={[styles.slideSubtitle, { color: palette.textSecondary }]}>
             My Frontier uses the same math that Wall Street hedge funds use — called the
             Efficient Frontier — and puts it in your hands for free.
           </Text>
@@ -149,20 +151,20 @@ export default function OnboardingScreen({ navigation }: Props) {
 
         {/* Slide 2 — How we build your portfolio */}
         <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
-          <Text style={styles.slideTitleNoTop}>How we build{'\n'}your portfolio</Text>
+          <Text style={[styles.slideTitleNoTop, { color: palette.textPrimary }]}>How we build{'\n'}your portfolio</Text>
           <View style={styles.stepsContainer}>
             {[
               { emoji: '🎯', title: 'Pick your interests', desc: 'Choose the sectors you believe in — tech, clean energy, real estate, and more.' },
               { emoji: '🧮', title: 'We run the math', desc: 'Our optimizer finds the best risk-adjusted allocation using 10 years of real market data.' },
               { emoji: '📊', title: 'Get your portfolio', desc: 'A personalized ETF portfolio built just for you. No guessing. No bias. Just math.' },
             ].map(step => (
-              <View key={step.emoji} style={styles.stepRow}>
-                <View style={styles.stepNumBadge}>
+              <View key={step.emoji} style={[styles.stepRow, { backgroundColor: palette.bgElevated }]}>
+                <View style={[styles.stepNumBadge, { backgroundColor: palette.brandBlue }]}>
                   <Text style={styles.stepEmoji}>{step.emoji}</Text>
                 </View>
                 <View style={styles.stepBody}>
-                  <Text style={styles.stepTitle}>{step.title}</Text>
-                  <Text style={styles.stepDesc}>{step.desc}</Text>
+                  <Text style={[styles.stepTitle, { color: palette.textPrimary }]}>{step.title}</Text>
+                  <Text style={[styles.stepDesc, { color: palette.textSecondary }]}>{step.desc}</Text>
                 </View>
               </View>
             ))}
@@ -172,8 +174,8 @@ export default function OnboardingScreen({ navigation }: Props) {
         {/* Slide 3 — The Promise */}
         <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
           <Text style={styles.privacyEmoji}>🏔️</Text>
-          <Text style={styles.slideTitle}>Built for real people,{'\n'}not Wall Street.</Text>
-          <View style={styles.privacyCard}>
+          <Text style={[styles.slideTitle, { color: palette.textPrimary }]}>Built for real people,{'\n'}not Wall Street.</Text>
+          <View style={[styles.privacyCard, { backgroundColor: palette.bgElevated }]}>
             {[
               { icon: '📖', text: 'Every recommendation comes with plain-English explanations. No jargon. No complexity.' },
               { icon: '🔒', text: 'No account required. We never store your portfolio data or sell your information.' },
@@ -182,7 +184,7 @@ export default function OnboardingScreen({ navigation }: Props) {
             ].map((item, i) => (
               <View key={i} style={styles.privacyRow}>
                 <Text style={styles.privacyIcon}>{item.icon}</Text>
-                <Text style={styles.privacyText}>{item.text}</Text>
+                <Text style={[styles.privacyText, { color: palette.textSecondary }]}>{item.text}</Text>
               </View>
             ))}
           </View>
@@ -193,7 +195,7 @@ export default function OnboardingScreen({ navigation }: Props) {
       <View style={styles.dotsRow}>
         {SLIDES.map((_, i) => (
           <TouchableOpacity key={i} onPress={() => goToSlide(i)} activeOpacity={0.7}>
-            <View style={[styles.dot, i === currentSlide && styles.dotActive]} />
+            <View style={[styles.dot, { backgroundColor: i === currentSlide ? palette.brandBlue : palette.borderSubtle }, i === currentSlide && styles.dotActive]} />
           </TouchableOpacity>
         ))}
       </View>
@@ -202,7 +204,7 @@ export default function OnboardingScreen({ navigation }: Props) {
       <View style={styles.footer}>
         {isLast ? (
           <TouchableOpacity
-            style={styles.getStartedBtn}
+            style={[styles.getStartedBtn, { backgroundColor: palette.brandBlue }]}
             onPress={() => completeOnboarding(navigation)}
             activeOpacity={0.8}
           >
@@ -210,11 +212,11 @@ export default function OnboardingScreen({ navigation }: Props) {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={styles.nextBtn}
+            style={[styles.nextBtn, { borderColor: palette.brandBlue }]}
             onPress={() => goToSlide(currentSlide + 1)}
             activeOpacity={0.8}
           >
-            <Text style={styles.nextText}>Next →</Text>
+            <Text style={[styles.nextText, { color: palette.brandBlue }]}>Next →</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -223,7 +225,7 @@ export default function OnboardingScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
+  screen: { flex: 1 },
   skipBtn: {
     position: 'absolute',
     top: 56,
@@ -231,7 +233,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: spacing.sm,
   },
-  skipText: { fontSize: 15, color: colors.textSecondary, fontWeight: '600' },
+  skipText: { fontSize: 15, fontWeight: '600' },
   scrollView: { flex: 1 },
   slide: {
     flex: 1,
@@ -244,7 +246,6 @@ const styles = StyleSheet.create({
   slideTitle: {
     fontSize: 32,
     fontWeight: '900',
-    color: colors.textPrimary,
     textAlign: 'center',
     marginTop: spacing.xl,
     marginBottom: spacing.md,
@@ -253,13 +254,11 @@ const styles = StyleSheet.create({
   slideTitleNoTop: {
     fontSize: 32,
     fontWeight: '900',
-    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
   slideSubtitle: {
     fontSize: 16,
-    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: spacing.xl,
@@ -268,17 +267,15 @@ const styles = StyleSheet.create({
   stepRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.card,
     borderRadius: radius.lg,
     padding: spacing.md,
     gap: spacing.md,
     ...shadow.sm,
   },
   stepNumBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -286,12 +283,11 @@ const styles = StyleSheet.create({
   stepNum: { color: '#fff', fontSize: 16, fontWeight: '800' },
   stepEmoji: { fontSize: 18 },
   stepBody: { flex: 1 },
-  stepTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 3 },
-  stepDesc: { fontSize: 13, color: colors.textSecondary, lineHeight: 18 },
+  stepTitle: { fontSize: 15, fontWeight: '700', marginBottom: 3 },
+  stepDesc: { fontSize: 13, lineHeight: 18 },
   privacyEmoji: { fontSize: 56, marginBottom: spacing.md },
   privacyCard: {
     width: '100%',
-    backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: spacing.lg,
     gap: spacing.md,
@@ -299,7 +295,7 @@ const styles = StyleSheet.create({
   },
   privacyRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   privacyIcon: { fontSize: 20, width: 28, textAlign: 'center', marginTop: 1 },
-  privacyText: { flex: 1, fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
+  privacyText: { flex: 1, fontSize: 14, lineHeight: 20 },
   dotsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -311,18 +307,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.border,
   },
-  dotActive: {
-    backgroundColor: colors.primary,
-    width: 24,
-  },
+  dotActive: { width: 24 },
   footer: {
     paddingHorizontal: spacing.lg,
     paddingBottom: 48,
   },
   getStartedBtn: {
-    backgroundColor: colors.primary,
     borderRadius: radius.md,
     paddingVertical: 16,
     alignItems: 'center',
@@ -331,10 +322,9 @@ const styles = StyleSheet.create({
   getStartedText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   nextBtn: {
     borderWidth: 2,
-    borderColor: colors.primary,
     borderRadius: radius.md,
     paddingVertical: 15,
     alignItems: 'center',
   },
-  nextText: { color: colors.primary, fontSize: 16, fontWeight: '700' },
+  nextText: { fontSize: 16, fontWeight: '700' },
 });

@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -34,6 +34,7 @@ import { STORAGE, PREMIUM_TRIGGER_COUNT } from '../constants';
 import { RootStackParamList, OptimizeResponse, SavedPortfolio, OnboardingData, HoldingResult } from '../types';
 import { optimizePortfolio } from '../api';
 import { colors, spacing, radius } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { checkAndAwardBadges } from '../services/badgeService';
 
 type Props = {
@@ -74,6 +75,7 @@ async function savePortfolioToStorage(data: OnboardingData, result: OptimizeResp
 
 export default function ResultsScreen({ navigation, route }: Props) {
   const { data } = route.params;
+  const { palette } = useTheme();
   const [result, setResult] = useState<OptimizeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,11 +152,11 @@ export default function ResultsScreen({ navigation, route }: Props) {
 
   if (error || !result) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { backgroundColor: palette.bgPrimary }]}>
         <Text style={styles.errorEmoji}>⚠️</Text>
-        <Text style={styles.errorTitle}>Something went wrong</Text>
-        <Text style={styles.errorMsg}>{error}</Text>
-        <TouchableOpacity style={styles.retryBtn} onPress={() => navigation.goBack()}>
+        <Text style={[styles.errorTitle, { color: palette.textPrimary }]}>Something went wrong</Text>
+        <Text style={[styles.errorMsg, { color: palette.textSecondary }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryBtn, { backgroundColor: palette.brandBlue }]} onPress={() => navigation.goBack()}>
           <Text style={styles.retryText}>← Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -162,23 +164,23 @@ export default function ResultsScreen({ navigation, route }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.screenWrapper}>
+    <SafeAreaView style={[styles.screenWrapper, { backgroundColor: palette.bgPrimary }]} edges={['top', 'bottom']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.pageHeader}>
           <TouchableOpacity onPress={() => navigation.popToTop()} style={styles.backBtn}>
-            <Text style={styles.backText}>✕ Start Over</Text>
+            <Text style={[styles.backText, { color: palette.textSecondary }]}>✕ Start Over</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => Alert.alert('Frontier Score', 'Your Frontier Score (0-10) measures how efficiently your portfolio converts risk into return. A score of 7.5+ means excellent risk-adjusted performance.')}>
-            <Text style={{ color: colors.textMuted, fontSize: 18 }}>ℹ️</Text>
+            <Text style={{ color: palette.textTertiary, fontSize: 18 }}>ℹ️</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.exportBtn} onPress={handleExport} disabled={exporting} activeOpacity={0.75}>
-            <Text style={styles.exportBtnText}>{exporting ? '…' : '↓ PDF'}</Text>
+          <TouchableOpacity style={[styles.exportBtn, { borderColor: palette.brandBlue }]} onPress={handleExport} disabled={exporting} activeOpacity={0.75}>
+            <Text style={[styles.exportBtnText, { color: palette.brandBlue }]}>{exporting ? '…' : '↓ PDF'}</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.greeting}>{result.profile.name}'s Portfolio</Text>
+        <Text style={[styles.greeting, { color: palette.textPrimary }]}>{result.profile.name}'s Portfolio</Text>
         <View style={styles.subheadingRow}>
-          <Text style={styles.subheading}>
+          <Text style={[styles.subheading, { color: palette.textSecondary }]}>
             {result.profile.risk_label} · {result.profile.categories.length} sector{result.profile.categories.length !== 1 ? 's' : ''}
           </Text>
         </View>
@@ -187,8 +189,8 @@ export default function ResultsScreen({ navigation, route }: Props) {
         <ScoreCard result={result} />
         <RiskSwitcher selected={selectedRisk} onSelect={handleRiskChange} switching={riskSwitching} />
 
-        <Text style={styles.sectionTitle}>📊 Your ETF Allocation</Text>
-        <Text style={styles.sectionHint}>Long press any holding for details</Text>
+        <Text style={[styles.sectionTitle, { color: palette.textPrimary }]}>📊 Your ETF Allocation</Text>
+        <Text style={[styles.sectionHint, { color: palette.textTertiary }]}>Long press any holding for details</Text>
         {result.holdings.map((h, idx) => (
           <React.Fragment key={h.ticker}>
             <TouchableOpacity onLongPress={() => setDetailHolding(h)} activeOpacity={1}>
@@ -205,40 +207,30 @@ export default function ResultsScreen({ navigation, route }: Props) {
 
         {/* Share Card */}
         <View style={styles.sectionWrap}>
-          <Text style={styles.sectionTitle}>📤 Share Your Portfolio</Text>
+          <Text style={[styles.sectionTitle, { color: palette.textPrimary }]}>📤 Share Your Portfolio</Text>
           <ShareCard result={result} />
         </View>
 
-        <View style={styles.disclaimer}>
-          <Text style={styles.disclaimerText}>
+        <View style={[styles.disclaimer, { backgroundColor: palette.bgElevated, borderColor: palette.borderSubtle }]}>
+          <Text style={[styles.disclaimerText, { color: palette.textTertiary }]}>
             ⚖️ My Frontier is for educational purposes only. This is not financial advice. All investing involves risk including possible loss of principal. Dollar amounts shown are estimates only. ETF data sourced from Yahoo Finance — verify all information independently.
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.restartBtn} onPress={() => navigation.popToTop()} activeOpacity={0.8}>
-          <Text style={styles.restartText}>Start a New Analysis</Text>
+        <TouchableOpacity style={[styles.restartBtn, { borderColor: palette.brandBlue }]} onPress={() => navigation.popToTop()} activeOpacity={0.8}>
+          <Text style={[styles.restartText, { color: palette.brandBlue }]}>Start a New Analysis</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.autoInvestBtn} activeOpacity={0.8} onPress={() => navigation.navigate('WealthTracker' as any)}>
-          <Text style={styles.autoInvestText}>View My Portfolios</Text>
+        <TouchableOpacity style={[styles.autoInvestBtn, { borderColor: palette.brandBlue }]} activeOpacity={0.8} onPress={() => navigation.navigate('WealthTracker' as any)}>
+          <Text style={[styles.autoInvestText, { color: palette.brandBlue }]}>View My Portfolios</Text>
         </TouchableOpacity>
 
         <AdBanner placement="banner" style={styles.adBanner} />
         <View style={{ height: spacing.xl }} />
       </ScrollView>
 
-      {/* Alex FAB — re-enabled (free on Gemini) */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('Advisor', { portfolio: result })}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.fabText}>🤖</Text>
-        <Text style={styles.fabLabel}>Ask Alex</Text>
-      </TouchableOpacity>
-
-      <View style={styles.persistentFooter}>
-        <Text style={styles.persistentFooterText}>Not financial advice. For educational purposes only.</Text>
+      <View style={[styles.persistentFooter, { backgroundColor: palette.bgElevated, borderTopColor: palette.borderSubtle }]}>
+        <Text style={[styles.persistentFooterText, { color: palette.textTertiary }]}>Not financial advice. For educational purposes only.</Text>
       </View>
 
 
@@ -249,41 +241,33 @@ export default function ResultsScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screenWrapper: { flex: 1, backgroundColor: colors.bg },
+  screenWrapper: { flex: 1 },
   scroll: { flex: 1 },
   container: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
-  centered: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   errorEmoji: { fontSize: 48, marginBottom: spacing.md },
-  errorTitle: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.sm },
-  errorMsg: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 22, marginBottom: spacing.lg },
-  retryBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.xl, paddingVertical: 14, borderRadius: radius.md },
+  errorTitle: { fontSize: 22, fontWeight: '700', marginBottom: spacing.sm },
+  errorMsg: { fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: spacing.lg },
+  retryBtn: { paddingHorizontal: spacing.xl, paddingVertical: 14, borderRadius: radius.md },
   retryText: { color: '#fff', fontWeight: '700' },
   backBtn: {},
-  backText: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
-  greeting: { fontSize: 30, fontWeight: '900', color: colors.textPrimary, marginBottom: 4 },
+  backText: { fontSize: 14, fontWeight: '600' },
+  greeting: { fontSize: 30, fontWeight: '900', marginBottom: 4 },
   subheadingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  subheading: { fontSize: 15, color: colors.textSecondary, flex: 1 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, marginBottom: 2 },
-  sectionHint: { fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm },
+  subheading: { fontSize: 15, flex: 1 },
+  sectionTitle: { fontSize: 18, fontWeight: '800', marginBottom: 2 },
+  sectionHint: { fontSize: 12, marginBottom: spacing.sm },
   sectionWrap: { marginBottom: spacing.lg },
-  disclaimer: { backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.lg, borderWidth: 1, borderColor: colors.border },
-  disclaimerText: { fontSize: 12, color: colors.textMuted, lineHeight: 18 },
-  restartBtn: { borderWidth: 2, borderColor: colors.primary, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', marginBottom: spacing.md },
-  restartText: { color: colors.primary, fontSize: 16, fontWeight: '700' },
-  autoInvestBtn: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.md, paddingVertical: 13, alignItems: 'center', marginBottom: spacing.lg },
-  autoInvestText: { color: colors.primary, fontSize: 15, fontWeight: '600' },
+  disclaimer: { borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.lg, borderWidth: 1 },
+  disclaimerText: { fontSize: 12, lineHeight: 18 },
+  restartBtn: { borderWidth: 2, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center', marginBottom: spacing.md },
+  restartText: { fontSize: 16, fontWeight: '700' },
+  autoInvestBtn: { borderWidth: 1.5, borderRadius: radius.md, paddingVertical: 13, alignItems: 'center', marginBottom: spacing.lg },
+  autoInvestText: { fontSize: 15, fontWeight: '600' },
   adBanner: { marginBottom: spacing.sm },
   pageHeader: { paddingBottom: spacing.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  exportBtn: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 5 },
-  exportBtnText: { fontSize: 13, color: colors.primary, fontWeight: '700' },
-  fab: {
-    position: 'absolute', bottom: 72, right: spacing.lg, backgroundColor: '#7209B7',
-    borderRadius: radius.xl, paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
-    flexDirection: 'row', alignItems: 'center', gap: spacing.xs, elevation: 8,
-    shadowColor: '#7209B7', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8,
-  },
-  fabText: { fontSize: 20 },
-  fabLabel: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  persistentFooter: { backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border, paddingVertical: 8, paddingHorizontal: spacing.lg, alignItems: 'center' },
-  persistentFooterText: { fontSize: 11, color: colors.textMuted, textAlign: 'center' },
+  exportBtn: { borderWidth: 1.5, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 5 },
+  exportBtnText: { fontSize: 13, fontWeight: '700' },
+  persistentFooter: { borderTopWidth: 1, paddingVertical: 8, paddingHorizontal: spacing.lg, alignItems: 'center' },
+  persistentFooterText: { fontSize: 11, textAlign: 'center' },
 });

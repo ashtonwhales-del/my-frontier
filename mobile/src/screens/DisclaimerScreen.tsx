@@ -15,12 +15,15 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
 import { colors, spacing, radius, shadow } from '../theme';
 import { STORAGE } from '../constants';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Disclaimer'>;
 };
 
 export default function DisclaimerScreen({ navigation }: Props) {
+  const { palette } = useTheme();
+
   // Block Android hardware back button — this screen cannot be dismissed
   useFocusEffect(
     useCallback(() => {
@@ -95,11 +98,11 @@ export default function DisclaimerScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: palette.bgPrimary }]}>
       {/* Logo mark */}
       <View style={styles.logoWrap}>
-        <View style={styles.logoMark}>
-          <View style={styles.skyUpper} />
+        <View style={[styles.logoMark, { backgroundColor: palette.bgElevated }]}>
+          <View style={[styles.skyUpper, { backgroundColor: palette.bgElevated }]} />
           <View style={styles.skyLower} />
           <View style={[styles.star, { top: 10, left: 16 }]} />
           <View style={[styles.star, { top: 6, left: 46 }]} />
@@ -113,24 +116,24 @@ export default function DisclaimerScreen({ navigation }: Props) {
           <View style={styles.peakDiamond} />
         </View>
         <Text style={styles.logoText}>
-          <Text style={{ color: colors.primary }}>My </Text>
-          <Text style={{ color: colors.textPrimary }}>Frontier</Text>
+          <Text style={{ color: palette.brandBlue }}>My </Text>
+          <Text style={{ color: palette.textPrimary }}>Frontier</Text>
         </Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>Before You Begin</Text>
+        <Text style={[styles.heading, { color: palette.textPrimary }]}>Before You Begin</Text>
 
-        <View style={styles.bodyCard}>
-          <Text style={styles.bodyText}>
-            <Text style={styles.bold}>This app is for educational purposes only. It is not financial advice.</Text>
+        <View style={[styles.bodyCard, { backgroundColor: palette.bgElevated, borderLeftColor: palette.brandBlue }]}>
+          <Text style={[styles.bodyText, { color: palette.textSecondary }]}>
+            <Text style={[styles.bold, { color: palette.textPrimary }]}>This app is for educational purposes only. It is not financial advice.</Text>
             {'\n\n'}
             My Frontier uses historical ETF price data from Yahoo Finance to demonstrate
             portfolio optimization concepts. This data may be delayed, inaccurate, or
             incomplete. Nothing in this app should be interpreted as a recommendation to
             buy or sell any security.
             {'\n\n'}
-            <Text style={styles.bold}>Past performance does not guarantee future results.</Text>{' '}
+            <Text style={[styles.bold, { color: palette.textPrimary }]}>Past performance does not guarantee future results.</Text>{' '}
             All portfolio projections and dollar amounts shown are estimates based on
             historical data and mathematical models. Actual results will differ.
             {'\n\n'}
@@ -145,20 +148,20 @@ export default function DisclaimerScreen({ navigation }: Props) {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.acceptBtn} onPress={handleAccept} activeOpacity={0.8}>
+      <View style={[styles.footer, { borderTopColor: palette.borderSubtle, backgroundColor: palette.bgPrimary }]}>
+        <TouchableOpacity style={[styles.acceptBtn, { backgroundColor: palette.brandBlue }]} onPress={handleAccept} activeOpacity={0.8}>
           <Text style={styles.acceptText}>I Understand — Continue</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.exitBtn} onPress={handleExit} activeOpacity={0.7}>
-          <Text style={styles.exitText}>Exit</Text>
+          <Text style={[styles.exitText, { color: palette.textTertiary }]}>Exit</Text>
         </TouchableOpacity>
         <View style={styles.legalRow}>
           <TouchableOpacity onPress={() => navigation.navigate('Privacy')} activeOpacity={0.7}>
-            <Text style={styles.legalLink}>Privacy Policy</Text>
+            <Text style={[styles.legalLink, { color: palette.brandBlue }]}>Privacy Policy</Text>
           </TouchableOpacity>
-          <Text style={styles.legalSep}>·</Text>
+          <Text style={[styles.legalSep, { color: palette.textTertiary }]}>·</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Terms')} activeOpacity={0.7}>
-            <Text style={styles.legalLink}>Terms of Service</Text>
+            <Text style={[styles.legalLink, { color: palette.brandBlue }]}>Terms of Service</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -167,12 +170,11 @@ export default function DisclaimerScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#0A0F1E' },
+  screen: { flex: 1 },
   logoWrap: { alignItems: 'center', paddingTop: 64, paddingBottom: spacing.lg },
   logoMark: {
     width: 80,
     height: 66,
-    backgroundColor: '#0F1729',
     borderRadius: radius.lg,
     overflow: 'hidden',
     alignItems: 'center',
@@ -180,7 +182,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     ...shadow.md,
   },
-  skyUpper: { position: 'absolute', top: 0, left: 0, right: 0, height: '62%', backgroundColor: '#0F1729' },
+  skyUpper: { position: 'absolute', top: 0, left: 0, right: 0, height: '62%' },
   skyLower: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '38%', backgroundColor: '#16213A' },
   star: { position: 'absolute', width: 2, height: 2, backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: 1 },
   mountainRow: {
@@ -224,33 +226,26 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#F8FAFC',
     marginBottom: spacing.lg,
     textAlign: 'center',
   },
   bodyCard: {
-    backgroundColor: '#0F1629',
     borderRadius: radius.xl,
     padding: spacing.lg,
     borderLeftWidth: 4,
-    borderLeftColor: colors.primary,
   },
   bodyText: {
     fontSize: 16,
-    color: '#94A3B8',
     lineHeight: 24,
   },
-  bold: { fontWeight: '700', color: colors.textPrimary },
+  bold: { fontWeight: '700' },
   footer: {
     padding: spacing.lg,
     paddingBottom: 40,
     gap: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: '#0A0F1E',
   },
   acceptBtn: {
-    backgroundColor: colors.primary,
     borderRadius: radius.md,
     paddingVertical: 16,
     alignItems: 'center',
@@ -262,7 +257,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
-  exitText: { color: colors.textMuted, fontSize: 15, fontWeight: '500' },
+  exitText: { fontSize: 15, fontWeight: '500' },
   legalRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -270,6 +265,6 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: spacing.sm,
   },
-  legalLink: { fontSize: 12, color: colors.primary, fontWeight: '500' },
-  legalSep: { fontSize: 12, color: colors.textMuted },
+  legalLink: { fontSize: 12, fontWeight: '500' },
+  legalSep: { fontSize: 12 },
 });
