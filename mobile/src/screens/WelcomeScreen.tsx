@@ -231,6 +231,20 @@ export default function WelcomeScreen({ navigation }: Props) {
                 </View>
               )}
 
+              {/* Build new portfolio CTA */}
+              <TouchableOpacity
+                style={[styles.buildNewCta, { backgroundColor: palette.bgElevated, borderColor: palette.brandBlue + '60' }]}
+                onPress={() => navigation.navigate('Categories', { name: savedName })}
+                activeOpacity={0.8}
+              >
+                <Text style={{ fontSize: 22 }}>📊</Text>
+                <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                  <Text style={[styles.buildNewCtaTitle, { color: palette.textPrimary }]}>Build New Portfolio</Text>
+                  <Text style={[styles.buildNewCtaSub, { color: palette.textSecondary }]}>Optimized for your goals</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={palette.textTertiary} />
+              </TouchableOpacity>
+
               {/* Debt planning CTA */}
               <TouchableOpacity
                 style={[styles.debtCta, { backgroundColor: palette.bgElevated, borderColor: palette.signalAmber + '60' }]}
@@ -288,35 +302,36 @@ const styles = StyleSheet.create({
   heroEmoji:     { fontSize: 56, marginBottom: Spacing.md },
   heroTitle:     { fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: Spacing.sm },
   heroSub:       { fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: Spacing.lg },
-  heroCta:       { borderRadius: Radius.xl, paddingVertical: 16, paddingHorizontal: 40 },
-  heroCtaText:   { color: '#fff', fontSize: 16, fontWeight: '700' },
-  featureRow:    { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm, marginBottom: Spacing.xl },
-  featurePill:   { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.sm, alignItems: 'center', gap: 4 },
-  featurePillText: { fontSize: 11, fontWeight: '600' },
+  heroCta:       { borderRadius: Radius.xl, paddingVertical: 14, paddingHorizontal: Spacing.xl, marginTop: Spacing.sm },
+  heroCtaText:   { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
 
-  wealthCard:  { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.lg },
-  wealthLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
-  wealthValue: { fontSize: 32, fontWeight: '900', letterSpacing: -1 },
-  wealthGrade: { fontSize: 28, fontWeight: '900' },
-  wealthRet:   { fontSize: 12 },
-  wealthSub:   { fontSize: 12, textAlign: 'center', marginTop: 6 },
+  featureRow:      { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.lg },
+  featurePill:     { flex: 1, marginHorizontal: 4, borderRadius: Radius.lg, borderWidth: 1, paddingVertical: Spacing.sm, alignItems: 'center', gap: 4 },
+  featurePillText: { fontSize: 11, fontWeight: '600', marginTop: 2 },
 
-  quoteCard:   { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, marginBottom: Spacing.lg },
-  quoteText:   { fontSize: 15, fontStyle: 'italic', lineHeight: 22, marginBottom: Spacing.sm },
-  quoteAuthor: { fontSize: 12, fontWeight: '600' },
+  quoteCard:   { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.md },
+  quoteText:   { fontSize: 13, lineHeight: 20, fontStyle: 'italic', marginBottom: 4 },
+  quoteAuthor: { fontSize: 11, fontWeight: '600' },
 
-  pulseCard: { flexDirection: 'row', justifyContent: 'space-between', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.lg },
-  pulseCol:  { alignItems: 'center', flex: 1 },
-  pulseSym:  { fontSize: 13, fontWeight: '700', marginBottom: 2 },
-  pulseVal:  { fontSize: 15, fontWeight: '700' },
+  wealthCard:  { borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.md },
+  wealthLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  wealthValue: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  wealthGrade: { fontSize: 22, fontWeight: '800' },
+  wealthRet:   { fontSize: 12, marginTop: 2 },
+  wealthSub:   { fontSize: 11, marginTop: 6 },
 
-  whatsNew:      { backgroundColor: '#F59E0B18', borderRadius: Radius.lg, borderWidth: 1, borderColor: '#F59E0B', padding: Spacing.md, marginBottom: Spacing.lg },
-  whatsNewTitle: { fontSize: 14, fontWeight: '700', color: '#F59E0B' },
-  whatsNewText:  { fontSize: 13, lineHeight: 18 },
+  pulseCard: { flexDirection: 'row', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.md, justifyContent: 'space-around' },
+  pulseCol:  { alignItems: 'center' },
+  pulseSym:  { fontSize: 11, fontWeight: '600', marginBottom: 2 },
+  pulseVal:  { fontSize: 14, fontWeight: '700' },
 
-  disclaimer: { ...BodyScale.sm, textAlign: 'center', marginTop: Spacing.md },
+  buildNewCta:      { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.sm },
+  buildNewCtaTitle: { fontSize: 15, fontWeight: '700' },
+  buildNewCtaSub:   { fontSize: 12, marginTop: 2 },
 
   debtCta:      { flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.lg },
   debtCtaTitle: { fontSize: 15, fontWeight: '700' },
   debtCtaSub:   { fontSize: 12, marginTop: 2 },
+
+  disclaimer: { fontSize: 11, textAlign: 'center', marginTop: Spacing.lg, lineHeight: 16 },
 });

@@ -8,6 +8,7 @@ import {
   ActivityIndicator, TextInput, Alert,
 } from 'react-native';
 import { colors, spacing, radius, shadow } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { fetchCategories } from '../../api';
 
 // Category groupings for display
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function CategoryPicker({ onConfirm, onBack }: Props) {
+  const { palette } = useTheme();
   const [allCategories, setAllCategories] = useState<string[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -55,9 +57,9 @@ export default function CategoryPicker({ onConfirm, onBack }: Props) {
 
   if (loading) {
     return (
-      <View style={styles.loadWrap}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadText}>Loading sectors...</Text>
+      <View style={[styles.loadWrap, { backgroundColor: palette.bgPrimary }]}>
+        <ActivityIndicator size="large" color={palette.accent} />
+        <Text style={[styles.loadText, { color: palette.textSecondary }]}>Loading sectors...</Text>
       </View>
     );
   }
@@ -69,14 +71,20 @@ export default function CategoryPicker({ onConfirm, onBack }: Props) {
   const selCount = selected.size;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: palette.bgPrimary }]}>
       <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-        <Text style={styles.backText}>Back</Text>
+        <Text style={[styles.backText, { color: palette.accent }]}>Back</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Choose Your Sectors</Text>
-      <TextInput style={styles.searchInput} placeholder="Search categories..." placeholderTextColor={colors.textMuted} value={search} onChangeText={setSearch} />
+      <Text style={[styles.title, { color: palette.textPrimary }]}>Choose Your Sectors</Text>
+      <TextInput
+        style={[styles.searchInput, { backgroundColor: palette.bgElevated, borderColor: palette.borderSubtle, color: palette.textPrimary }]}
+        placeholder="Search categories..."
+        placeholderTextColor={palette.textTertiary}
+        value={search}
+        onChangeText={setSearch}
+      />
       {selCount > 0 && (
-        <View style={styles.badge}>
+        <View style={[styles.badge, { backgroundColor: palette.accent }]}>
           <Text style={styles.badgeText}>{selCount} selected</Text>
         </View>
       )}
@@ -86,12 +94,21 @@ export default function CategoryPicker({ onConfirm, onBack }: Props) {
           if (!visible.length) return null;
           return (
             <View key={group.label}>
-              <Text style={styles.sectionLabel}>{group.label}</Text>
-              <Text style={styles.sectionHint}>{group.hint}</Text>
+              <Text style={[styles.sectionLabel, { color: palette.textTertiary }]}>{group.label}</Text>
+              <Text style={[styles.sectionHint, { color: palette.textSecondary }]}>{group.hint}</Text>
               <View style={styles.chipWrap}>
                 {visible.map(cat => (
-                  <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
-                    <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
+                  <TouchableOpacity
+                    key={cat}
+                    style={[
+                      styles.chip,
+                      { backgroundColor: palette.bgElevated, borderColor: palette.borderSubtle },
+                      selected.has(cat) && { backgroundColor: palette.accent, borderColor: palette.accent, shadowColor: palette.accent },
+                    ]}
+                    onPress={() => toggle(cat)}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={[styles.chipLabel, { color: palette.textPrimary }, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -99,16 +116,25 @@ export default function CategoryPicker({ onConfirm, onBack }: Props) {
           );
         })}
         {!showAll && ungrouped.length > 0 ? (
-          <TouchableOpacity style={styles.addMoreBtn} onPress={() => setShowAll(true)} activeOpacity={0.75}>
-            <Text style={styles.addMoreText}>+ Show {ungrouped.length} more sectors</Text>
+          <TouchableOpacity style={[styles.addMoreBtn, { borderColor: palette.borderSubtle }]} onPress={() => setShowAll(true)} activeOpacity={0.75}>
+            <Text style={[styles.addMoreText, { color: palette.accent }]}>+ Show {ungrouped.length} more sectors</Text>
           </TouchableOpacity>
         ) : ungrouped.length > 0 ? (
           <View>
-            <Text style={styles.sectionLabel}>ALL OTHER SECTORS</Text>
+            <Text style={[styles.sectionLabel, { color: palette.textTertiary }]}>ALL OTHER SECTORS</Text>
             <View style={styles.chipWrap}>
               {ungrouped.map(cat => (
-                <TouchableOpacity key={cat} style={[styles.chip, selected.has(cat) && styles.chipSelected]} onPress={() => toggle(cat)} activeOpacity={0.75}>
-                  <Text style={[styles.chipLabel, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.chip,
+                    { backgroundColor: palette.bgElevated, borderColor: palette.borderSubtle },
+                    selected.has(cat) && { backgroundColor: palette.accent, borderColor: palette.accent, shadowColor: palette.accent },
+                  ]}
+                  onPress={() => toggle(cat)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.chipLabel, { color: palette.textPrimary }, selected.has(cat) && styles.chipLabelSel]}>{cat}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -116,8 +142,13 @@ export default function CategoryPicker({ onConfirm, onBack }: Props) {
         ) : null}
         <View style={{ height: 80 }} />
       </ScrollView>
-      <View style={styles.footer}>
-        <TouchableOpacity style={[styles.continueBtn, !selCount && styles.btnDisabled]} onPress={() => onConfirm(Array.from(selected))} disabled={!selCount} activeOpacity={0.8}>
+      <View style={[styles.footer, { backgroundColor: palette.bgPrimary, borderTopColor: palette.borderSubtle }]}>
+        <TouchableOpacity
+          style={[styles.continueBtn, { backgroundColor: palette.accent }, !selCount && styles.btnDisabled]}
+          onPress={() => onConfirm(Array.from(selected))}
+          disabled={!selCount}
+          activeOpacity={0.8}
+        >
           <Text style={styles.continueBtnText}>
             {selCount ? 'Continue with ' + selCount + ' sector' + (selCount > 1 ? 's' : '') : 'Select at least one sector'}
           </Text>
@@ -128,37 +159,38 @@ export default function CategoryPicker({ onConfirm, onBack }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1 },
   loadWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
-  loadText: { fontSize: 14, color: colors.textSecondary },
+  loadText: { fontSize: 14 },
   backBtn: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  backText: { fontSize: 15, color: colors.primary, fontWeight: '600' },
-  title: { fontSize: 24, fontWeight: '800', color: colors.textPrimary, paddingHorizontal: spacing.lg, marginTop: spacing.sm },
-  subtitle: { fontSize: 13, color: colors.textSecondary, paddingHorizontal: spacing.lg, marginBottom: spacing.sm, lineHeight: 19 },
+  backText: { fontSize: 15, fontWeight: '600' },
+  title: { fontSize: 24, fontWeight: '800', paddingHorizontal: spacing.lg, marginTop: spacing.sm },
+  subtitle: { fontSize: 13, paddingHorizontal: spacing.lg, marginBottom: spacing.sm, lineHeight: 19 },
   searchInput: {
     marginHorizontal: spacing.lg, marginBottom: spacing.sm,
-    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+    borderWidth: 1,
     borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 10,
-    fontSize: 14, color: colors.textPrimary,
+    fontSize: 14,
   },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: spacing.md, marginBottom: 2 },
-  sectionHint: { fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm },
-  badge: { alignSelf: 'flex-start', marginHorizontal: spacing.lg, marginBottom: spacing.sm, backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 4 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', marginTop: spacing.md, marginBottom: 2 },
+  sectionHint: { fontSize: 12, marginBottom: spacing.sm },
+  badge: { alignSelf: 'flex-start', marginHorizontal: spacing.lg, marginBottom: spacing.sm, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 4 },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   scrollContent: { paddingHorizontal: spacing.lg },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm },
-  addMoreBtn: { marginTop: spacing.sm, marginBottom: spacing.md, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.lg, borderStyle: 'dashed' as any, paddingVertical: 14, alignItems: 'center' as const },
-  addMoreText: { fontSize: 14, fontWeight: '600', color: colors.primary },
+  addMoreBtn: { marginTop: spacing.sm, marginBottom: spacing.md, borderWidth: 1.5, borderRadius: radius.lg, borderStyle: 'dashed' as any, paddingVertical: 14, alignItems: 'center' as const },
+  addMoreText: { fontSize: 14, fontWeight: '600' },
   chip: {
-    backgroundColor: colors.card, borderRadius: radius.full,
-    borderWidth: 1.5, borderColor: colors.border,
+    borderRadius: radius.full,
+    borderWidth: 1.5,
     paddingHorizontal: 16, paddingVertical: 10,
+    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4,
   },
-  chipSelected: { backgroundColor: colors.primary, borderColor: colors.primary, shadowColor: colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 },
-  chipLabel: { fontSize: 13, fontWeight: '600', color: colors.textPrimary },
+  chipSelected: {},
+  chipLabel: { fontSize: 13, fontWeight: '600' },
   chipLabelSel: { color: '#FFFFFF' },
-  footer: { padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
-  continueBtn: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 16, alignItems: 'center', ...shadow.md },
+  footer: { padding: spacing.lg, paddingBottom: spacing.xl, borderTopWidth: 1 },
+  continueBtn: { borderRadius: radius.md, paddingVertical: 16, alignItems: 'center', ...shadow.md },
   btnDisabled: { opacity: 0.4 },
   continueBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

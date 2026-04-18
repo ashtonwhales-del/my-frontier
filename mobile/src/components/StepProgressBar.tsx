@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, radius } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 
 interface Props {
   currentStep: number; // 1-based
@@ -9,22 +10,30 @@ interface Props {
 }
 
 export default function StepProgressBar({ currentStep, totalSteps, labels }: Props) {
+  const { palette } = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: palette.bgPrimary }]}>
       <View style={styles.barRow}>
         {Array.from({ length: totalSteps }).map((_, i) => {
           const stepNum = i + 1;
           const filled = stepNum <= currentStep;
           const isLast = stepNum === totalSteps;
           return (
-            <View key={i} style={[styles.segment, !isLast && styles.segmentGap, filled && styles.segmentFilled]} />
+            <View
+              key={i}
+              style={[
+                styles.segment,
+                !isLast && styles.segmentGap,
+                { backgroundColor: filled ? palette.accent : palette.borderSubtle },
+              ]}
+            />
           );
         })}
       </View>
-      <Text style={styles.label}>
-        Step <Text style={styles.labelBold}>{currentStep}</Text> of {totalSteps}
+      <Text style={[styles.label, { color: palette.textSecondary }]}>
+        Step <Text style={[styles.labelBold, { color: palette.textPrimary }]}>{currentStep}</Text> of {totalSteps}
         {labels && labels[currentStep - 1] ? (
-          <Text style={styles.labelName}>  ·  {labels[currentStep - 1]}</Text>
+          <Text style={[styles.labelName, { color: palette.textSecondary }]}>  ·  {labels[currentStep - 1]}</Text>
         ) : null}
       </Text>
     </View>
@@ -36,7 +45,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.md,
-    backgroundColor: colors.card,
   },
   barRow: {
     flexDirection: 'row',
@@ -50,21 +58,14 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 4,
     borderRadius: radius.full,
-    backgroundColor: colors.border,
   },
   segmentGap: {},
-  segmentFilled: {
-    backgroundColor: colors.primary,
-  },
+  segmentFilled: {},
   label: {
     fontSize: 12,
-    color: colors.textMuted,
   },
   labelBold: {
     fontWeight: '700',
-    color: colors.textSecondary,
   },
-  labelName: {
-    color: colors.textMuted,
-  },
+  labelName: {},
 });
